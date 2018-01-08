@@ -7,6 +7,7 @@ struct CoordCube {
     edges: i128,
 }
 
+#[derive(Clone, Copy)]
 struct FaceletCube {
     // u8 benchmarked as fastest for permuting
     corners: [u8; 24],
@@ -71,6 +72,20 @@ fn permute_arr_inv(a: [u8; 24], b: [u8; 24]) -> [u8; 24] {
     r[b[22] as usize] = a[22];
     r[b[23] as usize] = a[23];
     r
+}
+
+fn permute_cube(a: FaceletCube, b: FaceletCube) -> FaceletCube {
+    FaceletCube {
+        edges: permute_arr(a.edges, b.edges),
+        corners: permute_arr(a.corners, b.corners),
+    }
+}
+
+fn permute_cube_inv(a: FaceletCube, b: FaceletCube) -> FaceletCube {
+    FaceletCube {
+        edges: permute_arr_inv(a.edges, b.edges),
+        corners: permute_arr_inv(a.corners, b.corners),
+    }
 }
 
 fn permute(a: i128, b: i128) -> i128 {
@@ -170,6 +185,10 @@ fn main() {
     const CLEAN_ARR: [u8; 24] = [
         0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23
     ];
+    const CLEAN_CUBE: FaceletCube = FaceletCube {
+        edges: CLEAN_ARR,
+        corners: CLEAN_ARR,
+    };
     use Facelet::*;
 
     // Create a Clockwise turn of the U face
@@ -425,6 +444,74 @@ fn main() {
         edges: e,
         corners: c,
     };
+
+    let mut syms = [CLEAN_CUBE; 48];
+    for i in 0..48 {
+        let mut x = i;
+        let urfs = x % 3;
+        x -= urfs;
+        let fs = x / 3 % 2;
+        x -= fs;
+        let us = x / 2 % 4;
+        x -= us;
+        let ms = x / 4;
+
+        let mut c = syms[i];
+        for _ in 0..urfs {
+            c = permute_cube(c, s_urf);
+        }
+        for _ in 0..fs {
+            c = permute_cube(c, s_f);
+        }
+        for _ in 0..us {
+            c = permute_cube(c, s_u);
+        }
+        for _ in 0..ms {
+            c = permute_cube(c, s_mrl);
+        }
+        syms[i] = c;
+    }
+
+    let mut syms_inv = [CLEAN_CUBE; 48];
+    for i in 0..48 {
+        syms_inv[i] = permute_cube_inv(CLEAN_CUBE, syms[i]);
+    }
+
+    let f = permute_cube(
+        permute_cube(permute_cube_inv(CLEAN_CUBE, syms[2]), u),
+        syms[2],
+    );
+    let r = permute_cube(
+        permute_cube(permute_cube_inv(CLEAN_CUBE, syms[1]), u),
+        syms[1],
+    );
+    let b = permute_cube(
+        permute_cube(permute_cube_inv(CLEAN_CUBE, syms[5]), u),
+        syms[5],
+    );
+    let l = permute_cube(
+        permute_cube(permute_cube_inv(CLEAN_CUBE, syms[4]), u),
+        syms[4],
+    );
+    let d = permute_cube(
+        permute_cube(permute_cube_inv(CLEAN_CUBE, syms[3]), u),
+        syms[3],
+    );
+
+    let turns = [
+        u,
+        permute_cube_inv(CLEAN_CUBE, u),
+        f,
+        permute_cube_inv(CLEAN_CUBE, f),
+        r,
+        permute_cube_inv(CLEAN_CUBE, r),
+        b,
+        permute_cube_inv(CLEAN_CUBE, b),
+        l,
+        permute_cube_inv(CLEAN_CUBE, l),
+        d,
+        permute_cube_inv(CLEAN_CUBE, d),
+    ];
 }
 
 #[cfg(test)]
