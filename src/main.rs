@@ -1,4 +1,5 @@
 #![feature(i128_type, test)]
+use std::fmt;
 
 extern crate test;
 
@@ -7,41 +8,42 @@ struct CoordCube {
     edges: i128,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord)]
 struct FaceletCube {
     // u8 benchmarked as fastest for permuting
     corners: [u8; 24],
     edges: [u8; 24],
 }
 
-fn permute_arr(a: [u8; 24], b: [u8; 24]) -> [u8; 24] {
-    let mut r = [0; 24];
-    //silly looking, but twice as fast ;)
-    r[a[0] as usize] = b[0];
-    r[a[1] as usize] = b[1];
-    r[a[2] as usize] = b[2];
-    r[a[3] as usize] = b[3];
-    r[a[4] as usize] = b[4];
-    r[a[5] as usize] = b[5];
-    r[a[6] as usize] = b[6];
-    r[a[7] as usize] = b[7];
-    r[a[8] as usize] = b[8];
-    r[a[9] as usize] = b[9];
-    r[a[10] as usize] = b[10];
-    r[a[11] as usize] = b[11];
-    r[a[12] as usize] = b[12];
-    r[a[13] as usize] = b[13];
-    r[a[14] as usize] = b[14];
-    r[a[15] as usize] = b[15];
-    r[a[16] as usize] = b[16];
-    r[a[17] as usize] = b[17];
-    r[a[18] as usize] = b[18];
-    r[a[19] as usize] = b[19];
-    r[a[20] as usize] = b[20];
-    r[a[21] as usize] = b[21];
-    r[a[22] as usize] = b[22];
-    r[a[23] as usize] = b[23];
-    r
+impl fmt::Display for FaceletCube {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "\n      ┌─┬─┬─┐\n      │{}│{}│{}│\n      ├─┼─┼─┤\n      │{}│0│{}│\n      ├─┼─┼─┤\n      │{}│{}│{}│\n┌─┬─┬─┼─┼─┼─┼─┬─┬─┬─┬─┬─┐\n│{}│{}│{}│{}│{}│{}│{}│{}│{}│{}│{}│{}│\n├─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┤\n│{}│4│{}│{}│1│{}│{}│2│{}│{}│3│{}│\n├─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┤\n│{}│{}│{}│{}│{}│{}│{}│{}│{}│{}│{}│{}│\n└─┴─┴─┼─┼─┼─┼─┴─┴─┴─┴─┴─┘\n      │{}│{}│{}│\n      ├─┼─┼─┤\n      │{}│5│{}│\n      ├─┼─┼─┤\n      │{}│{}│{}│\n      └─┴─┴─┘",
+            self.corners[1] >> 2, self.edges[1] >> 2, self.corners[0] >> 2,
+            self.edges[2] >> 2, self.edges[0] >> 2,
+            self.corners[2] >> 2, self.edges[3] >> 2, self.corners[3] >> 2,
+
+            self.corners[17] >> 2, self.edges[17] >> 2, self.corners[16] >> 2,
+            self.corners[5] >> 2, self.edges[5] >> 2, self.corners[4] >> 2,
+            self.corners[9] >> 2, self.edges[9] >> 2, self.corners[8] >> 2,
+            self.corners[13] >> 2, self.edges[13] >> 2, self.corners[12] >> 2,
+
+            self.edges[16] >> 2, self.edges[16] >> 2,
+            self.edges[6] >> 2, self.edges[4] >> 2,
+            self.edges[10] >> 2, self.edges[8] >> 2,
+            self.edges[14] >> 2, self.edges[12] >> 2,
+
+            self.corners[18] >> 2, self.edges[19] >> 2, self.corners[19] >> 2,
+            self.corners[6] >> 2, self.edges[7] >> 2, self.corners[7] >> 2,
+            self.corners[10] >> 2, self.edges[11] >> 2, self.corners[11] >> 2,
+            self.corners[14] >> 2, self.edges[15] >> 2, self.corners[15] >> 2,
+
+            self.corners[21] >> 2, self.edges[21] >> 2, self.corners[20] >> 2,
+            self.edges[22] >> 2, self.edges[20] >> 2,
+            self.corners[22] >> 2, self.edges[23] >> 2, self.corners[23] >> 2,
+        )
+    }
 }
 
 fn permute_arr_inv(a: [u8; 24], b: [u8; 24]) -> [u8; 24] {
@@ -74,6 +76,35 @@ fn permute_arr_inv(a: [u8; 24], b: [u8; 24]) -> [u8; 24] {
     r
 }
 
+fn permute_arr(a: [u8; 24], b: [u8; 24]) -> [u8; 24] {
+    [
+        a[b[0] as usize],
+        a[b[1] as usize],
+        a[b[2] as usize],
+        a[b[3] as usize],
+        a[b[4] as usize],
+        a[b[5] as usize],
+        a[b[6] as usize],
+        a[b[7] as usize],
+        a[b[8] as usize],
+        a[b[9] as usize],
+        a[b[10] as usize],
+        a[b[11] as usize],
+        a[b[12] as usize],
+        a[b[13] as usize],
+        a[b[14] as usize],
+        a[b[15] as usize],
+        a[b[16] as usize],
+        a[b[17] as usize],
+        a[b[18] as usize],
+        a[b[19] as usize],
+        a[b[20] as usize],
+        a[b[21] as usize],
+        a[b[22] as usize],
+        a[b[23] as usize],
+    ]
+}
+
 fn permute_cube(a: FaceletCube, b: FaceletCube) -> FaceletCube {
     FaceletCube {
         edges: permute_arr(a.edges, b.edges),
@@ -86,6 +117,25 @@ fn permute_cube_inv(a: FaceletCube, b: FaceletCube) -> FaceletCube {
         edges: permute_arr_inv(a.edges, b.edges),
         corners: permute_arr_inv(a.corners, b.corners),
     }
+}
+
+fn greatest_equivalence(
+    syms_inv: &[FaceletCube; 48],
+    syms: &[FaceletCube; 48],
+    perm: FaceletCube,
+) -> FaceletCube {
+    let mut greatest = perm;
+    for i in 1..48 {
+        let e = permute_cube(permute_cube(syms_inv[i], perm), syms[i]);
+        if e > greatest {
+            greatest = e;
+        }
+        let e_inv = permute_cube(permute_cube_inv(syms_inv[i], perm), syms[i]);
+        if e_inv > greatest {
+            greatest = e_inv;
+        }
+    }
+    greatest
 }
 
 fn permute(a: i128, b: i128) -> i128 {
@@ -174,12 +224,6 @@ enum Facelet {
     D2,
     D3,
 }
-
-// TODO:
-const U: FaceletCube = FaceletCube {
-    edges: [0; 24],
-    corners: [0; 24],
-};
 
 fn main() {
     const CLEAN_ARR: [u8; 24] = [
@@ -281,10 +325,10 @@ fn main() {
 
     // Create a 180deg turn of the whole cube on the F face
     let mut e = CLEAN_ARR.clone();
-    e[U0 as usize] = B2 as u8;
-    e[U1 as usize] = B3 as u8;
-    e[U2 as usize] = B0 as u8;
-    e[U3 as usize] = B1 as u8;
+    e[U0 as usize] = D2 as u8;
+    e[U1 as usize] = D3 as u8;
+    e[U2 as usize] = D0 as u8;
+    e[U3 as usize] = D1 as u8;
     e[F0 as usize] = F2 as u8;
     e[F1 as usize] = F3 as u8;
     e[F2 as usize] = F0 as u8;
@@ -301,16 +345,16 @@ fn main() {
     e[L1 as usize] = R3 as u8;
     e[L2 as usize] = R0 as u8;
     e[L3 as usize] = R1 as u8;
-    e[D0 as usize] = F2 as u8;
-    e[D1 as usize] = F3 as u8;
-    e[D2 as usize] = F0 as u8;
-    e[D3 as usize] = F1 as u8;
+    e[D0 as usize] = U2 as u8;
+    e[D1 as usize] = U3 as u8;
+    e[D2 as usize] = U0 as u8;
+    e[D3 as usize] = U1 as u8;
 
     let mut c = CLEAN_ARR.clone();
-    c[U0 as usize] = B2 as u8;
-    c[U1 as usize] = B3 as u8;
-    c[U2 as usize] = B0 as u8;
-    c[U3 as usize] = B1 as u8;
+    c[U0 as usize] = D2 as u8;
+    c[U1 as usize] = D3 as u8;
+    c[U2 as usize] = D0 as u8;
+    c[U3 as usize] = D1 as u8;
     c[F0 as usize] = F2 as u8;
     c[F1 as usize] = F3 as u8;
     c[F2 as usize] = F0 as u8;
@@ -327,10 +371,10 @@ fn main() {
     c[L1 as usize] = R3 as u8;
     c[L2 as usize] = R0 as u8;
     c[L3 as usize] = R1 as u8;
-    c[D0 as usize] = F2 as u8;
-    c[D1 as usize] = F3 as u8;
-    c[D2 as usize] = F0 as u8;
-    c[D3 as usize] = F1 as u8;
+    c[D0 as usize] = U2 as u8;
+    c[D1 as usize] = U3 as u8;
+    c[D2 as usize] = U0 as u8;
+    c[D3 as usize] = U1 as u8;
 
     let s_f = FaceletCube {
         edges: e,
@@ -362,7 +406,7 @@ fn main() {
     e[D0 as usize] = D3 as u8;
     e[D1 as usize] = D0 as u8;
     e[D2 as usize] = D1 as u8;
-    e[D3 as usize] = D3 as u8;
+    e[D3 as usize] = D2 as u8;
 
     let mut c = CLEAN_ARR.clone();
     c[U0 as usize] = U1 as u8;
@@ -388,7 +432,7 @@ fn main() {
     c[D0 as usize] = D3 as u8;
     c[D1 as usize] = D0 as u8;
     c[D2 as usize] = D1 as u8;
-    c[D3 as usize] = D3 as u8;
+    c[D3 as usize] = D2 as u8;
 
     let s_u = FaceletCube {
         edges: e,
@@ -397,22 +441,22 @@ fn main() {
 
     // Create a mirror of the whole cube from the left to right side
     let mut e = CLEAN_ARR.clone();
-    c[U0 as usize] = U2 as u8;
-    c[U2 as usize] = U0 as u8;
-    c[F0 as usize] = F2 as u8;
-    c[F2 as usize] = F0 as u8;
-    c[R0 as usize] = L2 as u8;
-    c[R1 as usize] = L1 as u8;
-    c[R2 as usize] = L0 as u8;
-    c[R3 as usize] = L3 as u8;
-    c[B0 as usize] = B2 as u8;
-    c[B2 as usize] = B0 as u8;
-    c[L0 as usize] = R2 as u8;
-    c[L1 as usize] = R1 as u8;
-    c[L2 as usize] = R0 as u8;
-    c[L3 as usize] = R3 as u8;
-    c[D0 as usize] = D2 as u8;
-    c[D2 as usize] = D0 as u8;
+    e[U0 as usize] = U2 as u8;
+    e[U2 as usize] = U0 as u8;
+    e[F0 as usize] = F2 as u8;
+    e[F2 as usize] = F0 as u8;
+    e[R0 as usize] = L2 as u8;
+    e[R1 as usize] = L1 as u8;
+    e[R2 as usize] = L0 as u8;
+    e[R3 as usize] = L3 as u8;
+    e[B0 as usize] = B2 as u8;
+    e[B2 as usize] = B0 as u8;
+    e[L0 as usize] = R2 as u8;
+    e[L1 as usize] = R1 as u8;
+    e[L2 as usize] = R0 as u8;
+    e[L3 as usize] = R3 as u8;
+    e[D0 as usize] = D2 as u8;
+    e[D2 as usize] = D0 as u8;
 
     let mut c = CLEAN_ARR.clone();
     c[U0 as usize] = U1 as u8;
@@ -449,12 +493,9 @@ fn main() {
     for i in 0..48 {
         let mut x = i;
         let urfs = x % 3;
-        x -= urfs;
-        let fs = x / 3 % 2;
-        x -= fs;
-        let us = x / 2 % 4;
-        x -= us;
-        let ms = x / 4;
+        let fs = i / 3 % 2;
+        let us = i / 6 % 4;
+        let ms = i / 24;
 
         let mut c = syms[i];
         for _ in 0..urfs {
@@ -477,26 +518,11 @@ fn main() {
         syms_inv[i] = permute_cube_inv(CLEAN_CUBE, syms[i]);
     }
 
-    let f = permute_cube(
-        permute_cube(permute_cube_inv(CLEAN_CUBE, syms[2]), u),
-        syms[2],
-    );
-    let r = permute_cube(
-        permute_cube(permute_cube_inv(CLEAN_CUBE, syms[1]), u),
-        syms[1],
-    );
-    let b = permute_cube(
-        permute_cube(permute_cube_inv(CLEAN_CUBE, syms[5]), u),
-        syms[5],
-    );
-    let l = permute_cube(
-        permute_cube(permute_cube_inv(CLEAN_CUBE, syms[4]), u),
-        syms[4],
-    );
-    let d = permute_cube(
-        permute_cube(permute_cube_inv(CLEAN_CUBE, syms[3]), u),
-        syms[3],
-    );
+    let f = permute_cube(permute_cube(syms_inv[2], u), syms[2]);
+    let r = permute_cube(permute_cube(syms_inv[1], u), syms[1]);
+    let b = permute_cube(permute_cube(syms_inv[19], u), syms[19]);
+    let l = permute_cube(permute_cube(syms_inv[4], u), syms[4]);
+    let d = permute_cube(permute_cube(syms_inv[3], u), syms[3]);
 
     let turns = [
         u,
@@ -512,6 +538,69 @@ fn main() {
         d,
         permute_cube_inv(CLEAN_CUBE, d),
     ];
+    /*
+    println!("turns:");
+    for turn in &turns {
+        println!("{}", turn);
+    }
+    */
+
+    let neg_one: Vec<FaceletCube> = vec![];
+    let zero = vec![CLEAN_CUBE];
+
+    let mut one: Vec<FaceletCube> = vec![];
+    for turn in turns.iter() {
+        for perm in &zero {
+            let e = greatest_equivalence(&syms_inv, &syms, permute_cube(*perm, *turn));
+            if neg_one.binary_search(&e).ok() == None {
+                if zero.binary_search(&e).ok() == None {
+                    one.push(e);
+                }
+            }
+        }
+    }
+    one.sort();
+    one.dedup();
+    println!("one:");
+    for perm in &one {
+        println!("{}", perm);
+    }
+
+    let mut two: Vec<FaceletCube> = vec![];
+    for turn in turns.iter() {
+        for perm in &one {
+            let e = greatest_equivalence(&syms_inv, &syms, permute_cube(*perm, *turn));
+            if zero.binary_search(&e).ok() == None {
+                if one.binary_search(&e).ok() == None {
+                    two.push(e);
+                }
+            }
+        }
+    }
+    two.sort();
+    two.dedup();
+    println!("two:");
+    for perm in &two {
+        println!("{}", perm);
+    }
+
+    let mut three: Vec<FaceletCube> = vec![];
+    for turn in turns.iter() {
+        for perm in &two {
+            let e = greatest_equivalence(&syms_inv, &syms, permute_cube(*perm, *turn));
+            if one.binary_search(&e).ok() == None {
+                if two.binary_search(&e).ok() == None {
+                    three.push(e);
+                }
+            }
+        }
+    }
+    three.sort();
+    three.dedup();
+    println!("three:");
+    for perm in &three {
+        println!("{}", perm);
+    }
 }
 
 #[cfg(test)]
@@ -554,13 +643,31 @@ mod tests {
         assert_eq!(LOTS_ARR_INV, permute_arr_inv(CLEAN_ARR, LOTS_ARR));
     }
 
-    #[ignore]
     #[test]
     fn applying_a_perm_and_then_its_inverse_or_vice_versa_is_the_original_perm() {
+        /*
+         * TODO:
         assert_eq!(LOTS, permute_inv(permute(LOTS, ONE_ZERO), ONE_ZERO));
         assert_eq!(LOTS, permute(permute_inv(LOTS, ONE_ZERO), ONE_ZERO));
         assert_eq!(CLEAN, permute_inv(permute(CLEAN, LOTS), LOTS));
         assert_eq!(CLEAN, permute(permute_inv(CLEAN, LOTS), LOTS));
+        */
+        assert_eq!(
+            LOTS_ARR,
+            permute_arr_inv(permute_arr(LOTS_ARR, ONE_ZERO_ARR), ONE_ZERO_ARR)
+        );
+        assert_eq!(
+            LOTS_ARR,
+            permute_arr(permute_arr_inv(LOTS_ARR, ONE_ZERO_ARR), ONE_ZERO_ARR)
+        );
+        assert_eq!(
+            CLEAN_ARR,
+            permute_arr_inv(permute_arr(CLEAN_ARR, LOTS_ARR), LOTS_ARR)
+        );
+        assert_eq!(
+            CLEAN_ARR,
+            permute_arr(permute_arr_inv(CLEAN_ARR, LOTS_ARR), LOTS_ARR)
+        );
     }
 
     #[test]
