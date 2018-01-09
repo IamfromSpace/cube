@@ -225,6 +225,30 @@ enum Facelet {
     D3,
 }
 
+fn gen_next_moves(
+    turns: &[FaceletCube; 12],
+    syms_inv: &[FaceletCube; 48],
+    syms: &[FaceletCube; 48],
+    parent: &Vec<FaceletCube>,
+    grandparent: &Vec<FaceletCube>,
+) -> Vec<FaceletCube> {
+    let mut next: Vec<FaceletCube> = Vec::with_capacity(parent.len() * 12);
+    for turn in turns.iter() {
+        for perm in parent {
+            let e = greatest_equivalence(&syms_inv, &syms, permute_cube(*perm, *turn));
+            if grandparent.binary_search(&e).ok() == None {
+                if parent.binary_search(&e).ok() == None {
+                    next.push(e);
+                }
+            }
+        }
+    }
+    next.sort();
+    next.dedup();
+    next.shrink_to_fit();
+    next
+}
+
 fn main() {
     const CLEAN_ARR: [u8; 24] = [
         0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23
@@ -548,59 +572,19 @@ fn main() {
     let neg_one: Vec<FaceletCube> = vec![];
     let zero = vec![CLEAN_CUBE];
 
-    let mut one: Vec<FaceletCube> = vec![];
-    for turn in turns.iter() {
-        for perm in &zero {
-            let e = greatest_equivalence(&syms_inv, &syms, permute_cube(*perm, *turn));
-            if neg_one.binary_search(&e).ok() == None {
-                if zero.binary_search(&e).ok() == None {
-                    one.push(e);
-                }
-            }
-        }
-    }
-    one.sort();
-    one.dedup();
-    println!("one:");
-    for perm in &one {
-        println!("{}", perm);
-    }
-
-    let mut two: Vec<FaceletCube> = vec![];
-    for turn in turns.iter() {
-        for perm in &one {
-            let e = greatest_equivalence(&syms_inv, &syms, permute_cube(*perm, *turn));
-            if zero.binary_search(&e).ok() == None {
-                if one.binary_search(&e).ok() == None {
-                    two.push(e);
-                }
-            }
-        }
-    }
-    two.sort();
-    two.dedup();
-    println!("two:");
-    for perm in &two {
-        println!("{}", perm);
-    }
-
-    let mut three: Vec<FaceletCube> = vec![];
-    for turn in turns.iter() {
-        for perm in &two {
-            let e = greatest_equivalence(&syms_inv, &syms, permute_cube(*perm, *turn));
-            if one.binary_search(&e).ok() == None {
-                if two.binary_search(&e).ok() == None {
-                    three.push(e);
-                }
-            }
-        }
-    }
-    three.sort();
-    three.dedup();
-    println!("three:");
-    for perm in &three {
-        println!("{}", perm);
-    }
+    let one = gen_next_moves(&turns, &syms_inv, &syms, &zero, &neg_one);
+    let two = gen_next_moves(&turns, &syms_inv, &syms, &one, &zero);
+    let three = gen_next_moves(&turns, &syms_inv, &syms, &two, &one);
+    let four = gen_next_moves(&turns, &syms_inv, &syms, &three, &two);
+    let five = gen_next_moves(&turns, &syms_inv, &syms, &four, &three);
+    let six = gen_next_moves(&turns, &syms_inv, &syms, &five, &four);
+    let seven = gen_next_moves(&turns, &syms_inv, &syms, &six, &five);
+    let eight = gen_next_moves(&turns, &syms_inv, &syms, &seven, &six);
+    println!("unique 8: {}", eight.len());
+    let nine = gen_next_moves(&turns, &syms_inv, &syms, &eight, &six);
+    println!("unique 9: {}", nine.len());
+    let ten = gen_next_moves(&turns, &syms_inv, &syms, &nine, &eight);
+    println!("unique 10: {}", ten.len());
 }
 
 #[cfg(test)]
