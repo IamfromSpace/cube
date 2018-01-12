@@ -1,6 +1,7 @@
 #![feature(i128_type, test)]
 use std::fmt;
 
+extern crate ansi_term;
 extern crate test;
 
 struct CoordCube {
@@ -17,31 +18,56 @@ struct FaceletCube {
 
 impl fmt::Display for FaceletCube {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        use ansi_term::Colour::*;
+        let w = White.paint("██");
+        let g = Green.paint("██");
+        let r = Red.paint("██");
+        let b = Blue.paint("██");
+        let o = RGB(250, 48, 11).paint("██");
+        let y = Yellow.paint("██");
+        let c = |id: usize| match self.corners[id] >> 2 {
+            0 => &w,
+            1 => &g,
+            2 => &r,
+            3 => &b,
+            4 => &o,
+            5 => &y,
+            _ => panic!("could not match color"),
+        };
+        let e = |id: usize| match self.edges[id] >> 2 {
+            0 => &w,
+            1 => &g,
+            2 => &r,
+            3 => &b,
+            4 => &o,
+            5 => &y,
+            _ => panic!("could not match color"),
+        };
         write!(
             f,
-            "\n      ┌─┬─┬─┐\n      │{}│{}│{}│\n      ├─┼─┼─┤\n      │{}│0│{}│\n      ├─┼─┼─┤\n      │{}│{}│{}│\n┌─┬─┬─┼─┼─┼─┼─┬─┬─┬─┬─┬─┐\n│{}│{}│{}│{}│{}│{}│{}│{}│{}│{}│{}│{}│\n├─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┤\n│{}│4│{}│{}│1│{}│{}│2│{}│{}│3│{}│\n├─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┤\n│{}│{}│{}│{}│{}│{}│{}│{}│{}│{}│{}│{}│\n└─┴─┴─┼─┼─┼─┼─┴─┴─┴─┴─┴─┘\n      │{}│{}│{}│\n      ├─┼─┼─┤\n      │{}│5│{}│\n      ├─┼─┼─┤\n      │{}│{}│{}│\n      └─┴─┴─┘",
-            self.corners[1] >> 2, self.edges[1] >> 2, self.corners[0] >> 2,
-            self.edges[2] >> 2, self.edges[0] >> 2,
-            self.corners[2] >> 2, self.edges[3] >> 2, self.corners[3] >> 2,
+            "\n         ┌──┬──┬──┐\n         │{}│{}│{}│\n         ├──┼──┼──┤\n         │{}│{}│{}│\n         ├──┼──┼──┤\n         │{}│{}│{}│\n┌──┬──┬──┼──┼──┼──┼──┬──┬──┬──┬──┬──┐\n│{}│{}│{}│{}│{}│{}│{}│{}│{}│{}│{}│{}│\n├──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┤\n│{}│{}│{}│{}│{}│{}│{}│{}│{}│{}│{}│{}│\n├──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┤\n│{}│{}│{}│{}│{}│{}│{}│{}│{}│{}│{}│{}│\n└──┴──┴──┼──┼──┼──┼──┴──┴──┴──┴──┴──┘\n         │{}│{}│{}│\n         ├──┼──┼──┤\n         │{}│{}│{}│\n         ├──┼──┼──┤\n         │{}│{}│{}│\n         └──┴──┴──┘",
+            c(1), e(1), c(0),
+            e(2), w, e(0),
+            c(2), e(3), c(3),
 
-            self.corners[17] >> 2, self.edges[17] >> 2, self.corners[16] >> 2,
-            self.corners[5] >> 2, self.edges[5] >> 2, self.corners[4] >> 2,
-            self.corners[9] >> 2, self.edges[9] >> 2, self.corners[8] >> 2,
-            self.corners[13] >> 2, self.edges[13] >> 2, self.corners[12] >> 2,
+            c(17), e(17), c(16),
+            c(5), e(5), c(4),
+            c(9), e(9), c(8),
+            c(13), e(13), c(12),
 
-            self.edges[16] >> 2, self.edges[16] >> 2,
-            self.edges[6] >> 2, self.edges[4] >> 2,
-            self.edges[10] >> 2, self.edges[8] >> 2,
-            self.edges[14] >> 2, self.edges[12] >> 2,
+            e(16), o, e(16),
+            e(6), g, e(4),
+            e(10), r, e(8),
+            e(14), b, e(12),
 
-            self.corners[18] >> 2, self.edges[19] >> 2, self.corners[19] >> 2,
-            self.corners[6] >> 2, self.edges[7] >> 2, self.corners[7] >> 2,
-            self.corners[10] >> 2, self.edges[11] >> 2, self.corners[11] >> 2,
-            self.corners[14] >> 2, self.edges[15] >> 2, self.corners[15] >> 2,
+            c(18), e(19), c(19),
+            c(6), e(7), c(7),
+            c(10), e(11), c(11),
+            c(14), e(15), c(15),
 
-            self.corners[21] >> 2, self.edges[21] >> 2, self.corners[20] >> 2,
-            self.edges[22] >> 2, self.edges[20] >> 2,
-            self.corners[22] >> 2, self.edges[23] >> 2, self.corners[23] >> 2,
+            c(21), e(21), c(20),
+            e(22), y, e(20),
+            c(22), e(23), c(23),
         )
     }
 }
