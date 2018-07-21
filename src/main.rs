@@ -1,5 +1,6 @@
 #![feature(i128_type, test)]
 use std::fmt;
+use std::thread;
 
 extern crate ansi_term;
 extern crate test;
@@ -258,15 +259,36 @@ fn gen_next_moves(
     parent: &Vec<FaceletCube>,
     grandparent: &Vec<FaceletCube>,
 ) -> Vec<FaceletCube> {
-    let mut next: Vec<FaceletCube> = Vec::with_capacity(parent.len() * 12);
-    for turn in turns.iter() {
-        for perm in parent {
-            let e = greatest_equivalence(&syms_inv, &syms, permute_cube(*perm, *turn));
-            if grandparent.binary_search(&e).ok() == None {
-                if parent.binary_search(&e).ok() == None {
-                    next.push(e);
+    let mut ts = Vec::new();
+    for chunk in (*parent).chunks(8) {
+        let mut c: Vec<FaceletCube> = Vec::with_capacity(chunk.len());
+        for x in chunk {
+            c.push(*x);
+        }
+        let t = turns.clone();
+        let s = syms.clone();
+        let si = syms_inv.clone();
+        let mut n: Vec<FaceletCube> = Vec::with_capacity(chunk.len() * t.len());
+        ts.push(thread::spawn(move || {
+            for i in 0..t.len() {
+                for j in 0..c.len() {
+                    n.push(greatest_equivalence(&s, &si, permute_cube(c[j], t[i])));
                 }
             }
+            n
+        }));
+    }
+    let mut next: Vec<FaceletCube> = Vec::with_capacity(parent.len() * 12);
+    for t in ts {
+        let mut n = t.join().expect("shit!");
+        next.append(&mut n);
+    }
+    for i in 0..next.len() {
+        if (i < next.len() // this shortcut is important
+            && (grandparent.binary_search(&next[i]).ok() != None
+                || parent.binary_search(&next[i]).ok() != None))
+        {
+            next.swap_remove(i);
         }
     }
     next.sort();
@@ -605,12 +627,15 @@ fn main() {
     let five = gen_next_moves(&turns, &syms_inv, &syms, &four, &three);
     let six = gen_next_moves(&turns, &syms_inv, &syms, &five, &four);
     let seven = gen_next_moves(&turns, &syms_inv, &syms, &six, &five);
+    println!("unique 7: {}", seven.len());
     let eight = gen_next_moves(&turns, &syms_inv, &syms, &seven, &six);
     println!("unique 8: {}", eight.len());
     let nine = gen_next_moves(&turns, &syms_inv, &syms, &eight, &six);
     println!("unique 9: {}", nine.len());
+    /*
     let ten = gen_next_moves(&turns, &syms_inv, &syms, &nine, &eight);
     println!("unique 10: {}", ten.len());
+    */
 }
 
 #[cfg(test)]
