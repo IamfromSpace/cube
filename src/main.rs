@@ -1,9 +1,11 @@
 #![feature(i128_type, test)]
 use std::fmt;
-use std::thread;
 
 extern crate ansi_term;
 extern crate test;
+extern crate crossbeam;
+
+use crossbeam::thread;
 
 struct CoordCube {
     corners: i128,
@@ -265,14 +267,15 @@ fn gen_next_moves(
         for x in chunk {
             c.push(*x);
         }
-        let t = turns.clone();
-        let s = syms.clone();
-        let si = syms_inv.clone();
-        let mut n: Vec<FaceletCube> = Vec::with_capacity(chunk.len() * t.len());
-        ts.push(thread::spawn(move || {
-            for i in 0..t.len() {
+        let mut n: Vec<FaceletCube> = Vec::with_capacity(chunk.len() * turns.len());
+        ts.push(thread::scope(move |_| {
+            for i in 0..turns.len() {
                 for j in 0..c.len() {
-                    n.push(greatest_equivalence(&s, &si, permute_cube(c[j], t[i])));
+                    n.push(greatest_equivalence(
+                        &syms,
+                        &syms_inv,
+                        permute_cube(c[j], turns[i]),
+                    ));
                 }
             }
             n
@@ -280,7 +283,7 @@ fn gen_next_moves(
     }
     let mut next: Vec<FaceletCube> = Vec::with_capacity(parent.len() * 12);
     for t in ts {
-        let mut n = t.join().expect("shit!");
+        let mut n = t.expect("shit!");
         next.append(&mut n);
     }
     for i in 0..next.len() {
