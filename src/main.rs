@@ -4,15 +4,18 @@ use std::fmt;
 extern crate ansi_term;
 extern crate test;
 extern crate crossbeam;
+extern crate chashmap;
 
 use crossbeam::thread;
+use chashmap::CHashMap;
+use std::hash::Hash;
 
 struct CoordCube {
     corners: i128,
     edges: i128,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
 struct FaceletCube {
     // u8 benchmarked as fastest for permuting
     corners: [u8; 24],
@@ -254,50 +257,54 @@ enum Facelet {
     D3,
 }
 
+fn to_chunks<T: PartialEq + Hash + Copy>(chm: chashmap::CHashMap<T,()>, count: usize) -> (Vec<Vec<T>>, chashmap::CHashMap<T,()>) {
+    let mut v = Vec::with_capacity(count);
+    for i in 0..count {
+        // TODO: Needed capacity is easily predicted
+        v.push(Vec::new());
+    }
+    let mut i = 0;
+    let chm2: CHashMap<T,()> = CHashMap::with_capacity(chm.len());
+    for (t,()) in chm {
+        v[i % count].push(t);
+        i += 1;
+        chm2.insert(t,());
+    }
+    (v, chm2)
+}
+
+
+
 fn gen_next_moves(
     turns: &[FaceletCube; 12],
     syms_inv: &[FaceletCube; 48],
     syms: &[FaceletCube; 48],
-    parent: &Vec<FaceletCube>,
-    grandparent: &Vec<FaceletCube>,
-) -> Vec<FaceletCube> {
+    parent: chashmap::CHashMap<FaceletCube, ()>,
+    grandparent: &chashmap::CHashMap<FaceletCube, ()>,
+) -> (chashmap::CHashMap<FaceletCube, ()>, chashmap::CHashMap<FaceletCube, ()>) {
     let mut ts = Vec::new();
-    for chunk in (*parent).chunks(8) {
-        let mut c: Vec<FaceletCube> = Vec::with_capacity(chunk.len());
-        for x in chunk {
-            c.push(*x);
-        }
-        let mut n: Vec<FaceletCube> = Vec::with_capacity(chunk.len() * turns.len());
-        ts.push(thread::scope(move |_| {
+    let chm: CHashMap<FaceletCube,()> = CHashMap::with_capacity(parent.len());
+    let (chunks, parent) = to_chunks(parent, 8);
+    for chunk in chunks {
+        ts.push(thread::scope(|_| {
             for i in 0..turns.len() {
-                for j in 0..c.len() {
-                    n.push(greatest_equivalence(
-                        &syms,
-                        &syms_inv,
-                        permute_cube(c[j], turns[i]),
-                    ));
+                for j in 0..chunk.len() {
+                    let ge = greatest_equivalence(
+                            &syms,
+                            &syms_inv,
+                            permute_cube(chunk[j], turns[i]),
+                        );
+                    if !grandparent.contains_key(&ge) && !parent.contains_key(&ge) {
+                        chm.insert(ge, ());
+                    }
                 }
             }
-            n
         }));
     }
-    let mut next: Vec<FaceletCube> = Vec::with_capacity(parent.len() * 12);
     for t in ts {
-        let mut n = t.expect("shit!");
-        next.append(&mut n);
+        t.unwrap();
     }
-    for i in 0..next.len() {
-        if (i < next.len() // this shortcut is important
-            && (grandparent.binary_search(&next[i]).ok() != None
-                || parent.binary_search(&next[i]).ok() != None))
-        {
-            next.swap_remove(i);
-        }
-    }
-    next.sort();
-    next.dedup();
-    next.shrink_to_fit();
-    next
+    (chm, parent)
 }
 
 fn main() {
@@ -620,20 +627,21 @@ fn main() {
     }
     */
 
-    let neg_one: Vec<FaceletCube> = vec![];
-    let zero = vec![CLEAN_CUBE];
+    let neg_one: CHashMap<FaceletCube,()> = CHashMap::new();
+    let zero: CHashMap<FaceletCube,()> = CHashMap::new();
+    zero.insert(CLEAN_CUBE,());
 
-    let one = gen_next_moves(&turns, &syms_inv, &syms, &zero, &neg_one);
-    let two = gen_next_moves(&turns, &syms_inv, &syms, &one, &zero);
-    let three = gen_next_moves(&turns, &syms_inv, &syms, &two, &one);
-    let four = gen_next_moves(&turns, &syms_inv, &syms, &three, &two);
-    let five = gen_next_moves(&turns, &syms_inv, &syms, &four, &three);
-    let six = gen_next_moves(&turns, &syms_inv, &syms, &five, &four);
-    let seven = gen_next_moves(&turns, &syms_inv, &syms, &six, &five);
+    let (one, zero) = gen_next_moves(&turns, &syms_inv, &syms, zero, &neg_one);
+    let (two, one) = gen_next_moves(&turns, &syms_inv, &syms, one, &zero);
+    let (three, two) = gen_next_moves(&turns, &syms_inv, &syms, two, &one);
+    let (four, three) = gen_next_moves(&turns, &syms_inv, &syms, three, &two);
+    let (five, four) = gen_next_moves(&turns, &syms_inv, &syms, four, &three);
+    let (six, five) = gen_next_moves(&turns, &syms_inv, &syms, five, &four);
+    let (seven, six) = gen_next_moves(&turns, &syms_inv, &syms, six, &five);
     println!("unique 7: {}", seven.len());
-    let eight = gen_next_moves(&turns, &syms_inv, &syms, &seven, &six);
+    let (eight, seven) = gen_next_moves(&turns, &syms_inv, &syms, seven, &six);
     println!("unique 8: {}", eight.len());
-    let nine = gen_next_moves(&turns, &syms_inv, &syms, &eight, &six);
+    let (nine, eight) = gen_next_moves(&turns, &syms_inv, &syms, eight, &six);
     println!("unique 9: {}", nine.len());
     /*
     let ten = gen_next_moves(&turns, &syms_inv, &syms, &nine, &eight);

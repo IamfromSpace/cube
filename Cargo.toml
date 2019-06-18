@@ -6,3 +6,4 @@ authors = ["Nathan Fairhurst. <nathan.p3pictures@gmail.com>"]
 [dependencies]
 ansi_term = "0.9"
 crossbeam = "0.7.1"
+chashmap = "2.2.2"
