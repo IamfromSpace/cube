@@ -260,7 +260,7 @@ enum Facelet {
 
 fn to_chunks<T: PartialEq + Hash + Copy>(hs: &HashSet<T>, count: usize) -> Vec<Vec<T>> {
     let mut v = Vec::with_capacity(count);
-    for i in 0..count {
+    for _ in 0..count {
         // TODO: Needed capacity is easily predicted
         v.push(Vec::new());
     }
@@ -280,29 +280,29 @@ fn gen_next_moves(
     parent: &HashSet<FaceletCube>,
     grandparent: &HashSet<FaceletCube>,
 ) -> HashSet<FaceletCube> {
-    let mut ts = Vec::new();
     let chm: CHashMap<FaceletCube,()> = CHashMap::with_capacity(parent.len());
-    let chunks = to_chunks(parent, 8);
-    for chunk in chunks {
-        ts.push(thread::scope(|_| {
-            for i in 0..turns.len() {
-                for j in 0..chunk.len() {
-                    let ge = greatest_equivalence(
-                            &syms,
-                            &syms_inv,
-                            permute_cube(chunk[j], turns[i]),
-                        );
-                    if !grandparent.contains(&ge) && !parent.contains(&ge) {
-                        chm.insert(ge, ());
-                    }
+    // This is separated out so that we can later take ownership
+    // of _only_ the chunk that we're working on.
+    let do_work = |chunk: Vec<FaceletCube>| {
+        for i in 0..turns.len() {
+            for j in 0..chunk.len() {
+                let ge = greatest_equivalence(
+                        &syms,
+                        &syms_inv,
+                        permute_cube(chunk[j], turns[i]),
+                    );
+                if !grandparent.contains(&ge) && !parent.contains(&ge) {
+                    chm.insert(ge, ());
                 }
             }
-        }));
-    }
-    for t in ts {
-        t.unwrap();
-    }
+        }
+    };
 
+    thread::scope(|s| {
+        for chunk in to_chunks(parent, 8) {
+            s.spawn(move |_| do_work(chunk));
+        }
+    }).unwrap();
     let mut hs = HashSet::with_capacity(chm.len());
     for (t,()) in chm {
         hs.insert(t);
