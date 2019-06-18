@@ -2,9 +2,13 @@
 use std::fmt;
 use std::collections::HashSet;
 use std::hash::Hash;
+use std::sync::Mutex;
 
 extern crate ansi_term;
 extern crate test;
+extern crate crossbeam;
+
+use crossbeam::thread;
 
 struct CoordCube {
     corners: i128,
@@ -271,6 +275,21 @@ enum Facelet {
     D3,
 }
 
+fn to_chunks<T: PartialEq + Hash + Copy>(hs: &HashSet<T>, count: usize) -> Vec<Vec<T>> {
+    let mut v = Vec::with_capacity(count);
+    for _ in 0..count {
+        // TODO: Needed capacity is easily predicted
+        v.push(Vec::new());
+    }
+    let mut i = 0;
+    for t in hs {
+        v[i % count].push(*t);
+        i += 1;
+    }
+    v
+}
+
+
 fn gen_next_moves(
     turns: &[FaceletCube; 12],
     syms_inv: &[FaceletCube; 48],
@@ -278,16 +297,32 @@ fn gen_next_moves(
     parent: &HashSet<FaceletCube>,
     grandparent: &HashSet<FaceletCube>,
 ) -> HashSet<FaceletCube> {
-    let mut next: HashSet<FaceletCube> = HashSet::with_capacity(parent.len() * 12);
-    for turn in turns.iter() {
-        for perm in parent {
-            let e = greatest_equivalence(&syms_inv, &syms, permute_cube(*perm, *turn));
-            if !grandparent.contains(&e) && !parent.contains(&e) {
-                next.insert(e);
+    let hsm: Mutex<HashSet<FaceletCube>> =
+        Mutex::new(HashSet::with_capacity(parent.len() * 12));
+    // This is separated out so that we can later take ownership
+    // of _only_ the chunk that we're working on.
+    let do_work = |chunk: Vec<FaceletCube>| {
+        for i in 0..turns.len() {
+            for j in 0..chunk.len() {
+                let ge = greatest_equivalence(
+                        &syms,
+                        &syms_inv,
+                        permute_cube(chunk[j], turns[i]),
+                    );
+                if !grandparent.contains(&ge) && !parent.contains(&ge) {
+                    let mut guard = hsm.lock().unwrap();
+                    (*guard).insert(ge);
+                }
             }
         }
-    }
-    next
+    };
+
+    thread::scope(|s| {
+        for chunk in to_chunks(parent, 8) {
+            s.spawn(move |_| do_work(chunk));
+        }
+    }).unwrap();
+    hsm.into_inner().unwrap()
 }
 
 fn main() {
@@ -622,12 +657,15 @@ fn main() {
     let five = gen_next_moves(&turns, &syms_inv, &syms, &four, &three);
     let six = gen_next_moves(&turns, &syms_inv, &syms, &five, &four);
     let seven = gen_next_moves(&turns, &syms_inv, &syms, &six, &five);
+    println!("unique 7: {}", seven.len());
     let eight = gen_next_moves(&turns, &syms_inv, &syms, &seven, &six);
     println!("unique 8: {}", eight.len());
     let nine = gen_next_moves(&turns, &syms_inv, &syms, &eight, &six);
     println!("unique 9: {}", nine.len());
+    /*
     let ten = gen_next_moves(&turns, &syms_inv, &syms, &nine, &eight);
     println!("unique 10: {}", ten.len());
+    */
 }
 
 #[cfg(test)]
