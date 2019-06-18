@@ -4,12 +4,11 @@ use std::fmt;
 extern crate ansi_term;
 extern crate test;
 extern crate crossbeam;
-extern crate chashmap;
 
 use crossbeam::thread;
-use chashmap::CHashMap;
 use std::collections::HashSet;
 use std::hash::Hash;
+use std::sync::Mutex;
 
 struct CoordCube {
     corners: i128,
@@ -280,7 +279,8 @@ fn gen_next_moves(
     parent: &HashSet<FaceletCube>,
     grandparent: &HashSet<FaceletCube>,
 ) -> HashSet<FaceletCube> {
-    let chm: CHashMap<FaceletCube,()> = CHashMap::with_capacity(parent.len());
+    let hsm: Mutex<HashSet<FaceletCube>> =
+        Mutex::new(HashSet::with_capacity(parent.len() * 12));
     // This is separated out so that we can later take ownership
     // of _only_ the chunk that we're working on.
     let do_work = |chunk: Vec<FaceletCube>| {
@@ -292,7 +292,8 @@ fn gen_next_moves(
                         permute_cube(chunk[j], turns[i]),
                     );
                 if !grandparent.contains(&ge) && !parent.contains(&ge) {
-                    chm.insert(ge, ());
+                    let mut guard = hsm.lock().unwrap();
+                    (*guard).insert(ge);
                 }
             }
         }
@@ -303,11 +304,7 @@ fn gen_next_moves(
             s.spawn(move |_| do_work(chunk));
         }
     }).unwrap();
-    let mut hs = HashSet::with_capacity(chm.len());
-    for (t,()) in chm {
-        hs.insert(t);
-    }
-    hs
+    hsm.into_inner().unwrap()
 }
 
 fn main() {
