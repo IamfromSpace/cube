@@ -1,5 +1,7 @@
 #![feature(i128_type, test)]
 use std::fmt;
+use std::collections::HashSet;
+use std::hash::Hash;
 
 extern crate ansi_term;
 extern crate test;
@@ -9,7 +11,7 @@ struct CoordCube {
     edges: i128,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
 struct FaceletCube {
     // u8 benchmarked as fastest for permuting
     corners: [u8; 24],
@@ -273,23 +275,18 @@ fn gen_next_moves(
     turns: &[FaceletCube; 12],
     syms_inv: &[FaceletCube; 48],
     syms: &[FaceletCube; 48],
-    parent: &Vec<FaceletCube>,
-    grandparent: &Vec<FaceletCube>,
-) -> Vec<FaceletCube> {
-    let mut next: Vec<FaceletCube> = Vec::with_capacity(parent.len() * 12);
+    parent: &HashSet<FaceletCube>,
+    grandparent: &HashSet<FaceletCube>,
+) -> HashSet<FaceletCube> {
+    let mut next: HashSet<FaceletCube> = HashSet::with_capacity(parent.len() * 12);
     for turn in turns.iter() {
         for perm in parent {
             let e = greatest_equivalence(&syms_inv, &syms, permute_cube(*perm, *turn));
-            if grandparent.binary_search(&e).ok() == None {
-                if parent.binary_search(&e).ok() == None {
-                    next.push(e);
-                }
+            if !grandparent.contains(&e) && !parent.contains(&e) {
+                next.insert(e);
             }
         }
     }
-    next.sort();
-    next.dedup();
-    next.shrink_to_fit();
     next
 }
 
@@ -613,8 +610,10 @@ fn main() {
     }
     */
 
-    let neg_one: Vec<FaceletCube> = vec![];
-    let zero = vec![CLEAN_CUBE];
+    let neg_one: HashSet<FaceletCube> = HashSet::new();
+    let mut zero: HashSet<FaceletCube> = HashSet::new();
+    zero.insert(CLEAN_CUBE);
+    let zero = zero;
 
     let one = gen_next_moves(&turns, &syms_inv, &syms, &zero, &neg_one);
     let two = gen_next_moves(&turns, &syms_inv, &syms, &one, &zero);
