@@ -8,6 +8,7 @@ extern crate chashmap;
 
 use crossbeam::thread;
 use chashmap::CHashMap;
+use std::collections::HashSet;
 use std::hash::Hash;
 
 struct CoordCube {
@@ -257,34 +258,31 @@ enum Facelet {
     D3,
 }
 
-fn to_chunks<T: PartialEq + Hash + Copy>(chm: chashmap::CHashMap<T,()>, count: usize) -> (Vec<Vec<T>>, chashmap::CHashMap<T,()>) {
+fn to_chunks<T: PartialEq + Hash + Copy>(hs: &HashSet<T>, count: usize) -> Vec<Vec<T>> {
     let mut v = Vec::with_capacity(count);
     for i in 0..count {
         // TODO: Needed capacity is easily predicted
         v.push(Vec::new());
     }
     let mut i = 0;
-    let chm2: CHashMap<T,()> = CHashMap::with_capacity(chm.len());
-    for (t,()) in chm {
-        v[i % count].push(t);
+    for t in hs {
+        v[i % count].push(*t);
         i += 1;
-        chm2.insert(t,());
     }
-    (v, chm2)
+    v
 }
-
 
 
 fn gen_next_moves(
     turns: &[FaceletCube; 12],
     syms_inv: &[FaceletCube; 48],
     syms: &[FaceletCube; 48],
-    parent: chashmap::CHashMap<FaceletCube, ()>,
-    grandparent: &chashmap::CHashMap<FaceletCube, ()>,
-) -> (chashmap::CHashMap<FaceletCube, ()>, chashmap::CHashMap<FaceletCube, ()>) {
+    parent: &HashSet<FaceletCube>,
+    grandparent: &HashSet<FaceletCube>,
+) -> HashSet<FaceletCube> {
     let mut ts = Vec::new();
     let chm: CHashMap<FaceletCube,()> = CHashMap::with_capacity(parent.len());
-    let (chunks, parent) = to_chunks(parent, 8);
+    let chunks = to_chunks(parent, 8);
     for chunk in chunks {
         ts.push(thread::scope(|_| {
             for i in 0..turns.len() {
@@ -294,7 +292,7 @@ fn gen_next_moves(
                             &syms_inv,
                             permute_cube(chunk[j], turns[i]),
                         );
-                    if !grandparent.contains_key(&ge) && !parent.contains_key(&ge) {
+                    if !grandparent.contains(&ge) && !parent.contains(&ge) {
                         chm.insert(ge, ());
                     }
                 }
@@ -304,7 +302,12 @@ fn gen_next_moves(
     for t in ts {
         t.unwrap();
     }
-    (chm, parent)
+
+    let mut hs = HashSet::with_capacity(chm.len());
+    for (t,()) in chm {
+        hs.insert(t);
+    }
+    hs
 }
 
 fn main() {
@@ -627,21 +630,21 @@ fn main() {
     }
     */
 
-    let neg_one: CHashMap<FaceletCube,()> = CHashMap::new();
-    let zero: CHashMap<FaceletCube,()> = CHashMap::new();
-    zero.insert(CLEAN_CUBE,());
+    let neg_one: HashSet<FaceletCube> = HashSet::new();
+    let mut zero: HashSet<FaceletCube> = HashSet::new();
+    zero.insert(CLEAN_CUBE);
 
-    let (one, zero) = gen_next_moves(&turns, &syms_inv, &syms, zero, &neg_one);
-    let (two, one) = gen_next_moves(&turns, &syms_inv, &syms, one, &zero);
-    let (three, two) = gen_next_moves(&turns, &syms_inv, &syms, two, &one);
-    let (four, three) = gen_next_moves(&turns, &syms_inv, &syms, three, &two);
-    let (five, four) = gen_next_moves(&turns, &syms_inv, &syms, four, &three);
-    let (six, five) = gen_next_moves(&turns, &syms_inv, &syms, five, &four);
-    let (seven, six) = gen_next_moves(&turns, &syms_inv, &syms, six, &five);
+    let one = gen_next_moves(&turns, &syms_inv, &syms, &zero, &neg_one);
+    let two = gen_next_moves(&turns, &syms_inv, &syms, &one, &zero);
+    let three = gen_next_moves(&turns, &syms_inv, &syms, &two, &one);
+    let four = gen_next_moves(&turns, &syms_inv, &syms, &three, &two);
+    let five = gen_next_moves(&turns, &syms_inv, &syms, &four, &three);
+    let six = gen_next_moves(&turns, &syms_inv, &syms, &five, &four);
+    let seven = gen_next_moves(&turns, &syms_inv, &syms, &six, &five);
     println!("unique 7: {}", seven.len());
-    let (eight, seven) = gen_next_moves(&turns, &syms_inv, &syms, seven, &six);
+    let eight = gen_next_moves(&turns, &syms_inv, &syms, &seven, &six);
     println!("unique 8: {}", eight.len());
-    let (nine, eight) = gen_next_moves(&turns, &syms_inv, &syms, eight, &six);
+    let nine = gen_next_moves(&turns, &syms_inv, &syms, &eight, &six);
     println!("unique 9: {}", nine.len());
     /*
     let ten = gen_next_moves(&turns, &syms_inv, &syms, &nine, &eight);
