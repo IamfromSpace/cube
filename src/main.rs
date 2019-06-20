@@ -275,21 +275,6 @@ enum Facelet {
     D3,
 }
 
-fn to_chunks<T: PartialEq + Hash + Copy>(hs: &HashSet<T>, count: usize) -> Vec<Vec<T>> {
-    let mut v = Vec::with_capacity(count);
-    for _ in 0..count {
-        // TODO: Needed capacity is easily predicted
-        v.push(Vec::new());
-    }
-    let mut i = 0;
-    for t in hs {
-        v[i % count].push(*t);
-        i += 1;
-    }
-    v
-}
-
-
 fn gen_next_moves(
     turns: &[FaceletCube; 12],
     syms_inv: &[FaceletCube; 48],
@@ -299,27 +284,33 @@ fn gen_next_moves(
 ) -> HashSet<FaceletCube> {
     let hsm: Mutex<HashSet<FaceletCube>> =
         Mutex::new(HashSet::with_capacity(parent.len() * 12));
-    // This is separated out so that we can later take ownership
-    // of _only_ the chunk that we're working on.
-    let do_work = |chunk: Vec<FaceletCube>| {
-        for i in 0..turns.len() {
-            for j in 0..chunk.len() {
-                let ge = greatest_equivalence(
-                        &syms,
-                        &syms_inv,
-                        permute_cube(chunk[j], turns[i]),
-                    );
-                if !grandparent.contains(&ge) && !parent.contains(&ge) {
-                    let mut guard = hsm.lock().unwrap();
-                    (*guard).insert(ge);
-                }
-            }
-        }
-    };
+    let iter_m = Mutex::new(parent.iter());
 
     thread::scope(|s| {
-        for chunk in to_chunks(parent, 8) {
-            s.spawn(move |_| do_work(chunk));
+        for _ in 0..8 {
+            s.spawn(|_| {
+                loop {
+                    let mut guard = iter_m.lock().unwrap();
+                    let perm_o = (*guard).next();
+                    drop(guard);
+                    match perm_o {
+                        Some(perm) => {
+                            for i in 0..turns.len() {
+                                let ge = greatest_equivalence(
+                                        &syms,
+                                        &syms_inv,
+                                        permute_cube(*perm, turns[i]),
+                                    );
+                                if !grandparent.contains(&ge) && !parent.contains(&ge) {
+                                    let mut guard = hsm.lock().unwrap();
+                                    (*guard).insert(ge);
+                                }
+                            }
+                        },
+                        None => break,
+                    };
+                }
+            });
         }
     }).unwrap();
     hsm.into_inner().unwrap()
