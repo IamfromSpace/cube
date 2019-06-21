@@ -275,6 +275,15 @@ enum Facelet {
     D3,
 }
 
+fn n_scoped_workers<F: Sync + Fn() -> ()>(n: usize, f: F) -> () {
+    thread::scope(|s| {
+        for _ in 0..n {
+            s.spawn(|_| f());
+        }
+    //TODO: Return the result, rather than unwrapped
+    }).unwrap()
+}
+
 fn gen_next_moves<F: Sync + Fn(&FaceletCube) -> FaceletCube>(
     reduce_symmetry: F,
     turns: &[FaceletCube; 12],
@@ -285,29 +294,25 @@ fn gen_next_moves<F: Sync + Fn(&FaceletCube) -> FaceletCube>(
         Mutex::new(HashSet::with_capacity(parent.len() * 12));
     let iter_m = Mutex::new(parent.iter());
 
-    thread::scope(|s| {
-        for _ in 0..8 {
-            s.spawn(|_| {
-                loop {
-                    let mut guard = iter_m.lock().unwrap();
-                    let perm_o = (*guard).next();
-                    drop(guard);
-                    match perm_o {
-                        Some(perm) => {
-                            turns.iter().for_each(|turn| {
-                                let ge = reduce_symmetry(&permute_cube(*perm, *turn));
-                                if !grandparent.contains(&ge) && !parent.contains(&ge) {
-                                    let mut guard = hsm.lock().unwrap();
-                                    (*guard).insert(ge);
-                                }
-                            });
-                        },
-                        None => break,
-                    };
-                }
-            });
+    n_scoped_workers(8, || {
+        loop {
+            let mut guard = iter_m.lock().unwrap();
+            let perm_o = (*guard).next();
+            drop(guard);
+            match perm_o {
+                Some(perm) => {
+                    turns.iter().for_each(|turn| {
+                        let ge = reduce_symmetry(&permute_cube(*perm, *turn));
+                        if !grandparent.contains(&ge) && !parent.contains(&ge) {
+                            let mut guard = hsm.lock().unwrap();
+                            (*guard).insert(ge);
+                        }
+                    });
+                },
+                None => break,
+            };
         }
-    }).unwrap();
+    });
     hsm.into_inner().unwrap()
 }
 
