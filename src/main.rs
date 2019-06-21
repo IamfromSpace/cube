@@ -275,10 +275,9 @@ enum Facelet {
     D3,
 }
 
-fn gen_next_moves(
+fn gen_next_moves<F: Sync + Fn(&FaceletCube) -> FaceletCube>(
+    reduce_symmetry: F,
     turns: &[FaceletCube; 12],
-    syms_inv: &[FaceletCube; 48],
-    syms: &[FaceletCube; 48],
     parent: &HashSet<FaceletCube>,
     grandparent: &HashSet<FaceletCube>,
 ) -> HashSet<FaceletCube> {
@@ -295,17 +294,13 @@ fn gen_next_moves(
                     drop(guard);
                     match perm_o {
                         Some(perm) => {
-                            for i in 0..turns.len() {
-                                let ge = greatest_equivalence(
-                                        &syms,
-                                        &syms_inv,
-                                        permute_cube(*perm, turns[i]),
-                                    );
+                            turns.iter().for_each(|turn| {
+                                let ge = reduce_symmetry(&permute_cube(*perm, *turn));
                                 if !grandparent.contains(&ge) && !parent.contains(&ge) {
                                     let mut guard = hsm.lock().unwrap();
                                     (*guard).insert(ge);
                                 }
-                            }
+                            });
                         },
                         None => break,
                     };
@@ -641,20 +636,24 @@ fn main() {
     zero.insert(CLEAN_CUBE);
     let zero = zero;
 
-    let one = gen_next_moves(&turns, &syms_inv, &syms, &zero, &neg_one);
-    let two = gen_next_moves(&turns, &syms_inv, &syms, &one, &zero);
-    let three = gen_next_moves(&turns, &syms_inv, &syms, &two, &one);
-    let four = gen_next_moves(&turns, &syms_inv, &syms, &three, &two);
-    let five = gen_next_moves(&turns, &syms_inv, &syms, &four, &three);
-    let six = gen_next_moves(&turns, &syms_inv, &syms, &five, &four);
-    let seven = gen_next_moves(&turns, &syms_inv, &syms, &six, &five);
+    let reduce_syms = |perm: &FaceletCube| {
+        greatest_equivalence(&syms, &syms_inv, *perm)
+    };
+
+    let one = gen_next_moves(&reduce_syms, &turns, &zero, &neg_one);
+    let two = gen_next_moves(&reduce_syms, &turns, &one, &zero);
+    let three = gen_next_moves(&reduce_syms, &turns, &two, &one);
+    let four = gen_next_moves(&reduce_syms, &turns, &three, &two);
+    let five = gen_next_moves(&reduce_syms, &turns, &four, &three);
+    let six = gen_next_moves(&reduce_syms, &turns, &five, &four);
+    let seven = gen_next_moves(&reduce_syms, &turns, &six, &five);
     println!("unique 7: {}", seven.len());
-    let eight = gen_next_moves(&turns, &syms_inv, &syms, &seven, &six);
+    let eight = gen_next_moves(&reduce_syms, &turns, &seven, &six);
     println!("unique 8: {}", eight.len());
-    let nine = gen_next_moves(&turns, &syms_inv, &syms, &eight, &six);
+    let nine = gen_next_moves(&reduce_syms, &turns, &eight, &six);
     println!("unique 9: {}", nine.len());
     /*
-    let ten = gen_next_moves(&turns, &syms_inv, &syms, &nine, &eight);
+    let ten = gen_next_moves(&reduce_syms, &turns, &nine, &eight);
     println!("unique 10: {}", ten.len());
     */
 }
