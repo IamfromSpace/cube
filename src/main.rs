@@ -284,6 +284,20 @@ fn n_scoped_workers<F: Sync + Fn() -> ()>(n: usize, f: F) -> () {
     }).unwrap()
 }
 
+fn while_iter_in_mutex_has_next<I: Iterator, F: Sync + Fn(I::Item) -> ()>(m: &Mutex<I>, f: F) -> () {
+    loop {
+        // TODO: Propogate the Poisoning
+        let mut guard = m.lock().unwrap();
+        let perm_o = (*guard).next();
+        drop(guard);
+        match perm_o {
+            // TODO: Allow a return value/result to be collected
+            Some(perm) => f(perm),
+            None => break,
+        };
+    }
+}
+
 fn gen_next_moves<F: Sync + Fn(&FaceletCube) -> FaceletCube>(
     reduce_symmetry: F,
     turns: &[FaceletCube; 12],
@@ -295,23 +309,15 @@ fn gen_next_moves<F: Sync + Fn(&FaceletCube) -> FaceletCube>(
     let iter_m = Mutex::new(parent.iter());
 
     n_scoped_workers(8, || {
-        loop {
-            let mut guard = iter_m.lock().unwrap();
-            let perm_o = (*guard).next();
-            drop(guard);
-            match perm_o {
-                Some(perm) => {
-                    turns.iter().for_each(|turn| {
-                        let ge = reduce_symmetry(&permute_cube(*perm, *turn));
-                        if !grandparent.contains(&ge) && !parent.contains(&ge) {
-                            let mut guard = hsm.lock().unwrap();
-                            (*guard).insert(ge);
-                        }
-                    });
-                },
-                None => break,
-            };
-        }
+        while_iter_in_mutex_has_next(&iter_m, |perm: &FaceletCube| {
+            turns.iter().for_each(|turn| {
+                let ge = reduce_symmetry(&permute_cube(*perm, *turn));
+                if !grandparent.contains(&ge) && !parent.contains(&ge) {
+                    let mut guard = hsm.lock().unwrap();
+                    (*guard).insert(ge);
+                }
+            });
+        });
     });
     hsm.into_inner().unwrap()
 }
