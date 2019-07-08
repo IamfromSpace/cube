@@ -96,7 +96,7 @@ impl fmt::Display for FaceletCube {
     }
 }
 
-fn permute_arr_inv(a: [u8; 24], b: [u8; 24]) -> [u8; 24] {
+fn permute_arr_inv(a: &[u8; 24], b: &[u8; 24]) -> [u8; 24] {
     let mut r = [0; 24];
     //silly looking, but twice as fast ;)
     r[b[0] as usize] = a[0];
@@ -126,7 +126,7 @@ fn permute_arr_inv(a: [u8; 24], b: [u8; 24]) -> [u8; 24] {
     r
 }
 
-fn permute_arr(a: [u8; 24], b: [u8; 24]) -> [u8; 24] {
+fn permute_arr(a: &[u8; 24], b: &[u8; 24]) -> [u8; 24] {
     [
         a[b[0] as usize],
         a[b[1] as usize],
@@ -155,17 +155,17 @@ fn permute_arr(a: [u8; 24], b: [u8; 24]) -> [u8; 24] {
     ]
 }
 
-fn permute_cube(a: FaceletCube, b: FaceletCube) -> FaceletCube {
+fn permute_cube(a: &FaceletCube, b: &FaceletCube) -> FaceletCube {
     FaceletCube {
-        edges: permute_arr(a.edges, b.edges),
-        corners: permute_arr(a.corners, b.corners),
+        edges: permute_arr(&a.edges, &b.edges),
+        corners: permute_arr(&a.corners, &b.corners),
     }
 }
 
-fn permute_cube_inv(a: FaceletCube, b: FaceletCube) -> FaceletCube {
+fn permute_cube_inv(a: &FaceletCube, b: &FaceletCube) -> FaceletCube {
     FaceletCube {
-        edges: permute_arr_inv(a.edges, b.edges),
-        corners: permute_arr_inv(a.corners, b.corners),
+        edges: permute_arr_inv(&a.edges, &b.edges),
+        corners: permute_arr_inv(&a.corners, &b.corners),
     }
 }
 
@@ -176,11 +176,11 @@ fn greatest_equivalence(
 ) -> FaceletCube {
     let mut greatest = perm;
     for i in 1..48 {
-        let e = permute_cube(permute_cube(syms_inv[i], perm), syms[i]);
+        let e = permute_cube(&permute_cube(&syms_inv[i], &perm), &syms[i]);
         if e > greatest {
             greatest = e;
         }
-        let e_inv = permute_cube(permute_cube_inv(syms_inv[i], perm), syms[i]);
+        let e_inv = permute_cube(&permute_cube_inv(&syms_inv[i], &perm), &syms[i]);
         if e_inv > greatest {
             greatest = e_inv;
         }
@@ -311,7 +311,7 @@ fn gen_next_moves<F: Sync + Fn(&FaceletCube) -> FaceletCube>(
     n_scoped_workers(8, || {
         while_iter_in_mutex_has_next(&iter_m, |perm: &FaceletCube| {
             turns.iter().for_each(|turn| {
-                let ge = reduce_symmetry(&permute_cube(*perm, *turn));
+                let ge = reduce_symmetry(&permute_cube(&perm, &turn));
                 if !grandparent.contains(&ge) && !parent.contains(&ge) {
                     let mut guard = hsm.lock().unwrap();
                     (*guard).insert(ge);
@@ -596,44 +596,44 @@ fn main() {
 
         let mut c = syms[i];
         for _ in 0..urfs {
-            c = permute_cube(c, s_urf);
+            c = permute_cube(&c, &s_urf);
         }
         for _ in 0..fs {
-            c = permute_cube(c, s_f);
+            c = permute_cube(&c, &s_f);
         }
         for _ in 0..us {
-            c = permute_cube(c, s_u);
+            c = permute_cube(&c, &s_u);
         }
         for _ in 0..ms {
-            c = permute_cube(c, s_mrl);
+            c = permute_cube(&c, &s_mrl);
         }
         syms[i] = c;
     }
 
     let mut syms_inv = [CLEAN_CUBE; 48];
     for i in 0..48 {
-        syms_inv[i] = permute_cube_inv(CLEAN_CUBE, syms[i]);
+        syms_inv[i] = permute_cube_inv(&CLEAN_CUBE, &syms[i]);
     }
 
-    let f = permute_cube(permute_cube(syms_inv[2], u), syms[2]);
-    let r = permute_cube(permute_cube(syms_inv[1], u), syms[1]);
-    let b = permute_cube(permute_cube(syms_inv[19], u), syms[19]);
-    let l = permute_cube(permute_cube(syms_inv[4], u), syms[4]);
-    let d = permute_cube(permute_cube(syms_inv[3], u), syms[3]);
+    let f = permute_cube(&permute_cube(&syms_inv[2], &u), &syms[2]);
+    let r = permute_cube(&permute_cube(&syms_inv[1], &u), &syms[1]);
+    let b = permute_cube(&permute_cube(&syms_inv[19], &u), &syms[19]);
+    let l = permute_cube(&permute_cube(&syms_inv[4], &u), &syms[4]);
+    let d = permute_cube(&permute_cube(&syms_inv[3], &u), &syms[3]);
 
     let turns = [
         u,
-        permute_cube_inv(CLEAN_CUBE, u),
+        permute_cube_inv(&CLEAN_CUBE, &u),
         f,
-        permute_cube_inv(CLEAN_CUBE, f),
+        permute_cube_inv(&CLEAN_CUBE, &f),
         r,
-        permute_cube_inv(CLEAN_CUBE, r),
+        permute_cube_inv(&CLEAN_CUBE, &r),
         b,
-        permute_cube_inv(CLEAN_CUBE, b),
+        permute_cube_inv(&CLEAN_CUBE, &b),
         l,
-        permute_cube_inv(CLEAN_CUBE, l),
+        permute_cube_inv(&CLEAN_CUBE, &l),
         d,
-        permute_cube_inv(CLEAN_CUBE, d),
+        permute_cube_inv(&CLEAN_CUBE, &d),
     ];
     /*
     println!("turns:");
