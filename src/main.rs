@@ -1,7 +1,6 @@
 #![feature(i128_type, test)]
 use std::fmt;
-use std::collections::HashSet;
-use std::hash::Hash;
+use std::collections::{HashSet, HashMap};
 use std::sync::Mutex;
 
 extern crate ansi_term;
@@ -320,6 +319,107 @@ fn gen_next_moves<F: Sync + Fn(&FaceletCube) -> FaceletCube>(
         });
     });
     hsm.into_inner().unwrap()
+}
+
+/* Our move table is designed to be memory efficient, and this makes
+ * our computation of a 'solve' more complex.
+ * It's fairly easy to lookup any given position to see if it's solvable in n turns,
+ * but to get those turns takes some work, due to our symmetry reductions.
+ *
+ * Some cube algebra to help us:
+ * X is the permutation we are trying to solve
+ * Xr "smallest" permutation that is symmetrical to X
+ * so:
+ * Xr = Srx * X * Srx'
+ *
+ * If we find Xr in the HashMap at position n, we know X is solvable in n moves.
+ * Tx is the value at HashMap[Xr].  It is the next turn in the solve (for Xr, not X).
+ * We call the resulting permuation Y:
+ * Y = Xr * Tx
+ *
+ * However, Y will (likely) not be present in the n-1 HashMap.
+ * We must also reduce it first, so:
+ * Yr = Sry * Y * Sry'
+ * Yr = Sry * Xr * Tx * Sry'
+ *
+ * This is where we'll see recursion take place (parenthesis for emphasis):
+ * Zr = Srz * (Sry * Xr * Tx * Sry') * Ty * Srz'
+ *
+ * Eventually, at n=1, the final permutation Ar and its turn Ta, when combine, result
+ * in the identity I, which needs no reduction:
+ * I = Ar * Ta
+ *
+ * Assume in the above case, this is where we end at the next move:
+ * I = Srz * (Sry * Xr * Tx * Sry') * Ty * Srz' * Tz
+ *
+ * We know that:
+ * Sa * X * Y * Sa' = Sa * X * Sa' * Sa * Y * Sa'
+ *
+ * So we can begin to move out and cancel our symmetries:
+ * I = Srz * Sry * Xr * Tx * Sry' * Ty * Srz' * Tz
+ * I * Srz = Srz * Sry * Xr * Tx * Sry' * Ty * Srz' * Tz * Srz
+ * Srz' * I * Srz = Sry * Xr * Tx * Sry' * Ty * Srz' * Tz * Srz
+ * Srz' * Srz = Sry * Xr * Tx * Sry' * Ty * Srz' * Tz * Srz
+ * I = Sry * Xr * Tx * Sry' * Ty * Srz' * Tz * Srz
+ * Sry' * I * Sry = Sry' * Sry * Xr * Tx * Sry' * Ty * Srz' * Tz * Srz * Sry
+ * Sry' * Sry = Xr * Tx * Sry' * Ty * Srz' * Tz * Srz * Sry
+ * I = Xr * Tx * Sry' * Ty * Srz' * Tz * Srz * Sry
+ *
+ * Let's replace Xr to get our goal in the formula:
+ * I = Srx * X * Srx' * Tx * Sry' * Ty * Srz' * Tz * Srz * Sry
+ * Srx' * I * Srx = Srx' * Srx * X * Srx' * Tx * Sry' * Ty * Srz' * Tz * Srz * Sry * Srx
+ * Srx' * Srx = X * Srx' * Tx * Sry' * Ty * Srz' * Tz * Srz * Sry * Srx
+ * I = X * Srx' * Tx * Sry' * Ty * Srz' * Tz * Srz * Sry * Srx
+ * X' * I = X' * X * Srx' * Tx * Sry' * Ty * Srz' * Tz * Srz * Sry * Srx
+ * X' = Srx' * Tx * Sry' * Ty * Srz' * Tz * Srz * Sry * Srx
+ *
+ * Now we finally have both sides as our target--the inverse of our scramble permutation.
+ * However, we don't have it broken down nicely into turns.
+ * We can do this by simply inserting some "garbage" symmetries that would cancel out
+ * X' = Srx' * Tx * Sry' * Ty * Srz' * Tz * Srz * Sry * Srx
+ * X' = Srx' * Tx * Srx * Srx' * Sry' * Ty * Srz' * Tz * Srz * Sry * Srx
+ *
+ * Since every permutation that is symmetrical to a turn is also a turn,
+ * we've now found T0, and move on to the next:
+ * T0 = Srx' * Tx * Srx
+ * X' = T0 * Srx' * Sry' * Ty * Srz' * Tz * Srz * Sry * Srx
+ * X' = T0 * Srx' * Sry' * Ty * Sry * Sry' * Srz' * Tz * Srz * Sry * Srx
+ *
+ * Which reveals T1 and T2
+ * T1 = Srx' * Sry' * Ty * Sry * Srx
+ * T2 = Srx' * Sry' * Srz' * Tz * Srz * Sry * Srx
+ * X' = T0 * T1 * T2
+ */
+// TODO: Use a HashMap<FaceletCube, NamedTurn> since NamedTurn can be an enum
+// that would take up significantly less space in memory.
+fn solve_by_move_table<F: Fn(&FaceletCube) -> (FaceletCube, &FaceletCube, &FaceletCube)>(reduce_symmetry: F, table: Vec<&HashMap<FaceletCube, FaceletCube>>, scramble: &FaceletCube) -> Option<Vec<FaceletCube>> {
+    let (scramble_r, s, s_inv) = reduce_symmetry(scramble);
+
+    let mut n  = 0;
+    for hm in &table {
+        if hm.get(&scramble_r) != None {
+            break;
+        }
+        n += 1;
+    }
+
+    let mut turns = Vec::with_capacity(n);
+    let mut r = scramble_r;
+    let mut sym = *s;
+    let mut sym_inv = *s_inv;
+    for i in n..0 {
+        let r_clone = r.clone();
+
+        // TODO: Or it is solved in more turns than the table holds
+        let turn = table[i].get(&r_clone).expect("Move table is corrupt");
+        turns.push(permute_cube(&permute_cube(&sym_inv, turn), &sym));
+
+        let (next_r, s, s_inv) = reduce_symmetry(&r_clone);
+        r = next_r;
+        sym = permute_cube(s, &sym);
+        sym_inv = permute_cube(s_inv, &sym_inv);
+    }
+    Some(turns)
 }
 
 fn main() {
