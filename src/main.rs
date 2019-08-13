@@ -394,7 +394,7 @@ fn gen_next_moves<F: Sync + Fn(&FaceletCube) -> FaceletCube>(
 // that would take up significantly less space in memory.
 // TODO: Move table references/ownership don't quite add up
 fn solve_by_move_table<F: Fn(&FaceletCube) -> (FaceletCube, FaceletCube, FaceletCube)>(reduce_symmetry: F, table: Vec<&HashMap<FaceletCube, FaceletCube>>, scramble: &FaceletCube) -> Option<Vec<FaceletCube>> {
-    let (scramble_r, s, s_inv) = reduce_symmetry(scramble);
+    let (scramble_r, s_inv, s) = reduce_symmetry(scramble);
 
     let mut n = 0;
     for hm in &table {
@@ -415,7 +415,7 @@ fn solve_by_move_table<F: Fn(&FaceletCube) -> (FaceletCube, FaceletCube, Facelet
         let turn = table[i].get(&r_clone).expect("Move table is corrupt");
         turns.push(permute_cube(&permute_cube(&sym, turn), &sym_inv));
 
-        let (next_r, s, s_inv) = reduce_symmetry(&permute_cube(&r_clone, turn));
+        let (next_r, s_inv, s) = reduce_symmetry(&permute_cube(&r_clone, turn));
         r = next_r;
         sym = permute_cube(&sym, &s);
         sym_inv = permute_cube(&s_inv, &sym_inv);
