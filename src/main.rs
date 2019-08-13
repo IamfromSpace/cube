@@ -78,7 +78,7 @@ impl fmt::Display for FaceletCube {
             c(9), e(9), c(8),
             c(13), e(13), c(12),
 
-            e(16), o, e(16),
+            e(18), o, e(16),
             e(6), g, e(4),
             e(10), r, e(8),
             e(14), b, e(12),
