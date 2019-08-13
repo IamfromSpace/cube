@@ -392,10 +392,11 @@ fn gen_next_moves<F: Sync + Fn(&FaceletCube) -> FaceletCube>(
  */
 // TODO: Use a HashMap<FaceletCube, NamedTurn> since NamedTurn can be an enum
 // that would take up significantly less space in memory.
-fn solve_by_move_table<F: Fn(&FaceletCube) -> (FaceletCube, &FaceletCube, &FaceletCube)>(reduce_symmetry: F, table: Vec<&HashMap<FaceletCube, FaceletCube>>, scramble: &FaceletCube) -> Option<Vec<FaceletCube>> {
+// TODO: Move table references/ownership don't quite add up
+fn solve_by_move_table<F: Fn(&FaceletCube) -> (FaceletCube, FaceletCube, FaceletCube)>(reduce_symmetry: F, table: Vec<&HashMap<FaceletCube, FaceletCube>>, scramble: &FaceletCube) -> Option<Vec<FaceletCube>> {
     let (scramble_r, s, s_inv) = reduce_symmetry(scramble);
 
-    let mut n  = 0;
+    let mut n = 0;
     for hm in &table {
         if hm.get(&scramble_r) != None {
             break;
@@ -405,19 +406,19 @@ fn solve_by_move_table<F: Fn(&FaceletCube) -> (FaceletCube, &FaceletCube, &Facel
 
     let mut turns = Vec::with_capacity(n);
     let mut r = scramble_r;
-    let mut sym = *s;
-    let mut sym_inv = *s_inv;
-    for i in n..0 {
+    let mut sym = s;
+    let mut sym_inv = s_inv;
+    for i in (0..n + 1).rev() {
         let r_clone = r.clone();
 
         // TODO: Or it is solved in more turns than the table holds
         let turn = table[i].get(&r_clone).expect("Move table is corrupt");
-        turns.push(permute_cube(&permute_cube(&sym_inv, turn), &sym));
+        turns.push(permute_cube(&permute_cube(&sym, turn), &sym_inv));
 
-        let (next_r, s, s_inv) = reduce_symmetry(&r_clone);
+        let (next_r, s, s_inv) = reduce_symmetry(&permute_cube(&r_clone, turn));
         r = next_r;
-        sym = permute_cube(s, &sym);
-        sym_inv = permute_cube(s_inv, &sym_inv);
+        sym = permute_cube(&sym, &s);
+        sym_inv = permute_cube(&s_inv, &sym_inv);
     }
     Some(turns)
 }
