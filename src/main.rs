@@ -330,7 +330,7 @@ fn gen_next_moves<F: Sync + Fn(&FaceletCube) -> FaceletCube>(
  * X is the permutation we are trying to solve
  * Xr "smallest" permutation that is symmetrical to X
  * so:
- * Xr = Srx * X * Srx'
+ * Xr = Srx' * X * Srx
  *
  * If we find Xr in the HashMap at position n, we know X is solvable in n moves.
  * Tx is the value at HashMap[Xr].  It is the next turn in the solve (for Xr, not X).
@@ -339,55 +339,55 @@ fn gen_next_moves<F: Sync + Fn(&FaceletCube) -> FaceletCube>(
  *
  * However, Y will (likely) not be present in the n-1 HashMap.
  * We must also reduce it first, so:
- * Yr = Sry * Y * Sry'
- * Yr = Sry * Xr * Tx * Sry'
+ * Yr = Sry' * Y * Sry
+ * Yr = Sry' * Xr * Tx * Sry
  *
  * This is where we'll see recursion take place (parenthesis for emphasis):
- * Zr = Srz * (Sry * Xr * Tx * Sry') * Ty * Srz'
+ * Zr = Srz' * (Sry' * Xr * Tx * Sry) * Ty * Srz
  *
  * Eventually, at n=1, the final permutation Ar and its turn Ta, when combine, result
  * in the identity I, which needs no reduction:
  * I = Ar * Ta
  *
  * Assume in the above case, this is where we end at the next move:
- * I = Srz * (Sry * Xr * Tx * Sry') * Ty * Srz' * Tz
+ * I = Srz' * (Sry' * Xr * Tx * Sry) * Ty * Srz * Tz
  *
  * We know that:
- * Sa * X * Y * Sa' = Sa * X * Sa' * Sa * Y * Sa'
+ * Sa' * X * Y * Sa = Sa' * X * Sa * Sa' * Y * Sa
  *
  * So we can begin to move out and cancel our symmetries:
- * I = Srz * Sry * Xr * Tx * Sry' * Ty * Srz' * Tz
- * I * Srz = Srz * Sry * Xr * Tx * Sry' * Ty * Srz' * Tz * Srz
- * Srz' * I * Srz = Sry * Xr * Tx * Sry' * Ty * Srz' * Tz * Srz
- * Srz' * Srz = Sry * Xr * Tx * Sry' * Ty * Srz' * Tz * Srz
- * I = Sry * Xr * Tx * Sry' * Ty * Srz' * Tz * Srz
- * Sry' * I * Sry = Sry' * Sry * Xr * Tx * Sry' * Ty * Srz' * Tz * Srz * Sry
- * Sry' * Sry = Xr * Tx * Sry' * Ty * Srz' * Tz * Srz * Sry
- * I = Xr * Tx * Sry' * Ty * Srz' * Tz * Srz * Sry
+ * I = Srz' * Sry' * Xr * Tx * Sry * Ty * Srz * Tz
+ * I * Srz' = Srz' * Sry' * Xr * Tx * Sry * Ty * Srz * Tz * Srz
+ * Srz * I * Srz' = Sry' * Xr * Tx * Sry * Ty * Srz * Tz * Srz
+ * Srz * Srz' = Sry' * Xr * Tx * Sry * Ty * Srz * Tz * Srz
+ * I = Sry' * Xr * Tx * Sry * Ty * Srz * Tz * Srz
+ * Sry * I * Sry' = Sry * Sry' * Xr * Tx * Sry * Ty * Srz * Tz * Srz' * Sry
+ * Sry * Sry' = Xr * Tx * Sry * Ty * Srz * Tz * Srz' * Sry
+ * I = Xr * Tx * Sry * Ty * Srz * Tz * Srz' * Sry
  *
  * Let's replace Xr to get our goal in the formula:
- * I = Srx * X * Srx' * Tx * Sry' * Ty * Srz' * Tz * Srz * Sry
- * Srx' * I * Srx = Srx' * Srx * X * Srx' * Tx * Sry' * Ty * Srz' * Tz * Srz * Sry * Srx
- * Srx' * Srx = X * Srx' * Tx * Sry' * Ty * Srz' * Tz * Srz * Sry * Srx
- * I = X * Srx' * Tx * Sry' * Ty * Srz' * Tz * Srz * Sry * Srx
- * X' * I = X' * X * Srx' * Tx * Sry' * Ty * Srz' * Tz * Srz * Sry * Srx
- * X' = Srx' * Tx * Sry' * Ty * Srz' * Tz * Srz * Sry * Srx
+ * I = Srx' * X * Srx * Tx * Sry * Ty * Srz * Tz * Srz' * Sry
+ * Srx * I * Srx' = Srx * Srx' * X * Srx * Tx * Sry * Ty * Srz * Tz * Srz' * Sry' * Srx
+ * Srx * Srx' = X * Srx * Tx * Sry * Ty * Srz * Tz * Srz' * Sry' * Srx
+ * I = X * Srx * Tx * Sry * Ty * Srz * Tz * Srz' * Sry' * Srx
+ * X' * I = X' * X * Srx * Tx * Sry * Ty * Srz * Tz * Srz' * Sry' * Srx
+ * X' = Srx * Tx * Sry * Ty * Srz * Tz * Srz' * Sry' * Srx
  *
  * Now we finally have both sides as our target--the inverse of our scramble permutation.
  * However, we don't have it broken down nicely into turns.
  * We can do this by simply inserting some "garbage" symmetries that would cancel out
- * X' = Srx' * Tx * Sry' * Ty * Srz' * Tz * Srz * Sry * Srx
- * X' = Srx' * Tx * Srx * Srx' * Sry' * Ty * Srz' * Tz * Srz * Sry * Srx
+ * X' = Srx * Tx * Sry * Ty * Srz * Tz * Srz' * Sry' * Srx
+ * X' = Srx * Tx * Srx' * Srx * Sry * Ty * Srz * Tz * Srz' * Sry' * Srx
  *
  * Since every permutation that is symmetrical to a turn is also a turn,
  * we've now found T0, and move on to the next:
- * T0 = Srx' * Tx * Srx
- * X' = T0 * Srx' * Sry' * Ty * Srz' * Tz * Srz * Sry * Srx
- * X' = T0 * Srx' * Sry' * Ty * Sry * Sry' * Srz' * Tz * Srz * Sry * Srx
+ * T0 = Srx * Tx * Srx
+ * X' = T0 * Srx * Sry * Ty * Srz * Tz * Srz' * Sry' * Srx
+ * X' = T0 * Srx * Sry * Ty * Sry' * Sry * Srz * Tz * Srz' * Sry' * Srx
  *
  * Which reveals T1 and T2
- * T1 = Srx' * Sry' * Ty * Sry * Srx
- * T2 = Srx' * Sry' * Srz' * Tz * Srz * Sry * Srx
+ * T1 = Srx * Sry * Ty * Sry' * Srx
+ * T2 = Srx * Sry * Srz * Tz * Srz' * Sry' * Srx
  * X' = T0 * T1 * T2
  */
 // TODO: Use a HashMap<FaceletCube, NamedTurn> since NamedTurn can be an enum
