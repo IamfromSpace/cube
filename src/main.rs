@@ -125,6 +125,37 @@ fn arr_identity() -> [u8; 24] {
     r
 }
 
+
+fn arr_inv(a: &[u8; 24]) -> [u8; 24] {
+    let mut r = [0; 24];
+    //silly looking, but twice as fast ;)
+    r[a[0] as usize] = 0;
+    r[a[1] as usize] = 1;
+    r[a[2] as usize] = 2;
+    r[a[3] as usize] = 3;
+    r[a[4] as usize] = 4;
+    r[a[5] as usize] = 5;
+    r[a[6] as usize] = 6;
+    r[a[7] as usize] = 7;
+    r[a[8] as usize] = 8;
+    r[a[9] as usize] = 9;
+    r[a[10] as usize] = 10;
+    r[a[11] as usize] = 11;
+    r[a[12] as usize] = 12;
+    r[a[13] as usize] = 13;
+    r[a[14] as usize] = 14;
+    r[a[15] as usize] = 15;
+    r[a[16] as usize] = 16;
+    r[a[17] as usize] = 17;
+    r[a[18] as usize] = 18;
+    r[a[19] as usize] = 19;
+    r[a[20] as usize] = 20;
+    r[a[21] as usize] = 21;
+    r[a[22] as usize] = 22;
+    r[a[23] as usize] = 23;
+    r
+}
+
 fn permute_arr_inv(a: &[u8; 24], b: &[u8; 24]) -> [u8; 24] {
     let mut r = [0; 24];
     //silly looking, but twice as fast ;)
@@ -206,6 +237,13 @@ fn permute_cube_inv(a: &FaceletCube, b: &FaceletCube) -> FaceletCube {
     }
 }
 
+fn cube_inv(a: &FaceletCube) -> FaceletCube {
+    FaceletCube {
+        edges: arr_inv(&a.edges),
+        corners: arr_inv(&a.corners),
+    }
+}
+
 fn greatest_equivalence(
     syms_inv: &[FaceletCube; 48],
     syms: &[FaceletCube; 48],
@@ -217,7 +255,7 @@ fn greatest_equivalence(
         if e > greatest {
             greatest = e;
         }
-        let e_inv = permute_cube(&permute_cube_inv(&syms_inv[i], &perm), &syms[i]);
+        let e_inv = permute_cube(&permute_cube(&syms_inv[i], &cube_inv(&perm)), &syms[i]);
         if e_inv > greatest {
             greatest = e_inv;
         }
@@ -746,7 +784,7 @@ fn main() {
 
     let mut syms_inv = [CLEAN_CUBE; 48];
     for i in 0..48 {
-        syms_inv[i] = permute_cube_inv(&CLEAN_CUBE, &syms[i]);
+        syms_inv[i] = cube_inv(&syms[i]);
     }
 
     let f = permute_cube(&permute_cube(&syms_inv[2], &u), &syms[2]);
