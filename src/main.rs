@@ -95,6 +95,36 @@ impl fmt::Display for FaceletCube {
     }
 }
 
+fn arr_identity() -> [u8; 24] {
+    let mut r = [0; 24];
+    //silly looking, but twice as fast ;)
+    r[0] = 0;
+    r[1] = 1;
+    r[2] = 2;
+    r[3] = 3;
+    r[4] = 4;
+    r[5] = 5;
+    r[6] = 6;
+    r[7] = 7;
+    r[8] = 8;
+    r[9] = 9;
+    r[10] = 10;
+    r[11] = 11;
+    r[12] = 12;
+    r[13] = 13;
+    r[14] = 14;
+    r[15] = 15;
+    r[16] = 16;
+    r[17] = 17;
+    r[18] = 18;
+    r[19] = 19;
+    r[20] = 20;
+    r[21] = 21;
+    r[22] = 22;
+    r[23] = 23;
+    r
+}
+
 fn permute_arr_inv(a: &[u8; 24], b: &[u8; 24]) -> [u8; 24] {
     let mut r = [0; 24];
     //silly looking, but twice as fast ;)
@@ -153,6 +183,14 @@ fn permute_arr(a: &[u8; 24], b: &[u8; 24]) -> [u8; 24] {
         a[b[23] as usize],
     ]
 }
+
+fn cube_identity() -> FaceletCube {
+    FaceletCube {
+        edges: arr_identity(),
+        corners: arr_identity(),
+    }
+}
+
 
 fn permute_cube(a: &FaceletCube, b: &FaceletCube) -> FaceletCube {
     FaceletCube {
@@ -424,13 +462,8 @@ fn solve_by_move_table<F: Fn(&FaceletCube) -> (FaceletCube, FaceletCube, Facelet
 }
 
 fn main() {
-    const CLEAN_ARR: [u8; 24] = [
-        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23
-    ];
-    const CLEAN_CUBE: FaceletCube = FaceletCube {
-        edges: CLEAN_ARR,
-        corners: CLEAN_ARR,
-    };
+    let CLEAN_ARR: [u8; 24] = arr_identity();
+    let CLEAN_CUBE: FaceletCube = cube_identity();
     use Facelet::*;
 
     // Create a Clockwise turn of the U face
