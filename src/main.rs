@@ -1,6 +1,6 @@
 #![feature(i128_type, test)]
 use std::fmt;
-use std::collections::{HashSet, HashMap};
+use std::collections::HashMap;
 use std::sync::Mutex;
 
 extern crate ansi_term;
@@ -248,19 +248,32 @@ fn greatest_equivalence(
     syms_inv: &[FaceletCube; 48],
     syms: &[FaceletCube; 48],
     perm: FaceletCube,
-) -> FaceletCube {
+) -> (FaceletCube, FaceletCube, FaceletCube) {
     let mut greatest = perm;
+    let mut sym = cube_identity();
+    let mut sym_inv = cube_identity();
     for i in 1..48 {
         let e = permute_cube(&permute_cube(&syms_inv[i], &perm), &syms[i]);
         if e > greatest {
             greatest = e;
+            sym = syms[i];
+            sym_inv = syms_inv[i];
         }
+        /* TODO: It's going to be more work to make this work with the move table
         let e_inv = permute_cube(&permute_cube(&syms_inv[i], &cube_inv(&perm)), &syms[i]);
         if e_inv > greatest {
             greatest = e_inv;
+            sym = syms[i];
+            sym_inv = syms_inv[i];
         }
+        */
     }
-    greatest
+    // TODO: It seems like these would make more sense to be borrow?
+    // However, it gets pretty weird because they have to last as long as
+    // syms, syms_inv.  However, the user can always copy.
+    // TODO: The strategy for this should be altered, probably with a
+    // Symmetry type that handles the sym/inv automatically
+    ( greatest, sym_inv.clone(), sym.clone())
 }
 
 fn permute(a: i128, b: i128) -> i128 {
@@ -373,23 +386,83 @@ fn while_iter_in_mutex_has_next<I: Iterator, F: Sync + Fn(I::Item) -> ()>(m: &Mu
     }
 }
 
-fn gen_next_moves<F: Sync + Fn(&FaceletCube) -> FaceletCube>(
+/* Given our previous table entries, we now generate the next.
+ * From any position that requires an optimal number of n turns to solve,
+ * if we apply another turn, there are only thre possibilities:
+ *   a) This solves the cube, and it now takes n - 1 turns to solve
+ *   b) This scrambles the cube more, and it now takes n + 1
+ *   c) This steps towards a new but _equally_ scramble position, and it still takes n turns
+ *
+ * As such, we take all of our parent's positions, apply each possible turn,
+ * reduce to the cannonical symmetry case, and then check to see if it's in
+ * the parent or grandparent.
+ *
+ * If present in either, it's case a or c, and we can ignore this perm + turn.
+ * If it's not, it is a newly discovered position of n+1, and we insert it into
+ * the new hashmap.
+ *
+ * There's quite a bit of work to do here, so we do this with multiple workers,
+ * and the HashMap is in a Mutex to stay safe.
+ *
+ * Lastly, when we insert into the Mutex, the key is the position, and the value
+ * is the 'undo' turn.  This allows us to 'backtrack', so we can discover the turns
+ * one at a time by stepping through each table entry.
+ *
+ * The inverse turn that found the position is not necessarily the turn that will
+ * 'undo' the newly found position.  This is because the position that we store
+ * is the canonical symmetry case--not the one the turn generated to find it.
+ *
+ * Let's look at some permutation algebra:
+ * X is the original permutation
+ * T is the turn that generates a new case
+ * Y is the new position
+ * Yr is the symmetry reduced case
+ * so:
+ * Y = X * T
+ * Yr = Sr' * Y * Sr'
+ * Yr = Sr' * X * T * Sr'
+ *
+ * Now we can find the turn that returns us to X
+ * Yr * Sr' = Sr' * X * T * Sr' * Sr
+ * Yr * Sr' = Sr' * X * T
+ * Yr * Sr' * T' = Sr' * X
+ * Yr * Sr' * T' * Sr' = Sr' * X * Sr'
+ *
+ * Notice that we don't get something quite so satisfying as:
+ * Yr * T' = X
+ *
+ * This is acceptable for two reasons:
+ * 1) Sr' * X * Sr' is (by definition) symmetrical to X.
+ * Our eventual goal is to find Xr, and any position symmetrical to
+ * X (or Xr) can help us do this.
+ *
+ * 2) Any permutation that is symmetrical to a turn, is also a turn:
+ *   \A t \in Turn :
+ *     \E s \in Symmetry : s * t * s' \in Turn
+ *
+ * So now we can find the turn that "undoes" Yr (Tu):
+ * Tu = Sr' * T' * Sr'
+ *
+ * And so we write (Yr, Tu) into the HashMap
+ */
+fn gen_next_moves<F: Sync + Fn(&FaceletCube) -> (FaceletCube, FaceletCube, FaceletCube)>(
     reduce_symmetry: F,
     turns: &[FaceletCube; 12],
-    parent: &HashSet<FaceletCube>,
-    grandparent: &HashSet<FaceletCube>,
-) -> HashSet<FaceletCube> {
-    let hsm: Mutex<HashSet<FaceletCube>> =
-        Mutex::new(HashSet::with_capacity(parent.len() * 12));
+    parent: &HashMap<FaceletCube, FaceletCube>,
+    grandparent: &HashMap<FaceletCube, FaceletCube>,
+) -> HashMap<FaceletCube, FaceletCube> {
+    let hsm: Mutex<HashMap<FaceletCube, FaceletCube>> =
+        Mutex::new(HashMap::with_capacity(parent.len() * 12));
     let iter_m = Mutex::new(parent.iter());
 
     n_scoped_workers(8, || {
-        while_iter_in_mutex_has_next(&iter_m, |perm: &FaceletCube| {
+        while_iter_in_mutex_has_next(&iter_m, |(perm, _): (&FaceletCube, &FaceletCube)| {
             turns.iter().for_each(|turn| {
-                let ge = reduce_symmetry(&permute_cube(&perm, &turn));
-                if !grandparent.contains(&ge) && !parent.contains(&ge) {
+                let (ge, sym_inv, sym) = reduce_symmetry(&permute_cube(&perm, &turn));
+                if grandparent.get(&ge) == None && parent.get(&ge) == None {
                     let mut guard = hsm.lock().unwrap();
-                    (*guard).insert(ge);
+                    let undo = permute_cube(&permute_cube(&sym_inv, &cube_inv(turn)), &sym);
+                    (*guard).insert(ge, undo);
                 }
             });
         });
@@ -814,9 +887,10 @@ fn main() {
     }
     */
 
-    let neg_one: HashSet<FaceletCube> = HashSet::new();
-    let mut zero: HashSet<FaceletCube> = HashSet::new();
-    zero.insert(CLEAN_CUBE);
+    let neg_one: HashMap<FaceletCube, FaceletCube> = HashMap::new();
+    let mut zero: HashMap<FaceletCube, FaceletCube> = HashMap::new();
+    // Since there is no 'turn' that 'solves' this more, we insert the identity
+    zero.insert(CLEAN_CUBE, CLEAN_CUBE);
     let zero = zero;
 
     let reduce_syms = |perm: &FaceletCube| {
