@@ -14,6 +14,82 @@ struct CoordCube {
     edges: i128,
 }
 
+/* Basically everything about a cube is a permutation.
+ * A cube position is a permutation.  A move is a permutation.
+ * An algorithm is a permutation.  Rotating the whole cube
+ * is a permutation.
+ *
+ * Permutations put simply: the thing in position X moves to position Y.
+ *
+ * So when we turn the top face clockwise, the facelet (sticker) in the
+ * upper right corner moves to the bottom right corner.  If we descibe
+ * how all the facelets move, then we've describe the permutation that
+ * is the turning of the top face.
+ *
+ * The "solved" position is simply the identity permutation: everything
+ * moves from its current position to that same position.
+ *
+ * When viewed in terms of permutations, "solving" the cube becomes
+ * somewhat non-sensical.  How does one "solve" a position?  One simply
+ * takes the inverse of the "scramble" permutation, done!
+ *
+ * I = X * X'
+ *
+ * It's fairly boring!
+ *
+ * When we talk about "solving" a cube, what we really mean is de-composing
+ * a permutation into some restricted set of other permutations.
+ *
+ * so:
+ * QuarterTurns = { U, U', F, F', ... }
+ * HalfTurns = { U, U2, U', F, F2, F', ... }
+ * SliceTurns = { U, U2, U', M, F, F2, F', ... }
+ *
+ * Permutations compose nicely, because if:
+ * A moves X to Y
+ * B moves Y to Z
+ * C = A * B => C moves X to Z
+ *
+ * so we can combine our restricted sets to make other permutations:
+ * X = U * R * F' * ...
+ *
+ * D moves Z to X
+ * D' = A * B * C
+ *
+ * So really the question is: can we express one permutation as a series
+ * of another from a restricted set?
+ *
+ *
+ * The permutations of the cube can be represented in many ways, this
+ * particular encodes the facelets.  Each edge facelet and corner facelet
+ * position are given indexes, and then we have an array of that holds
+ * and index for each index.
+ *
+ * We can read the resulting structure to mean:
+ * The facelet at position edges[i] moves to position i.
+ * The facelet at position corners[i] moves to position i.
+ *
+ * This is a fairly fast way to represent the cube!  But it's not as
+ * memory efficient as ones that compact the positions more.
+ *
+ * Minimum space in memory for cube positions is 66bits,
+ * which rounds up to 9bytes when byte addressable.
+ * To compact this more in a still fairly usable way we can do:
+ * edge position as u32 (3.2 "wasted" bits)
+ * edge orientation as u16 (4 "wasted" bits)
+ * corner position as u16 (0.7 "wasted" bits)
+ * corner orientation as u16 (3.3 "wasted" bits)
+ *
+ * This only costs 10 bytes on memory, which is only 1 more than optimal
+ *
+ * A theoretically optimal way:
+ * bottom/middle edge orientations as u8 (no "wasted" bytes)
+ * everything else: u64 (6.5 "wasted" bytes)
+ *
+ * To handle all the ways that cubes can be represented an permuted,
+ * it may make sense to make this a "Permute" trait.
+ * It seems like requirements would be: identity, invert, permute
+ */
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
 struct FaceletCube {
     // u8 benchmarked as fastest for permuting
