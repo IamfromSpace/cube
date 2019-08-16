@@ -1,4 +1,4 @@
-#![feature(i128_type, test)]
+#![feature(test)]
 use std::fmt;
 use std::collections::HashMap;
 use std::sync::Mutex;
@@ -715,12 +715,10 @@ fn solve_by_move_table<F: Fn(&FaceletCube) -> (FaceletCube, FaceletCube, Facelet
 }
 
 fn main() {
-    let CLEAN_ARR: [u8; 24] = arr_identity();
-    let CLEAN_CUBE: FaceletCube = cube_identity();
     use Facelet::*;
 
     // Create a Clockwise turn of the U face
-    let mut e = CLEAN_ARR.clone();
+    let mut e = arr_identity();
     e[U0 as usize] = U1 as u8;
     e[U1 as usize] = U2 as u8;
     e[U2 as usize] = U3 as u8;
@@ -730,7 +728,7 @@ fn main() {
     e[B1 as usize] = L1 as u8;
     e[L1 as usize] = F1 as u8;
 
-    let mut c = CLEAN_ARR.clone();
+    let mut c = arr_identity();
     c[U0 as usize] = U1 as u8;
     c[U1 as usize] = U2 as u8;
     c[U2 as usize] = U3 as u8;
@@ -750,7 +748,7 @@ fn main() {
     };
 
     // Create a Clockwise turn of the whole cube on the axis from URF to DBL
-    let mut e = CLEAN_ARR.clone();
+    let mut e = arr_identity();
     e[U0 as usize] = F1 as u8;
     e[U1 as usize] = F2 as u8;
     e[U2 as usize] = F3 as u8;
@@ -776,7 +774,7 @@ fn main() {
     e[D2 as usize] = B3 as u8;
     e[D3 as usize] = B0 as u8;
 
-    let mut c = CLEAN_ARR.clone();
+    let mut c = arr_identity();
     c[U0 as usize] = F1 as u8;
     c[U1 as usize] = F2 as u8;
     c[U2 as usize] = F3 as u8;
@@ -808,7 +806,7 @@ fn main() {
     };
 
     // Create a 180deg turn of the whole cube on the F face
-    let mut e = CLEAN_ARR.clone();
+    let mut e = arr_identity();
     e[U0 as usize] = D2 as u8;
     e[U1 as usize] = D3 as u8;
     e[U2 as usize] = D0 as u8;
@@ -834,7 +832,7 @@ fn main() {
     e[D2 as usize] = U0 as u8;
     e[D3 as usize] = U1 as u8;
 
-    let mut c = CLEAN_ARR.clone();
+    let mut c = arr_identity();
     c[U0 as usize] = D2 as u8;
     c[U1 as usize] = D3 as u8;
     c[U2 as usize] = D0 as u8;
@@ -866,7 +864,7 @@ fn main() {
     };
 
     // Create a Clockwise turn of the whole cube on the U face
-    let mut e = CLEAN_ARR.clone();
+    let mut e = arr_identity();
     e[U0 as usize] = U1 as u8;
     e[U1 as usize] = U2 as u8;
     e[U2 as usize] = U3 as u8;
@@ -892,7 +890,7 @@ fn main() {
     e[D2 as usize] = D1 as u8;
     e[D3 as usize] = D2 as u8;
 
-    let mut c = CLEAN_ARR.clone();
+    let mut c = arr_identity();
     c[U0 as usize] = U1 as u8;
     c[U1 as usize] = U2 as u8;
     c[U2 as usize] = U3 as u8;
@@ -924,7 +922,7 @@ fn main() {
     };
 
     // Create a mirror of the whole cube from the left to right side
-    let mut e = CLEAN_ARR.clone();
+    let mut e = arr_identity();
     e[U0 as usize] = U2 as u8;
     e[U2 as usize] = U0 as u8;
     e[F0 as usize] = F2 as u8;
@@ -942,7 +940,7 @@ fn main() {
     e[D0 as usize] = D2 as u8;
     e[D2 as usize] = D0 as u8;
 
-    let mut c = CLEAN_ARR.clone();
+    let mut c = arr_identity();
     c[U0 as usize] = U1 as u8;
     c[U1 as usize] = U0 as u8;
     c[U2 as usize] = U3 as u8;
@@ -973,10 +971,9 @@ fn main() {
         corners: c,
     };
 
-    let mut syms = [CLEAN_CUBE; 48];
+    let mut syms = [cube_identity(); 48];
     for i in 0..48 {
-        let mut x = i;
-        let urfs = x % 3;
+        let urfs = i % 3;
         let fs = i / 3 % 2;
         let us = i / 6 % 4;
         let ms = i / 24;
@@ -997,7 +994,7 @@ fn main() {
         syms[i] = c;
     }
 
-    let mut syms_inv = [CLEAN_CUBE; 48];
+    let mut syms_inv = [cube_identity(); 48];
     for i in 0..48 {
         syms_inv[i] = cube_inv(&syms[i]);
     }
@@ -1010,17 +1007,17 @@ fn main() {
 
     let turns = [
         u,
-        permute_cube_inv(&CLEAN_CUBE, &u),
+        permute_cube_inv(&cube_identity(), &u),
         f,
-        permute_cube_inv(&CLEAN_CUBE, &f),
+        permute_cube_inv(&cube_identity(), &f),
         r,
-        permute_cube_inv(&CLEAN_CUBE, &r),
+        permute_cube_inv(&cube_identity(), &r),
         b,
-        permute_cube_inv(&CLEAN_CUBE, &b),
+        permute_cube_inv(&cube_identity(), &b),
         l,
-        permute_cube_inv(&CLEAN_CUBE, &l),
+        permute_cube_inv(&cube_identity(), &l),
         d,
-        permute_cube_inv(&CLEAN_CUBE, &d),
+        permute_cube_inv(&cube_identity(), &d),
     ];
     /*
     println!("turns:");
@@ -1032,7 +1029,7 @@ fn main() {
     let neg_one: HashMap<FaceletCube, (FaceletCube, bool)> = HashMap::new();
     let mut zero: HashMap<FaceletCube, (FaceletCube, bool)> = HashMap::new();
     // Since there is no 'turn' that 'solves' this more, we insert the identity
-    zero.insert(CLEAN_CUBE, (CLEAN_CUBE, false));
+    zero.insert(cube_identity(), (cube_identity(), false));
     let zero = zero;
 
     let reduce_syms = |perm: &FaceletCube| {
