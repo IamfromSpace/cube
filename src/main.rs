@@ -37,8 +37,6 @@ fn greatest_equivalence<T: Ord + PG + Copy>(syms: &[T; 48], perm: T) -> (T, T, b
     // TODO: It seems like these would make more sense to be borrow?
     // However, it gets pretty weird because they have to last as long as
     // syms, syms_inv.  However, the user can always copy.
-    // TODO: The strategy for this should be altered, probably with a
-    // Symmetry type that handles the sym/inv automatically
     ( greatest, sym.clone(), inverted )
 }
 
@@ -641,12 +639,6 @@ fn main() {
         d,
         d.invert(),
     ];
-    /*
-    println!("turns:");
-    for turn in &turns {
-        println!("{}", turn);
-    }
-    */
 
     let neg_one: HashMap<FaceletCube, (FaceletCube, bool)> = HashMap::new();
     let mut zero: HashMap<FaceletCube, (FaceletCube, bool)> = HashMap::new();
