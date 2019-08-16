@@ -11,4 +11,8 @@ pub trait PermutationGroup: functional::Monoid<Self> where
     fn identity() -> Self {
         functional::Monoid::one()
     }
+
+    fn apply_symmetry(self, perm: Self) -> Self {
+        perm.invert().permute(self).permute(perm)
+    }
 }
