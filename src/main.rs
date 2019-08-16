@@ -1,5 +1,6 @@
 #![feature(test)]
 use std::collections::HashMap;
+use std::hash::Hash;
 use std::sync::Mutex;
 
 extern crate ansi_term;
@@ -21,12 +22,9 @@ struct CoordCube {
 }
 
 
-fn greatest_equivalence(
-    syms: &[FaceletCube; 48],
-    perm: FaceletCube,
-) -> (FaceletCube, FaceletCube, bool) {
+fn greatest_equivalence<T: Ord + PG + Copy>(syms: &[T; 48], perm: T) -> (T, T, bool) {
     let mut greatest = perm;
-    let mut sym: FaceletCube = PG::identity();
+    let mut sym: T = PG::identity();
     let mut inverted = false;
     for i in 0..48 {
         let e = perm.apply_symmetry(syms[i]);
@@ -241,18 +239,18 @@ fn while_iter_in_mutex_has_next<I: Iterator, F: Sync + Fn(I::Item) -> ()>(m: &Mu
  * Which means it undoes the permutation by being applied _before_ rather than
  * after.  And the stored move is not inverted before the symmetry is applied.
  */
-fn gen_next_moves<F: Sync + Fn(&FaceletCube) -> (FaceletCube, FaceletCube, bool)>(
+fn gen_next_moves<T: PG + Hash + Eq + Copy + Send + Sync, F: Sync + Fn(&T) -> (T, T, bool)>(
     reduce_symmetry: F,
-    turns: &[FaceletCube; 12],
-    parent: &HashMap<FaceletCube, (FaceletCube, bool)>,
-    grandparent: &HashMap<FaceletCube, (FaceletCube, bool)>,
-) -> HashMap<FaceletCube, (FaceletCube, bool)> {
-    let hsm: Mutex<HashMap<FaceletCube, (FaceletCube, bool)>> =
+    turns: &[T; 12],
+    parent: &HashMap<T, (T, bool)>,
+    grandparent: &HashMap<T, (T, bool)>,
+) -> HashMap<T, (T, bool)> {
+    let hsm: Mutex<HashMap<T, (T, bool)>> =
         Mutex::new(HashMap::with_capacity(parent.len() * 12));
     let iter_m = Mutex::new(parent.iter());
 
     n_scoped_workers(8, || {
-        while_iter_in_mutex_has_next(&iter_m, |(perm, _): (&FaceletCube, &(FaceletCube, bool))| {
+        while_iter_in_mutex_has_next(&iter_m, |(perm, _): (&T, &(T, bool))| {
             turns.iter().for_each(|turn| {
                 let (ge, sym, was_inverted) = reduce_symmetry(&perm.permute(*turn));
                 if grandparent.get(&ge) == None && parent.get(&ge) == None {
@@ -356,7 +354,7 @@ fn gen_next_moves<F: Sync + Fn(&FaceletCube) -> (FaceletCube, FaceletCube, bool)
 // TODO: Use a HashMap<FaceletCube, NamedTurn> since NamedTurn can be an enum
 // that would take up significantly less space in memory.
 // TODO: Move table references/ownership don't quite add up
-fn solve_by_move_table<F: Fn(&FaceletCube) -> (FaceletCube, FaceletCube, bool)>(reduce_symmetry: F, table: Vec<&HashMap<FaceletCube, (FaceletCube, bool)>>, scramble: &FaceletCube) -> Option<Vec<FaceletCube>> {
+fn solve_by_move_table<T: PG + Eq + Hash + Clone + Copy, F: Fn(&T) -> (T, T, bool)>(reduce_symmetry: F, table: Vec<&HashMap<T, (T, bool)>>, scramble: &T) -> Option<Vec<T>> {
     let (scramble_r, s, pb) = reduce_symmetry(scramble);
 
     let mut n = 0;
