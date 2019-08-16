@@ -264,7 +264,7 @@ fn gen_next_moves<F: Sync + Fn(&FaceletCube) -> (FaceletCube, FaceletCube, Facel
                     if was_inverted {
                         undo = sym_inv.permute(*turn).permute(sym);
                     } else {
-                        undo = sym_inv.permute(*turn).permute(sym);
+                        undo = sym_inv.permute(turn.invert()).permute(sym);
                     }
                     let mut guard = hsm.lock().unwrap();
                     (*guard).insert(ge, (undo, was_inverted));
