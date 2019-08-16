@@ -502,13 +502,13 @@ fn while_iter_in_mutex_has_next<I: Iterator, F: Sync + Fn(I::Item) -> ()>(m: &Mu
  * Yr * Sr' = Sr' * X * T * Sr' * Sr
  * Yr * Sr' = Sr' * X * T
  * Yr * Sr' * T' = Sr' * X
- * Yr * Sr' * T' * Sr' = Sr' * X * Sr'
+ * Yr * Sr' * T' * Sr = Sr' * X * Sr
  *
  * Notice that we don't get something quite so satisfying as:
  * Yr * T' = X
  *
  * This is acceptable for two reasons:
- * 1) Sr' * X * Sr' is (by definition) symmetrical to X.
+ * 1) Sr' * X * Sr is (by definition) symmetrical to X.
  * Our eventual goal is to find Xr, and any position symmetrical to
  * X (or Xr) can help us do this.
  *
@@ -517,7 +517,7 @@ fn while_iter_in_mutex_has_next<I: Iterator, F: Sync + Fn(I::Item) -> ()>(m: &Mu
  *     \E s \in Symmetry : s * t * s' \in Turn
  *
  * So now we can find the turn that "undoes" Yr (Tu):
- * Tu = Sr' * T' * Sr'
+ * Tu = Sr' * T' * Sr
  *
  * And so we write (Yr, Tu) into the HashMap
  */
