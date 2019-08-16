@@ -324,32 +324,33 @@ fn greatest_equivalence(
     syms_inv: &[FaceletCube; 48],
     syms: &[FaceletCube; 48],
     perm: FaceletCube,
-) -> (FaceletCube, FaceletCube, FaceletCube) {
+) -> (FaceletCube, FaceletCube, FaceletCube, bool) {
     let mut greatest = perm;
     let mut sym = cube_identity();
     let mut sym_inv = cube_identity();
+    let mut inverted = false;
     for i in 0..48 {
         let e = permute_cube(&permute_cube(&syms_inv[i], &perm), &syms[i]);
         if e > greatest {
             greatest = e;
             sym = syms[i];
             sym_inv = syms_inv[i];
+            inverted = false;
         }
-        /* TODO: It's going to be more work to make this work with the move table
         let e_inv = permute_cube(&permute_cube(&syms_inv[i], &cube_inv(&perm)), &syms[i]);
         if e_inv > greatest {
             greatest = e_inv;
             sym = syms[i];
             sym_inv = syms_inv[i];
+            inverted = true;
         }
-        */
     }
     // TODO: It seems like these would make more sense to be borrow?
     // However, it gets pretty weird because they have to last as long as
     // syms, syms_inv.  However, the user can always copy.
     // TODO: The strategy for this should be altered, probably with a
     // Symmetry type that handles the sym/inv automatically
-    ( greatest, sym_inv.clone(), sym.clone())
+    ( greatest, sym_inv.clone(), sym.clone(), inverted )
 }
 
 fn permute(a: i128, b: i128) -> i128 {
@@ -520,25 +521,52 @@ fn while_iter_in_mutex_has_next<I: Iterator, F: Sync + Fn(I::Item) -> ()>(m: &Mu
  * Tu = Sr' * T' * Sr
  *
  * And so we write (Yr, Tu) into the HashMap
+ *
+ *
+ * This has one more wrinkle, which is that inversion is a form of symmetry.
+ * In this case:
+ * Xr * T = Y
+ * Sr' Y' Sr = Yr
+ * Y' = Sr * Yr * Sr'
+ * Y = (Sr * Yr * Sr')'
+ * Y = Sr * Yr' * Sr'
+ * Xr * T = Sr * Yr' * Sr'
+ * Xr = Sr * Yr' * Sr' * T'
+ * Xr' = (Sr * Yr' * Sr' * T')'
+ * Xr' = T * Sr * Yr * Sr'
+ * T = Sr * Tu * Sr'
+ * Xr' = Sr * Tu * Sr' * Sr * Yr * Sr'
+ * Xr' = Sr * Tu * Yr * Sr'
+ * Sr' * Xr' * Sr = Tu * Yr
+ * Tu = Sr' * T * Sr
+ *
+ * So there are two critical differences, the undo move works as a "pre" move.
+ * Which means it undoes the permutation by being applied _before_ rather than
+ * after.  And the stored move is not inverted before the symmetry is applied.
  */
-fn gen_next_moves<F: Sync + Fn(&FaceletCube) -> (FaceletCube, FaceletCube, FaceletCube)>(
+fn gen_next_moves<F: Sync + Fn(&FaceletCube) -> (FaceletCube, FaceletCube, FaceletCube, bool)>(
     reduce_symmetry: F,
     turns: &[FaceletCube; 12],
-    parent: &HashMap<FaceletCube, FaceletCube>,
-    grandparent: &HashMap<FaceletCube, FaceletCube>,
-) -> HashMap<FaceletCube, FaceletCube> {
-    let hsm: Mutex<HashMap<FaceletCube, FaceletCube>> =
+    parent: &HashMap<FaceletCube, (FaceletCube, bool)>,
+    grandparent: &HashMap<FaceletCube, (FaceletCube, bool)>,
+) -> HashMap<FaceletCube, (FaceletCube, bool)> {
+    let hsm: Mutex<HashMap<FaceletCube, (FaceletCube, bool)>> =
         Mutex::new(HashMap::with_capacity(parent.len() * 12));
     let iter_m = Mutex::new(parent.iter());
 
     n_scoped_workers(8, || {
-        while_iter_in_mutex_has_next(&iter_m, |(perm, _): (&FaceletCube, &FaceletCube)| {
+        while_iter_in_mutex_has_next(&iter_m, |(perm, _): (&FaceletCube, &(FaceletCube, bool))| {
             turns.iter().for_each(|turn| {
-                let (ge, sym_inv, sym) = reduce_symmetry(&permute_cube(&perm, &turn));
+                let (ge, sym_inv, sym, was_inverted) = reduce_symmetry(&permute_cube(&perm, &turn));
                 if grandparent.get(&ge) == None && parent.get(&ge) == None {
+                    let undo;
+                    if was_inverted {
+                        undo = permute_cube(&permute_cube(&sym_inv, &turn), &sym);
+                    } else {
+                        undo = permute_cube(&permute_cube(&sym_inv, &cube_inv(turn)), &sym);
+                    }
                     let mut guard = hsm.lock().unwrap();
-                    let undo = permute_cube(&permute_cube(&sym_inv, &cube_inv(turn)), &sym);
-                    (*guard).insert(ge, undo);
+                    (*guard).insert(ge, (undo, was_inverted));
                 }
             });
         });
@@ -614,12 +642,25 @@ fn gen_next_moves<F: Sync + Fn(&FaceletCube) -> (FaceletCube, FaceletCube, Facel
  * T1 = Srx * Sry * Ty * Sry' * Srx
  * T2 = Srx * Sry * Srz * Tz * Srz' * Sry' * Srx
  * X' = T0 * T1 * T2
+ *
+ *
+ * Our last consideration is when symmetry of inversion is involved.
+ * And within this there are two cases to consider: the undo move is a "pre" move
+ * which means it will affect the final order of the solves.
+ * Or, the reduction from the "undone" permutation requires inversion.
+ *
+ * In the first case, the effect is temporary, we push to a left queue whenever
+ * it occurs.
+ *
+ * The second effect cascades.  Every time we have to "invert," this inversion
+ * takes affect until we encounter another.  When operating in this inverted mode,
+ * we push to the opposite vector that we normally would and invert the position.
  */
 // TODO: Use a HashMap<FaceletCube, NamedTurn> since NamedTurn can be an enum
 // that would take up significantly less space in memory.
 // TODO: Move table references/ownership don't quite add up
-fn solve_by_move_table<F: Fn(&FaceletCube) -> (FaceletCube, FaceletCube, FaceletCube)>(reduce_symmetry: F, table: Vec<&HashMap<FaceletCube, FaceletCube>>, scramble: &FaceletCube) -> Option<Vec<FaceletCube>> {
-    let (scramble_r, s_inv, s) = reduce_symmetry(scramble);
+fn solve_by_move_table<F: Fn(&FaceletCube) -> (FaceletCube, FaceletCube, FaceletCube, bool)>(reduce_symmetry: F, table: Vec<&HashMap<FaceletCube, (FaceletCube, bool)>>, scramble: &FaceletCube) -> Option<Vec<FaceletCube>> {
+    let (scramble_r, s_inv, s, pb) = reduce_symmetry(scramble);
 
     let mut n = 0;
     for hm in &table {
@@ -629,23 +670,48 @@ fn solve_by_move_table<F: Fn(&FaceletCube) -> (FaceletCube, FaceletCube, Facelet
         n += 1;
     }
 
-    let mut turns = Vec::with_capacity(n);
+    let mut right_side = Vec::with_capacity(n);
+    let mut left_side = Vec::with_capacity(n);
     let mut r = scramble_r;
     let mut sym = s;
     let mut sym_inv = s_inv;
+    let mut push_backwards = pb;
     for i in (0..n + 1).rev() {
         let r_clone = r.clone();
 
         // TODO: Or it is solved in more turns than the table holds
-        let turn = table[i].get(&r_clone).expect("Move table is corrupt");
-        turns.push(permute_cube(&permute_cube(&sym, turn), &sym_inv));
+        let (turn, was_inverted) = table[i].get(&r_clone).expect("Move table is corrupt");
 
-        let (next_r, s_inv, s) = reduce_symmetry(&permute_cube(&r_clone, turn));
+        let sym_fixed_turn = permute_cube(&permute_cube(&sym, turn), &sym_inv);
+
+        let undone;
+        if *was_inverted {
+            undone = permute_cube(turn, &r_clone);
+            if push_backwards {
+                right_side.push(cube_inv(&sym_fixed_turn));
+            } else {
+                left_side.push(sym_fixed_turn);
+            }
+        } else {
+            undone = permute_cube(&r_clone, turn);
+            if push_backwards {
+                left_side.push(cube_inv(&sym_fixed_turn));
+            } else {
+                right_side.push(sym_fixed_turn);
+            }
+        }
+
+        let (next_r, s_inv, s, pb) = reduce_symmetry(&undone);
         r = next_r;
         sym = permute_cube(&sym, &s);
         sym_inv = permute_cube(&s_inv, &sym_inv);
+        push_backwards = pb != push_backwards;
     }
-    Some(turns)
+
+    for i in (0..left_side.len()).rev() {
+        right_side.push(left_side[i]);
+    }
+    Some(right_side)
 }
 
 fn main() {
@@ -963,10 +1029,10 @@ fn main() {
     }
     */
 
-    let neg_one: HashMap<FaceletCube, FaceletCube> = HashMap::new();
-    let mut zero: HashMap<FaceletCube, FaceletCube> = HashMap::new();
+    let neg_one: HashMap<FaceletCube, (FaceletCube, bool)> = HashMap::new();
+    let mut zero: HashMap<FaceletCube, (FaceletCube, bool)> = HashMap::new();
     // Since there is no 'turn' that 'solves' this more, we insert the identity
-    zero.insert(CLEAN_CUBE, CLEAN_CUBE);
+    zero.insert(CLEAN_CUBE, (CLEAN_CUBE, false));
     let zero = zero;
 
     let reduce_syms = |perm: &FaceletCube| {
