@@ -328,7 +328,7 @@ fn greatest_equivalence(
     let mut greatest = perm;
     let mut sym = cube_identity();
     let mut sym_inv = cube_identity();
-    for i in 1..48 {
+    for i in 0..48 {
         let e = permute_cube(&permute_cube(&syms_inv[i], &perm), &syms[i]);
         if e > greatest {
             greatest = e;
