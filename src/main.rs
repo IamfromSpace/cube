@@ -16,21 +16,22 @@ use permutation_group::PermutationGroup as PG;
 // TODO: do not use arr_identity directly
 use facelet_cube::{FaceletCube, arr_identity};
 
-fn greatest_equivalence<T: Ord + PG + Copy>(syms: &[T; 48], perm: T) -> (T, T, bool) {
+fn greatest_equivalence<T: Ord + PG + Copy>(syms: &Vec<T>, perm: T) -> (T, T, bool) {
     let mut greatest = perm;
     let mut sym: T = PG::identity();
     let mut inverted = false;
-    for i in 0..48 {
-        let e = perm.apply_symmetry(syms[i]);
+    for s in syms {
+        let s = *s;
+        let e = perm.apply_symmetry(s);
         if e > greatest {
             greatest = e;
-            sym = syms[i];
+            sym = s;
             inverted = false;
         }
-        let e_inv = perm.invert().apply_symmetry(syms[i]);
+        let e_inv = perm.invert().apply_symmetry(s);
         if e_inv > greatest {
             greatest = e_inv;
-            sym = syms[i];
+            sym = s;
             inverted = true;
         }
     }
@@ -171,9 +172,9 @@ fn while_iter_in_mutex_has_next<I: Iterator, F: Sync + Fn(I::Item) -> ()>(m: &Mu
  * Which means it undoes the permutation by being applied _before_ rather than
  * after.  And the stored move is not inverted before the symmetry is applied.
  */
-fn gen_next_moves<T: PG + Hash + Eq + Copy + Send + Sync, F: Sync + Fn(&T) -> (T, T, bool)>(
-    reduce_symmetry: F,
-    turns: &[T; 12],
+fn gen_next_moves<T: PG + Hash + Eq + Copy + Send + Sync + Ord>(
+    syms: &Vec<T>,
+    turns: &Vec<T>,
     parent: &HashMap<T, (T, bool)>,
     grandparent: &HashMap<T, (T, bool)>,
 ) -> HashMap<T, (T, bool)> {
@@ -184,7 +185,7 @@ fn gen_next_moves<T: PG + Hash + Eq + Copy + Send + Sync, F: Sync + Fn(&T) -> (T
     n_scoped_workers(8, || {
         while_iter_in_mutex_has_next(&iter_m, |(perm, _): (&T, &(T, bool))| {
             turns.iter().for_each(|turn| {
-                let (ge, sym, was_inverted) = reduce_symmetry(&perm.permute(*turn));
+                let (ge, sym, was_inverted) = greatest_equivalence(&syms, perm.permute(*turn));
                 if grandparent.get(&ge) == None && parent.get(&ge) == None {
                     let undo;
                     if was_inverted {
@@ -286,8 +287,8 @@ fn gen_next_moves<T: PG + Hash + Eq + Copy + Send + Sync, F: Sync + Fn(&T) -> (T
 // TODO: Use a HashMap<FaceletCube, NamedTurn> since NamedTurn can be an enum
 // that would take up significantly less space in memory.
 // TODO: Move table references/ownership don't quite add up
-fn solve_by_move_table<T: PG + Eq + Hash + Clone + Copy, F: Fn(&T) -> (T, T, bool)>(reduce_symmetry: F, table: Vec<&HashMap<T, (T, bool)>>, scramble: &T) -> Option<Vec<T>> {
-    let (scramble_r, s, pb) = reduce_symmetry(scramble);
+fn solve_by_move_table<T: PG + Eq + Hash + Clone + Copy + Ord>(syms: &Vec<T>, table: Vec<&HashMap<T, (T, bool)>>, scramble: &T) -> Option<Vec<T>> {
+    let (scramble_r, s, pb) = greatest_equivalence(&syms, *scramble);
 
     let mut n = 0;
     for hm in &table {
@@ -327,7 +328,7 @@ fn solve_by_move_table<T: PG + Eq + Hash + Clone + Copy, F: Fn(&T) -> (T, T, boo
             }
         }
 
-        let (next_r, s, pb) = reduce_symmetry(&undone);
+        let (next_r, s, pb) = greatest_equivalence(&syms, undone);
         r = next_r;
         sym = sym.permute(s);
         push_backwards = pb != push_backwards;
@@ -596,7 +597,7 @@ fn main() {
         corners: c,
     };
 
-    let mut syms = [PG::identity(); 48];
+    let mut syms = Vec::with_capacity(48);
     for i in 0..48 {
         let urfs = i % 3;
         let fs = i / 3 % 2;
@@ -616,7 +617,7 @@ fn main() {
         for _ in 0..ms {
             c = c.permute(s_mrl);
         }
-        syms[i] = c;
+        syms.push(c);
     }
 
     let f = u.apply_symmetry(syms[2]);
@@ -625,7 +626,7 @@ fn main() {
     let l = u.apply_symmetry(syms[4]);
     let d = u.apply_symmetry(syms[3]);
 
-    let turns = [
+    let turns = vec![
         u,
         u.invert(),
         f,
@@ -646,21 +647,17 @@ fn main() {
     zero.insert(PG::identity(), (PG::identity(), false));
     let zero = zero;
 
-    let reduce_syms = |perm: &FaceletCube| {
-        greatest_equivalence(&syms, *perm)
-    };
-
-    let one = gen_next_moves(&reduce_syms, &turns, &zero, &neg_one);
-    let two = gen_next_moves(&reduce_syms, &turns, &one, &zero);
-    let three = gen_next_moves(&reduce_syms, &turns, &two, &one);
-    let four = gen_next_moves(&reduce_syms, &turns, &three, &two);
-    let five = gen_next_moves(&reduce_syms, &turns, &four, &three);
-    let six = gen_next_moves(&reduce_syms, &turns, &five, &four);
-    let seven = gen_next_moves(&reduce_syms, &turns, &six, &five);
+    let one = gen_next_moves(&syms, &turns, &zero, &neg_one);
+    let two = gen_next_moves(&syms, &turns, &one, &zero);
+    let three = gen_next_moves(&syms, &turns, &two, &one);
+    let four = gen_next_moves(&syms, &turns, &three, &two);
+    let five = gen_next_moves(&syms, &turns, &four, &three);
+    let six = gen_next_moves(&syms, &turns, &five, &four);
+    let seven = gen_next_moves(&syms, &turns, &six, &five);
     println!("unique 7: {}", seven.len());
-    let eight = gen_next_moves(&reduce_syms, &turns, &seven, &six);
+    let eight = gen_next_moves(&syms, &turns, &seven, &six);
     println!("unique 8: {}", eight.len());
-    let nine = gen_next_moves(&reduce_syms, &turns, &eight, &six);
+    let nine = gen_next_moves(&syms, &turns, &eight, &six);
     println!("unique 9: {}", nine.len());
     /*
     let ten = gen_next_moves(&reduce_syms, &turns, &nine, &eight);
