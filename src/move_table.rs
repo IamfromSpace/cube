@@ -254,7 +254,6 @@ fn gen_next_moves<T: PG + Hash + Eq + Copy + Send + Sync + Ord>(
  */
 // TODO: Use a HashMap<FaceletCube, NamedTurn> since NamedTurn can be an enum
 // that would take up significantly less space in memory.
-// TODO: Move table references/ownership don't quite add up
 pub fn solve<T: PG + Eq + Hash + Clone + Copy + Ord>(move_table: &MoveTable<T>, scramble: &T) -> Option<Vec<T>> {
     let syms = &move_table.syms;
     let table = &move_table.table;
