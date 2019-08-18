@@ -1,3 +1,4 @@
+extern crate ansi_term;
 extern crate functional;
 
 use super::permutation_group::PermutationGroup;
@@ -90,7 +91,7 @@ pub struct FaceletCube {
 
 impl fmt::Display for FaceletCube {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        use ansi_term::Colour::*;
+        use self::ansi_term::Colour::*;
         let w = White.paint("██");
         let g = Green.paint("██");
         let r = Red.paint("██");
