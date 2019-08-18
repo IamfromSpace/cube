@@ -12,22 +12,22 @@ pub struct MoveTable<T: Eq + Hash> {
 }
 
 pub fn new<T: PG + Hash + Eq + Ord + Send + Sync + Copy + Clone>(turns: &Vec<T>, syms: Vec<T>, n: usize) -> MoveTable<T> {
+    let mut table = Vec::with_capacity(n);
     let neg_one: HashMap<T, (T, bool)> = HashMap::new();
     let mut zero: HashMap<T, (T, bool)> = HashMap::new();
     // Since there is no 'turn' that 'solves' this more, we insert the identity
     zero.insert(PG::identity(), (PG::identity(), false));
     let zero = zero;
+    table.push(zero);
 
-    let mut table = Vec::with_capacity(n);
-    for i in 0..n {
-        if i == 0 {
-            table.push(gen_next_moves(&syms, &turns, &zero, &neg_one));
-        } else if i == 1 {
-            table.push(gen_next_moves(&syms, &turns, &table[i - 1], &zero));
-        } else {
-            table.push(gen_next_moves(&syms, &turns, &table[i - 1], &table[i - 2]));
-        }
+    if n > 0 {
+        table.push(gen_next_moves(&syms, &turns, &table[0], &neg_one));
     }
+
+    for i in 2..n {
+        table.push(gen_next_moves(&syms, &turns, &table[i - 1], &table[i - 2]));
+    }
+
     MoveTable {
         table: table,
         syms: syms,
@@ -273,7 +273,7 @@ pub fn solve<T: PG + Eq + Hash + Clone + Copy + Ord>(move_table: &MoveTable<T>, 
     let mut r = scramble_r;
     let mut sym = s;
     let mut push_backwards = pb;
-    for i in (0..n + 1).rev() {
+    for i in (1..n + 1).rev() {
         let r_clone = r.clone();
 
         // TODO: Or it is solved in more turns than the table holds
