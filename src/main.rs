@@ -604,7 +604,7 @@ fn main() {
         let us = i / 6 % 4;
         let ms = i / 24;
 
-        let mut c: FaceletCube = syms[i];
+        let mut c: FaceletCube = PG::identity();
         for _ in 0..urfs {
             c = c.permute(s_urf);
         }
