@@ -84,9 +84,8 @@ use std::fmt;
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
 pub struct FaceletCube {
     // u8 benchmarked as fastest for permuting
-    //TODO: These should not be public
-    pub corners: [u8; 24],
-    pub edges: [u8; 24],
+    corners: [u8; 24],
+    edges: [u8; 24],
 }
 
 impl fmt::Display for FaceletCube {
@@ -192,8 +191,119 @@ impl PermutationGroup for FaceletCube {
     }
 }
 
-// TODO: These should not be public
-pub fn arr_identity() -> [u8; 24] {
+const U: FaceletCube = FaceletCube {
+    corners: [1, 2, 3, 0, 8, 9, 6, 7, 12, 13, 10, 11, 16, 17, 14, 15, 4, 5, 18, 19, 20, 21, 22, 23],
+    edges: [1, 2, 3, 0, 4, 9, 6, 7, 8, 13, 10, 11, 12, 17, 14, 15, 16, 5, 18, 19, 20, 21, 22, 23]
+};
+
+const U_PRIME: FaceletCube = FaceletCube {
+    corners: [3, 0, 1, 2, 16, 17, 6, 7, 4, 5, 10, 11, 8, 9, 14, 15, 12, 13, 18, 19, 20, 21, 22, 23],
+    edges: [3, 0, 1, 2, 4, 17, 6, 7, 8, 5, 10, 11, 12, 9, 14, 15, 16, 13, 18, 19, 20, 21, 22, 23]
+};
+
+const F: FaceletCube = FaceletCube {
+    corners: [0, 1, 19, 16, 5, 6, 7, 4, 8, 2, 3, 11, 12, 13, 14, 15, 21, 17, 18, 20, 9, 10, 22, 23],
+    edges: [0, 1, 2, 16, 5, 6, 7, 4, 8, 9, 3, 11, 12, 13, 14, 15, 21, 17, 18, 19, 20, 10, 22, 23]
+};
+
+const F_PRIME: FaceletCube = FaceletCube {
+    corners: [0, 1, 9, 10, 7, 4, 5, 6, 8, 20, 21, 11, 12, 13, 14, 15, 3, 17, 18, 2, 19, 16, 22, 23],
+    edges: [0, 1, 2, 10, 7, 4, 5, 6, 8, 9, 21, 11, 12, 13, 14, 15, 3, 17, 18, 19, 20, 16, 22, 23]
+};
+
+const R: FaceletCube = FaceletCube {
+    corners: [4, 1, 2, 7, 20, 5, 6, 23, 9, 10, 11, 8, 12, 3, 0, 15, 16, 17, 18, 19, 14, 21, 22, 13],
+    edges: [4, 1, 2, 3, 20, 5, 6, 7, 9, 10, 11, 8, 12, 13, 0, 15, 16, 17, 18, 19, 14, 21, 22, 23]
+};
+
+const R_PRIME: FaceletCube = FaceletCube {
+    corners: [14, 1, 2, 13, 0, 5, 6, 3, 11, 8, 9, 10, 12, 23, 20, 15, 16, 17, 18, 19, 4, 21, 22, 7],
+    edges: [14, 1, 2, 3, 0, 5, 6, 7, 11, 8, 9, 10, 12, 13, 20, 15, 16, 17, 18, 19, 4, 21, 22, 23]
+};
+
+const B: FaceletCube = FaceletCube {
+    corners: [11, 8, 2, 3, 4, 5, 6, 7, 23, 9, 10, 22, 13, 14, 15, 12, 16, 0, 1, 19, 20, 21, 17, 18],
+    edges: [0, 8, 2, 3, 4, 5, 6, 7, 23, 9, 10, 11, 13, 14, 15, 12, 16, 17, 1, 19, 20, 21, 22, 18]
+};
+
+const B_PRIME: FaceletCube = FaceletCube {
+    corners: [17, 18, 2, 3, 4, 5, 6, 7, 1, 9, 10, 0, 15, 12, 13, 14, 16, 22, 23, 19, 20, 21, 11, 8],
+    edges: [0, 18, 2, 3, 4, 5, 6, 7, 1, 9, 10, 11, 15, 12, 13, 14, 16, 17, 23, 19, 20, 21, 22, 8]
+};
+
+const L: FaceletCube = FaceletCube {
+    corners: [0, 15, 12, 3, 4, 1, 2, 7, 8, 9, 10, 11, 22, 13, 14, 21, 17, 18, 19, 16, 20, 5, 6, 23],
+    edges: [0, 1, 12, 3, 4, 5, 2, 7, 8, 9, 10, 11, 22, 13, 14, 15, 17, 18, 19, 16, 20, 21, 6, 23]
+};
+
+const L_PRIME: FaceletCube = FaceletCube {
+    corners: [0, 5, 6, 3, 4, 21, 22, 7, 8, 9, 10, 11, 2, 13, 14, 1, 19, 16, 17, 18, 20, 15, 12, 23],
+    edges: [0, 1, 6, 3, 4, 5, 22, 7, 8, 9, 10, 11, 2, 13, 14, 15, 19, 16, 17, 18, 20, 21, 12, 23]
+};
+
+const D: FaceletCube = FaceletCube {
+    corners: [0, 1, 2, 3, 4, 5, 18, 19, 8, 9, 6, 7, 12, 13, 10, 11, 16, 17, 14, 15, 21, 22, 23, 20],
+    edges: [0, 1, 2, 3, 4, 5, 6, 19, 8, 9, 10, 7, 12, 13, 14, 11, 16, 17, 18, 15, 21, 22, 23, 20]
+};
+
+const D_PRIME: FaceletCube = FaceletCube {
+    corners: [0, 1, 2, 3, 4, 5, 10, 11, 8, 9, 14, 15, 12, 13, 18, 19, 16, 17, 6, 7, 23, 20, 21, 22],
+    edges: [0, 1, 2, 3, 4, 5, 6, 11, 8, 9, 10, 15, 12, 13, 14, 19, 16, 17, 18, 7, 23, 20, 21, 22]
+};
+
+use super::move_sets::quarter_turns::QuarterTurn;
+impl From<QuarterTurn> for FaceletCube {
+    fn from(qt: QuarterTurn) -> FaceletCube {
+        match qt {
+            QuarterTurn::U => U,
+            QuarterTurn::UPrime => U_PRIME,
+            QuarterTurn::F => F,
+            QuarterTurn::FPrime => F_PRIME,
+            QuarterTurn::R => R,
+            QuarterTurn::RPrime => R_PRIME,
+            QuarterTurn::B => B,
+            QuarterTurn::BPrime => B_PRIME,
+            QuarterTurn::L => L,
+            QuarterTurn::LPrime => L_PRIME,
+            QuarterTurn::D => D,
+            QuarterTurn::DPrime => D_PRIME,
+        }
+    }
+}
+
+const S_URF: FaceletCube = FaceletCube {
+  corners: [5, 6, 7, 4, 9, 10, 11, 8, 2, 3, 0, 1, 19, 16, 17, 18, 20, 21, 22, 23, 13, 14, 15, 12],
+  edges: [5, 6, 7, 4, 9, 10, 11, 8, 2, 3, 0, 1, 19, 16, 17, 18, 20, 21, 22, 23, 13, 14, 15, 12]
+};
+
+const S_F: FaceletCube = FaceletCube {
+    corners: [22, 23, 20, 21, 6, 7, 4, 5, 18, 19, 16, 17, 14, 15, 12, 13, 10, 11, 8, 9, 2, 3, 0, 1],
+    edges: [22, 23, 20, 21, 6, 7, 4, 5, 18, 19, 16, 17, 14, 15, 12, 13, 10, 11, 8, 9, 2, 3, 0, 1]
+};
+
+const S_U: FaceletCube = FaceletCube {
+    corners: [1, 2, 3, 0, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 4, 5, 6, 7, 23, 20, 21, 22],
+    edges: [1, 2, 3, 0, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 4, 5, 6, 7, 23, 20, 21, 22]
+};
+
+const S_MRL: FaceletCube = FaceletCube {
+    corners: [1, 0, 3, 2, 5, 4, 7, 6, 17, 16, 19, 18, 13, 12, 15, 14, 9, 8, 11, 10, 21, 20, 23, 22],
+    edges: [2, 1, 0, 3, 6, 5, 4, 7, 18, 17, 16, 19, 14, 13, 12, 15, 10, 9, 8, 11, 22, 21, 20, 23]
+};
+
+use super::move_sets::symmetry_generators::SymmetryGenerator;
+impl From<SymmetryGenerator> for FaceletCube {
+    fn from(sg: SymmetryGenerator) -> FaceletCube {
+        match sg {
+            SymmetryGenerator::SUrf => S_URF,
+            SymmetryGenerator::SF => S_F,
+            SymmetryGenerator::SU => S_U,
+            SymmetryGenerator::SMrl => S_MRL,
+        }
+    }
+}
+
+fn arr_identity() -> [u8; 24] {
     let mut r = [0; 24];
     //silly looking, but twice as fast ;)
     r[0] = 0;
