@@ -444,6 +444,70 @@ mod tests {
         );
     }
 
+    #[test]
+    fn should_be_able_to_generate_one_turn_with_a_combination_of_the_other_five() {
+        let d = FaceletCube::from(QuarterTurn::R)
+            .permute(QuarterTurn::L.into())
+            .permute(QuarterTurn::F.into())
+            .permute(QuarterTurn::F.into())
+            .permute(QuarterTurn::B.into())
+            .permute(QuarterTurn::B.into())
+            .permute(QuarterTurn::RPrime.into())
+            .permute(QuarterTurn::LPrime.into())
+            .permute(QuarterTurn::U.into())
+            .permute(QuarterTurn::R.into())
+            .permute(QuarterTurn::L.into())
+            .permute(QuarterTurn::FPrime.into())
+            .permute(QuarterTurn::FPrime.into())
+            .permute(QuarterTurn::BPrime.into())
+            .permute(QuarterTurn::BPrime.into())
+            .permute(QuarterTurn::RPrime.into())
+            .permute(QuarterTurn::LPrime.into());
+        assert_eq!(d, QuarterTurn::D.into());
+    }
+
+    #[test]
+    fn d_and_invert_should_be_the_identity() {
+        let d = FaceletCube::from(QuarterTurn::D)
+            .permute(QuarterTurn::DPrime.into());
+        assert_eq!(d, FaceletCube::identity());
+    }
+
+    #[test]
+    fn u_is_symmetrical_to_f() {
+        let f = FaceletCube::from(SymmetryGenerator::SUrf)
+            .permute(QuarterTurn::U.into())
+            .permute(SymmetryGenerator::SUrf.into())
+            .permute(SymmetryGenerator::SUrf.into());
+        assert_eq!(f, QuarterTurn::F.into());
+    }
+
+    #[test]
+    fn u_is_symmetrical_to_d() {
+        let d = FaceletCube::from(SymmetryGenerator::SF)
+            .permute(QuarterTurn::U.into())
+            .permute(SymmetryGenerator::SF.into());
+        assert_eq!(d, QuarterTurn::D.into());
+    }
+
+    #[test]
+    fn f_is_symmetrical_to_r() {
+        let r = FaceletCube::from(SymmetryGenerator::SU)
+            .permute(QuarterTurn::F.into())
+            .permute(SymmetryGenerator::SU.into())
+            .permute(SymmetryGenerator::SU.into())
+            .permute(SymmetryGenerator::SU.into());
+        assert_eq!(r, QuarterTurn::R.into());
+    }
+
+    #[test]
+    fn u_is_symmetrical_to_u_prime() {
+        let u_prime = FaceletCube::from(SymmetryGenerator::SMrl)
+            .permute(QuarterTurn::U.into())
+            .permute(SymmetryGenerator::SMrl.into());
+        assert_eq!(u_prime, QuarterTurn::UPrime.into());
+    }
+
     #[bench]
     fn repeatedly_perform_1000_turns_via_complex_arr_permutation(b: &mut Bencher) {
         let mut cleanc = CLEAN_ARR;
