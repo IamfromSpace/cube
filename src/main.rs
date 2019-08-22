@@ -6,6 +6,7 @@ use std::hash::Hash;
 mod permutation_group;
 mod facelet_cube;
 mod g1_coord_cube;
+mod g1_coord_cube_compact;
 mod move_sets;
 mod move_table;
 mod util;
@@ -13,6 +14,7 @@ mod util;
 use permutation_group::PermutationGroup as PG;
 use facelet_cube::FaceletCube;
 use g1_coord_cube::G1CoordCube;
+use g1_coord_cube_compact::G1CoordCubeCompact;
 use move_sets::quarter_turns::QuarterTurn;
 use move_sets::g1_turns::G1Turn;
 use move_sets::symmetry_generators::SymmetryGenerator;
@@ -98,6 +100,18 @@ fn main() {
     let qt_mt: move_table::MoveTable<FaceletCube> = quarter_turn_move_table(4);
     move_table::solve(&qt_mt, &QuarterTurn::U.into());
 
+    // TODO: both of these table are used for the same thing, but use a different
+    // underlying type to represent the cube permutation.
+    // This first move table is fast to operate on, but uses a lot of storage space.
+    // The second is much more memory efficient, but a lot slower to generate and
+    // generally work with, because it's constantly converting to the type that
+    // can be operated on effectively.
+    // The best of both worlds would be a move table that could do both!
+    // It would store as one type, and operate on as another.
+    // So the to/from conversion would only happen on lookup/insert.
     let g1_mt: move_table::MoveTable<G1CoordCube> = g1_move_table(4);
     move_table::solve(&g1_mt, &G1Turn::U.into());
+
+    let g1c_mt: move_table::MoveTable<G1CoordCubeCompact> = g1_move_table(4);
+    move_table::solve(&g1c_mt, &G1Turn::U.into());
 }

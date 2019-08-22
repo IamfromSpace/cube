@@ -19,9 +19,9 @@ use super::permutation_group::PermutationGroup;
  */
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
 pub struct G1CoordCube {
-    corners: [u8; 8],
-    top_bottom_edges: [u8; 8],
-    middle_edges: [u8; 4],
+    pub corners: [u8; 8],
+    pub top_bottom_edges: [u8; 8],
+    pub middle_edges: [u8; 4],
 }
 
 impl functional::BinaryOperation<G1CoordCube> for G1CoordCube {
