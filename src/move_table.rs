@@ -147,7 +147,7 @@ fn gen_next_moves<T: PG + Hash + Eq + Copy + Send + Sync + Ord>(
     grandparent: &HashMap<T, (T, bool)>,
 ) -> HashMap<T, (T, bool)> {
     let hsm: Mutex<HashMap<T, (T, bool)>> =
-        Mutex::new(HashMap::with_capacity(parent.len() * 12));
+        Mutex::new(HashMap::new());
     let iter_m = Mutex::new(parent.iter());
 
     n_scoped_workers(8, || {
