@@ -20,14 +20,14 @@ use move_sets::g1_turns::G1Turn;
 use move_sets::symmetry_generators::SymmetryGenerator;
 use move_sets::g1_symmetry_generators::G1SymmetryGenerator;
 
-fn g1_move_table<T: PG + Eq + Hash + From<G1SymmetryGenerator> + From<G1Turn> + Send + Sync + Copy + Clone + Ord>(n: usize) -> move_table::MoveTable<T> {
+fn g1_move_table<Stored: PG + Eq + Hash + From<Used> + Send + Sync + Copy + Clone + Ord, Used: PG + Eq + Hash + From<G1SymmetryGenerator> + From<G1Turn> + From<Stored> + Send + Sync + Copy + Clone + Ord>(n: usize) -> move_table::MoveTable<Stored, Used> {
     let mut syms = Vec::with_capacity(16);
     for i in 0..16 {
         let fs = i % 2;
         let us = i / 2 % 4;
         let ms = i / 8;
 
-        let mut c: T = PG::identity();
+        let mut c: Used = PG::identity();
         for _ in 0..fs {
             c = c.permute(G1SymmetryGenerator::SF.into());
         }
@@ -40,7 +40,7 @@ fn g1_move_table<T: PG + Eq + Hash + From<G1SymmetryGenerator> + From<G1Turn> + 
         syms.push(c);
     }
 
-    let turns: Vec<T> = vec![
+    let turns: Vec<Used> = vec![
         G1Turn::U.into(),
         G1Turn::UPrime.into(),
         G1Turn::F2.into(),
@@ -54,7 +54,7 @@ fn g1_move_table<T: PG + Eq + Hash + From<G1SymmetryGenerator> + From<G1Turn> + 
     move_table::new(&turns, syms, n)
 }
 
-fn quarter_turn_move_table<T: PG + Eq + Hash + From<SymmetryGenerator> + From<QuarterTurn> + Send + Sync + Copy + Clone + Ord>(n: usize) -> move_table::MoveTable<T> {
+fn quarter_turn_move_table<Stored: PG + Eq + Hash + From<Used> + Send + Sync + Copy + Clone + Ord, Used: PG + Eq + Hash + From<SymmetryGenerator> + From<QuarterTurn> + From<Stored> + Send + Sync + Copy + Clone + Ord>(n: usize) -> move_table::MoveTable<Stored, Used> {
     let mut syms = Vec::with_capacity(48);
     for i in 0..48 {
         let urfs = i % 3;
@@ -62,7 +62,7 @@ fn quarter_turn_move_table<T: PG + Eq + Hash + From<SymmetryGenerator> + From<Qu
         let us = i / 6 % 4;
         let ms = i / 24;
 
-        let mut c: T = PG::identity();
+        let mut c: Used = PG::identity();
         for _ in 0..urfs {
             c = c.permute(SymmetryGenerator::SUrf.into());
         }
@@ -78,7 +78,7 @@ fn quarter_turn_move_table<T: PG + Eq + Hash + From<SymmetryGenerator> + From<Qu
         syms.push(c);
     }
 
-    let turns: Vec<T> = vec![
+    let turns: Vec<Used> = vec![
         QuarterTurn::U.into(),
         QuarterTurn::UPrime.into(),
         QuarterTurn::F.into(),
@@ -97,21 +97,9 @@ fn quarter_turn_move_table<T: PG + Eq + Hash + From<SymmetryGenerator> + From<Qu
 }
 
 fn main() {
-    let qt_mt: move_table::MoveTable<FaceletCube> = quarter_turn_move_table(4);
+    let qt_mt: move_table::MoveTable<FaceletCube, FaceletCube> = quarter_turn_move_table(4);
     move_table::solve(&qt_mt, &QuarterTurn::U.into());
 
-    // TODO: both of these table are used for the same thing, but use a different
-    // underlying type to represent the cube permutation.
-    // This first move table is fast to operate on, but uses a lot of storage space.
-    // The second is much more memory efficient, but a lot slower to generate and
-    // generally work with, because it's constantly converting to the type that
-    // can be operated on effectively.
-    // The best of both worlds would be a move table that could do both!
-    // It would store as one type, and operate on as another.
-    // So the to/from conversion would only happen on lookup/insert.
-    let g1_mt: move_table::MoveTable<G1CoordCube> = g1_move_table(4);
-    move_table::solve(&g1_mt, &G1Turn::U.into());
-
-    let g1c_mt: move_table::MoveTable<G1CoordCubeCompact> = g1_move_table(4);
+    let g1c_mt: move_table::MoveTable<G1CoordCubeCompact, G1CoordCube> = g1_move_table(4);
     move_table::solve(&g1c_mt, &G1Turn::U.into());
 }
