@@ -22,10 +22,12 @@ pub fn new<Stored: PG + Hash + Eq + Send + Sync + Copy + From<Used>, Used: PG + 
 
     if n > 0 {
         table.push(gen_next_moves(&syms, &turns, &table[0], &neg_one));
+        table[0].shrink_to_fit();
     }
 
     for i in 2..n {
         table.push(gen_next_moves(&syms, &turns, &table[i - 1], &table[i - 2]));
+        table[i].shrink_to_fit();
     }
 
     MoveTable {
