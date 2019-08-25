@@ -2,6 +2,9 @@ extern crate functional;
 
 use super::permutation_group::PermutationGroup;
 
+// TODO: This is _drastically_ slower than FaceletCube to create a move table for.
+// a ~10% might be expected, but this is 20x the speed difference!
+
 /* This representation of the cube talks in "cubies" and their orientations
  * and can represent all reachable states.
  *
