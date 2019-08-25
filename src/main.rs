@@ -5,6 +5,7 @@ use std::hash::Hash;
 
 mod permutation_group;
 mod facelet_cube;
+mod coord_cube;
 mod g1_coord_cube;
 mod g1_coord_cube_compact;
 mod move_sets;
