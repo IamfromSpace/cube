@@ -559,7 +559,6 @@ mod tests {
 
     #[test]
     fn should_be_able_to_generate_one_turn_with_a_combination_of_the_other_five() {
-        println!("{:?}", CoordCube::from(QuarterTurn::B).invert());
         let d = CoordCube::from(QuarterTurn::R)
             .permute(QuarterTurn::L.into())
             .permute(QuarterTurn::F.into())
