@@ -206,6 +206,7 @@ fn arr_inv_4(a: &[u8; 4]) -> [u8; 4] {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use test::Bencher;
 
     #[test]
     fn should_be_able_to_generate_one_turn_with_a_combination_of_the_other_five() {
@@ -260,5 +261,21 @@ mod tests {
             .permute(G1Turn::U.into())
             .permute(G1SymmetryGenerator::SMrl.into());
         assert_eq!(u_prime, G1Turn::UPrime.into());
+    }
+
+    #[bench]
+    fn repeat_all_turn_identity_sequence(b: &mut Bencher) {
+        b.iter(|| {
+            G1CoordCube::from(G1Turn::D)
+                .permute(G1Turn::UPrime.into())
+                .permute(G1Turn::F2.into())
+                .permute(G1Turn::R2.into())
+                .permute(G1Turn::B2.into())
+                .permute(G1Turn::DPrime.into())
+                .permute(G1Turn::U.into())
+                .permute(G1Turn::R2.into())
+                .permute(G1Turn::F2.into())
+                .permute(G1Turn::L2.into());
+        });
     }
 }

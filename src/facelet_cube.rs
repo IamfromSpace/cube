@@ -529,4 +529,28 @@ mod tests {
             cleanc
         });
     }
+
+    #[bench]
+    fn repeat_all_turn_identity_sequence(b: &mut Bencher) {
+        b.iter(|| {
+            FaceletCube::from(QuarterTurn::R)
+                .permute(QuarterTurn::L.into())
+                .permute(QuarterTurn::F.into())
+                .permute(QuarterTurn::F.into())
+                .permute(QuarterTurn::B.into())
+                .permute(QuarterTurn::B.into())
+                .permute(QuarterTurn::RPrime.into())
+                .permute(QuarterTurn::LPrime.into())
+                .permute(QuarterTurn::U.into())
+                .permute(QuarterTurn::R.into())
+                .permute(QuarterTurn::L.into())
+                .permute(QuarterTurn::FPrime.into())
+                .permute(QuarterTurn::FPrime.into())
+                .permute(QuarterTurn::BPrime.into())
+                .permute(QuarterTurn::BPrime.into())
+                .permute(QuarterTurn::RPrime.into())
+                .permute(QuarterTurn::LPrime.into())
+                .permute(QuarterTurn::D.into());
+        });
+    }
 }

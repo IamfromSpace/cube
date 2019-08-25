@@ -232,6 +232,7 @@ fn arr_to_index_8(arr_raw: [u8; 8]) -> u16 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use test::Bencher;
 
     #[test]
     fn index_to_arr_4_works_for_0_case() {
@@ -349,5 +350,21 @@ mod tests {
             .permute(G1Turn::U.into())
             .permute(G1SymmetryGenerator::SMrl.into());
         assert_eq!(u_prime, G1Turn::UPrime.into());
+    }
+
+    #[bench]
+    fn repeat_all_turn_identity_sequence(b: &mut Bencher) {
+        b.iter(|| {
+            G1CoordCubeCompact::from(G1Turn::D)
+                .permute(G1Turn::UPrime.into())
+                .permute(G1Turn::F2.into())
+                .permute(G1Turn::R2.into())
+                .permute(G1Turn::B2.into())
+                .permute(G1Turn::DPrime.into())
+                .permute(G1Turn::U.into())
+                .permute(G1Turn::R2.into())
+                .permute(G1Turn::F2.into())
+                .permute(G1Turn::L2.into());
+        });
     }
 }

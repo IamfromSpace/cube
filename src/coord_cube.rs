@@ -501,6 +501,7 @@ fn edge_inv(a: &[(u8, bool); 12]) -> [(u8, bool); 12] {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use test::Bencher;
 
     #[test]
     fn permute_corners_works_for_a_simple_swap() {
@@ -646,5 +647,29 @@ mod tests {
             .permute(QuarterTurn::U.into())
             .permute(SymmetryGenerator::SMrl.into());
         assert_eq!(u_prime, QuarterTurn::UPrime.into());
+    }
+
+    #[bench]
+    fn repeat_all_turn_identity_sequence(b: &mut Bencher) {
+        b.iter(|| {
+            CoordCube::from(QuarterTurn::R)
+                .permute(QuarterTurn::L.into())
+                .permute(QuarterTurn::F.into())
+                .permute(QuarterTurn::F.into())
+                .permute(QuarterTurn::B.into())
+                .permute(QuarterTurn::B.into())
+                .permute(QuarterTurn::RPrime.into())
+                .permute(QuarterTurn::LPrime.into())
+                .permute(QuarterTurn::U.into())
+                .permute(QuarterTurn::R.into())
+                .permute(QuarterTurn::L.into())
+                .permute(QuarterTurn::FPrime.into())
+                .permute(QuarterTurn::FPrime.into())
+                .permute(QuarterTurn::BPrime.into())
+                .permute(QuarterTurn::BPrime.into())
+                .permute(QuarterTurn::RPrime.into())
+                .permute(QuarterTurn::LPrime.into())
+                .permute(QuarterTurn::D.into());
+        });
     }
 }
