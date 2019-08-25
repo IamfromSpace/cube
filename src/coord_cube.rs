@@ -673,6 +673,34 @@ mod tests {
     }
 
     #[test]
+    fn f_and_f_prime_should_be_the_identity() {
+        let f = CoordCube::from(QuarterTurn::F)
+            .permute(QuarterTurn::FPrime.into());
+        assert_eq!(f, CoordCube::identity());
+    }
+
+    #[test]
+    fn r_and_r_prime_should_be_the_identity() {
+        let r = CoordCube::from(QuarterTurn::R)
+            .permute(QuarterTurn::RPrime.into());
+        assert_eq!(r, CoordCube::identity());
+    }
+
+    #[test]
+    fn b_and_b_prime_should_be_the_identity() {
+        let b = CoordCube::from(QuarterTurn::B)
+            .permute(QuarterTurn::BPrime.into());
+        assert_eq!(b, CoordCube::identity());
+    }
+
+    #[test]
+    fn l_and_l_prime_should_be_the_identity() {
+        let l = CoordCube::from(QuarterTurn::L)
+            .permute(QuarterTurn::LPrime.into());
+        assert_eq!(l, CoordCube::identity());
+    }
+
+    #[test]
     fn s_urf_3_times_is_the_identity() {
         let id = CoordCube::from(SymmetryGenerator::SUrf)
             .permute(SymmetryGenerator::SUrf.into())
