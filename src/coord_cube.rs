@@ -154,18 +154,18 @@ const F: CoordCube = CoordCube {
 const F_PRIME: CoordCube = CoordCube {
     corners: [(0, 0), (1, 0), (3, 2), (4, 1), (5, 2), (2, 1), (6, 0), (7, 0)],
     edges: [
-        (0, true),
-        (1, true),
-        (2, true),
-        (7, false),
-        (4, true),
-        (5, true),
-        (3, false),
-        (9, false),
-        (8, true),
-        (6, false),
-        (10, true),
-        (11, true),
+        (0, false),
+        (1, false),
+        (2, false),
+        (7, true),
+        (4, false),
+        (5, false),
+        (3, true),
+        (9, true),
+        (8, false),
+        (6, true),
+        (10, false),
+        (11, false),
     ],
 };
 
@@ -190,18 +190,18 @@ const R: CoordCube = CoordCube {
 const R_PRIME: CoordCube = CoordCube {
     corners: [(7, 1), (1, 0), (2, 0), (0, 2), (3, 1), (5, 0), (6, 0), (4, 2)],
     edges: [
-        (4, true),
-        (1, true),
-        (2, true),
-        (3, true),
-        (8, true),
-        (5, true),
-        (6, true),
-        (0, true),
-        (7, true),
-        (9, true),
-        (10, true),
-        (11, true),
+        (4, false),
+        (1, false),
+        (2, false),
+        (3, false),
+        (8, false),
+        (5, false),
+        (6, false),
+        (0, false),
+        (7, false),
+        (9, false),
+        (10, false),
+        (11, false),
     ],
 };
 
@@ -226,18 +226,18 @@ const B: CoordCube = CoordCube {
 const B_PRIME: CoordCube = CoordCube {
     corners: [(1, 2), (6, 1), (2, 0), (3, 0), (4, 0), (5, 0), (7, 2), (0, 1)],
     edges: [
-        (0, true),
-        (5, false),
-        (2, true),
-        (3, true),
-        (1, false),
-        (11, false),
-        (6, true),
-        (7, true),
-        (8, true),
-        (9, true),
-        (10, true),
-        (4, false),
+        (0, false),
+        (5, true),
+        (2, false),
+        (3, false),
+        (1, true),
+        (11, true),
+        (6, false),
+        (7, false),
+        (8, false),
+        (9, false),
+        (10, false),
+        (4, true)
     ],
 };
 
@@ -262,18 +262,18 @@ const L: CoordCube = CoordCube {
 const L_PRIME: CoordCube = CoordCube {
     corners: [(0, 0), (2, 2), (5, 1), (3, 0), (4, 0), (6, 2), (1, 1), (7, 0)],
     edges: [
-        (0, true),
-        (1, true),
-        (6, true),
-        (3, true),
-        (4, true),
-        (2, true),
-        (10, true),
-        (7, true),
-        (8, true),
-        (9, true),
-        (5, true),
-        (11, true),
+        (0, false),
+        (1, false),
+        (6, false),
+        (3, false),
+        (4, false),
+        (2, false),
+        (10, false),
+        (7, false),
+        (8, false),
+        (9, false),
+        (5, false),
+        (11, false),
     ],
 };
 
@@ -483,18 +483,18 @@ fn corner_inv(a: &[(u8, u8); 8]) -> [(u8, u8); 8] {
 
 fn edge_inv(a: &[(u8, bool); 12]) -> [(u8, bool); 12] {
     let mut r = [(0, false); 12];
-    r[a[0].0 as usize] = (0, !a[0].1);
-    r[a[1].0 as usize] = (1, !a[1].1);
-    r[a[2].0 as usize] = (2, !a[2].1);
-    r[a[3].0 as usize] = (3, !a[3].1);
-    r[a[4].0 as usize] = (4, !a[4].1);
-    r[a[5].0 as usize] = (5, !a[5].1);
-    r[a[6].0 as usize] = (6, !a[6].1);
-    r[a[7].0 as usize] = (7, !a[7].1);
-    r[a[8].0 as usize] = (8, !a[8].1);
-    r[a[9].0 as usize] = (9, !a[9].1);
-    r[a[10].0 as usize] = (10, !a[10].1);
-    r[a[11].0 as usize] = (11, !a[11].1);
+    r[a[0].0 as usize] = (0, a[0].1);
+    r[a[1].0 as usize] = (1, a[1].1);
+    r[a[2].0 as usize] = (2, a[2].1);
+    r[a[3].0 as usize] = (3, a[3].1);
+    r[a[4].0 as usize] = (4, a[4].1);
+    r[a[5].0 as usize] = (5, a[5].1);
+    r[a[6].0 as usize] = (6, a[6].1);
+    r[a[7].0 as usize] = (7, a[7].1);
+    r[a[8].0 as usize] = (8, a[8].1);
+    r[a[9].0 as usize] = (9, a[9].1);
+    r[a[10].0 as usize] = (10, a[10].1);
+    r[a[11].0 as usize] = (11, a[11].1);
     r
 }
 
@@ -559,6 +559,84 @@ mod tests {
     }
 
     #[test]
+    fn u_invert_is_its_prime() {
+        assert_eq!(CoordCube::from(QuarterTurn::U).invert(), CoordCube::from(QuarterTurn::UPrime));
+    }
+
+    #[test]
+    fn f_invert_is_its_prime() {
+        assert_eq!(CoordCube::from(QuarterTurn::F).invert(), CoordCube::from(QuarterTurn::FPrime));
+    }
+
+    #[test]
+    fn r_invert_is_its_prime() {
+        assert_eq!(CoordCube::from(QuarterTurn::R).invert(), CoordCube::from(QuarterTurn::RPrime));
+    }
+
+    #[test]
+    fn b_invert_is_its_prime() {
+        assert_eq!(CoordCube::from(QuarterTurn::B).invert(), CoordCube::from(QuarterTurn::BPrime));
+    }
+
+    #[test]
+    fn l_invert_is_its_prime() {
+        assert_eq!(CoordCube::from(QuarterTurn::L).invert(), CoordCube::from(QuarterTurn::LPrime));
+    }
+
+    #[test]
+    fn d_invert_is_its_prime() {
+        assert_eq!(CoordCube::from(QuarterTurn::D).invert(), CoordCube::from(QuarterTurn::DPrime));
+    }
+
+    #[test]
+    fn u_3_times_is_its_prime() {
+        let u_prime = CoordCube::from(QuarterTurn::U)
+            .permute(QuarterTurn::U.into())
+            .permute(QuarterTurn::U.into());
+        assert_eq!(u_prime, CoordCube::from(QuarterTurn::UPrime));
+    }
+
+    #[test]
+    fn f_3_times_is_its_prime() {
+        let f_prime = CoordCube::from(QuarterTurn::F)
+            .permute(QuarterTurn::F.into())
+            .permute(QuarterTurn::F.into());
+        assert_eq!(f_prime, CoordCube::from(QuarterTurn::FPrime));
+    }
+
+    #[test]
+    fn r_3_times_is_its_prime() {
+        let r_prime = CoordCube::from(QuarterTurn::R)
+            .permute(QuarterTurn::R.into())
+            .permute(QuarterTurn::R.into());
+        assert_eq!(r_prime, CoordCube::from(QuarterTurn::RPrime));
+    }
+
+    #[test]
+    fn b_3_times_is_its_prime() {
+        let b_prime = CoordCube::from(QuarterTurn::B)
+            .permute(QuarterTurn::B.into())
+            .permute(QuarterTurn::B.into());
+        assert_eq!(b_prime, CoordCube::from(QuarterTurn::BPrime));
+    }
+
+    #[test]
+    fn l_3_times_is_its_prime() {
+        let l_prime = CoordCube::from(QuarterTurn::L)
+            .permute(QuarterTurn::L.into())
+            .permute(QuarterTurn::L.into());
+        assert_eq!(l_prime, CoordCube::from(QuarterTurn::LPrime));
+    }
+
+    #[test]
+    fn d_3_times_is_its_prime() {
+        let d_prime = CoordCube::from(QuarterTurn::D)
+            .permute(QuarterTurn::D.into())
+            .permute(QuarterTurn::D.into());
+        assert_eq!(d_prime, CoordCube::from(QuarterTurn::DPrime));
+    }
+
+    #[test]
     fn should_be_able_to_generate_one_turn_with_a_combination_of_the_other_five() {
         let d = CoordCube::from(QuarterTurn::R)
             .permute(QuarterTurn::L.into())
@@ -592,6 +670,37 @@ mod tests {
         let u = CoordCube::from(QuarterTurn::U)
             .permute(QuarterTurn::UPrime.into());
         assert_eq!(u, CoordCube::identity());
+    }
+
+    #[test]
+    fn s_urf_3_times_is_the_identity() {
+        let id = CoordCube::from(SymmetryGenerator::SUrf)
+            .permute(SymmetryGenerator::SUrf.into())
+            .permute(SymmetryGenerator::SUrf.into());
+        assert_eq!(id, CoordCube::identity());
+    }
+
+    #[test]
+    fn s_f_2_times_is_the_identity() {
+        let id = CoordCube::from(SymmetryGenerator::SF)
+            .permute(SymmetryGenerator::SF.into());
+        assert_eq!(id, CoordCube::identity());
+    }
+
+    #[test]
+    fn s_u_4_times_is_the_identity() {
+        let id = CoordCube::from(SymmetryGenerator::SU)
+            .permute(SymmetryGenerator::SU.into())
+            .permute(SymmetryGenerator::SU.into())
+            .permute(SymmetryGenerator::SU.into());
+        assert_eq!(id, CoordCube::identity());
+    }
+
+    #[test]
+    fn s_mrl_2_times_is_the_identity() {
+        let id = CoordCube::from(SymmetryGenerator::SMrl)
+            .permute(SymmetryGenerator::SMrl.into());
+        assert_eq!(id, CoordCube::identity());
     }
 
     #[test]
