@@ -445,6 +445,89 @@ mod tests {
     }
 
     #[test]
+    fn u_is_not_identity() {
+        assert_ne!(FaceletCube::from(QuarterTurn::U), FaceletCube::identity());
+    }
+
+    #[test]
+    fn u_invert_is_its_prime() {
+        assert_eq!(FaceletCube::from(QuarterTurn::U).invert(), FaceletCube::from(QuarterTurn::UPrime));
+    }
+
+    #[test]
+    fn f_invert_is_its_prime() {
+        assert_eq!(FaceletCube::from(QuarterTurn::F).invert(), FaceletCube::from(QuarterTurn::FPrime));
+    }
+
+    #[test]
+    fn r_invert_is_its_prime() {
+        assert_eq!(FaceletCube::from(QuarterTurn::R).invert(), FaceletCube::from(QuarterTurn::RPrime));
+    }
+
+    #[test]
+    fn b_invert_is_its_prime() {
+        assert_eq!(FaceletCube::from(QuarterTurn::B).invert(), FaceletCube::from(QuarterTurn::BPrime));
+    }
+
+    #[test]
+    fn l_invert_is_its_prime() {
+        assert_eq!(FaceletCube::from(QuarterTurn::L).invert(), FaceletCube::from(QuarterTurn::LPrime));
+    }
+
+    #[test]
+    fn d_invert_is_its_prime() {
+        assert_eq!(FaceletCube::from(QuarterTurn::D).invert(), FaceletCube::from(QuarterTurn::DPrime));
+    }
+
+    #[test]
+    fn u_3_times_is_its_prime() {
+        let u_prime = FaceletCube::from(QuarterTurn::U)
+            .permute(QuarterTurn::U.into())
+            .permute(QuarterTurn::U.into());
+        assert_eq!(u_prime, FaceletCube::from(QuarterTurn::UPrime));
+    }
+
+    #[test]
+    fn f_3_times_is_its_prime() {
+        let f_prime = FaceletCube::from(QuarterTurn::F)
+            .permute(QuarterTurn::F.into())
+            .permute(QuarterTurn::F.into());
+        assert_eq!(f_prime, FaceletCube::from(QuarterTurn::FPrime));
+    }
+
+    #[test]
+    fn r_3_times_is_its_prime() {
+        let r_prime = FaceletCube::from(QuarterTurn::R)
+            .permute(QuarterTurn::R.into())
+            .permute(QuarterTurn::R.into());
+        assert_eq!(r_prime, FaceletCube::from(QuarterTurn::RPrime));
+    }
+
+    #[test]
+    fn b_3_times_is_its_prime() {
+        let b_prime = FaceletCube::from(QuarterTurn::B)
+            .permute(QuarterTurn::B.into())
+            .permute(QuarterTurn::B.into());
+        assert_eq!(b_prime, FaceletCube::from(QuarterTurn::BPrime));
+    }
+
+    #[test]
+    fn l_3_times_is_its_prime() {
+        let l_prime = FaceletCube::from(QuarterTurn::L)
+            .permute(QuarterTurn::L.into())
+            .permute(QuarterTurn::L.into());
+        assert_eq!(l_prime, FaceletCube::from(QuarterTurn::LPrime));
+    }
+
+    #[test]
+    fn d_3_times_is_its_prime() {
+        let d_prime = FaceletCube::from(QuarterTurn::D)
+            .permute(QuarterTurn::D.into())
+            .permute(QuarterTurn::D.into());
+        assert_eq!(d_prime, FaceletCube::from(QuarterTurn::DPrime));
+    }
+
+    #[test]
     fn should_be_able_to_generate_one_turn_with_a_combination_of_the_other_five() {
         let d = FaceletCube::from(QuarterTurn::R)
             .permute(QuarterTurn::L.into())
@@ -467,10 +550,76 @@ mod tests {
     }
 
     #[test]
-    fn d_and_invert_should_be_the_identity() {
+    fn d_and_d_prime_should_be_the_identity() {
         let d = FaceletCube::from(QuarterTurn::D)
             .permute(QuarterTurn::DPrime.into());
         assert_eq!(d, FaceletCube::identity());
+    }
+
+    #[test]
+    fn u_and_u_prime_should_be_the_identity() {
+        let u = FaceletCube::from(QuarterTurn::U)
+            .permute(QuarterTurn::UPrime.into());
+        assert_eq!(u, FaceletCube::identity());
+    }
+
+    #[test]
+    fn f_and_f_prime_should_be_the_identity() {
+        let f = FaceletCube::from(QuarterTurn::F)
+            .permute(QuarterTurn::FPrime.into());
+        assert_eq!(f, FaceletCube::identity());
+    }
+
+    #[test]
+    fn r_and_r_prime_should_be_the_identity() {
+        let r = FaceletCube::from(QuarterTurn::R)
+            .permute(QuarterTurn::RPrime.into());
+        assert_eq!(r, FaceletCube::identity());
+    }
+
+    #[test]
+    fn b_and_b_prime_should_be_the_identity() {
+        let b = FaceletCube::from(QuarterTurn::B)
+            .permute(QuarterTurn::BPrime.into());
+        assert_eq!(b, FaceletCube::identity());
+    }
+
+    #[test]
+    fn l_and_l_prime_should_be_the_identity() {
+        let l = FaceletCube::from(QuarterTurn::L)
+            .permute(QuarterTurn::LPrime.into());
+        assert_eq!(l, FaceletCube::identity());
+    }
+
+    #[test]
+    fn s_urf_3_times_is_the_identity() {
+        let id = FaceletCube::from(SymmetryGenerator::SUrf)
+            .permute(SymmetryGenerator::SUrf.into())
+            .permute(SymmetryGenerator::SUrf.into());
+        assert_eq!(id, FaceletCube::identity());
+    }
+
+    #[test]
+    fn s_f_2_times_is_the_identity() {
+        let id = FaceletCube::from(SymmetryGenerator::SF)
+            .permute(SymmetryGenerator::SF.into());
+        assert_eq!(id, FaceletCube::identity());
+    }
+
+    #[test]
+    fn s_u_4_times_is_the_identity() {
+        let id = FaceletCube::from(SymmetryGenerator::SU)
+            .permute(SymmetryGenerator::SU.into())
+            .permute(SymmetryGenerator::SU.into())
+            .permute(SymmetryGenerator::SU.into());
+        assert_eq!(id, FaceletCube::identity());
+    }
+
+    #[test]
+    fn s_mrl_2_times_is_the_identity() {
+        let id = FaceletCube::from(SymmetryGenerator::SMrl)
+            .permute(SymmetryGenerator::SMrl.into());
+        assert_eq!(id, FaceletCube::identity());
     }
 
     #[test]
@@ -498,6 +647,26 @@ mod tests {
             .permute(SymmetryGenerator::SU.into())
             .permute(SymmetryGenerator::SU.into());
         assert_eq!(r, QuarterTurn::R.into());
+    }
+
+    #[test]
+    fn r_is_symmetrical_to_b() {
+        let r = FaceletCube::from(SymmetryGenerator::SU)
+            .permute(SymmetryGenerator::SU.into())
+            .permute(SymmetryGenerator::SU.into())
+            .permute(QuarterTurn::B.into())
+            .permute(SymmetryGenerator::SU.into());
+        assert_eq!(r, QuarterTurn::R.into());
+    }
+
+    #[test]
+    fn b_is_symmetrical_to_l() {
+        let r = FaceletCube::from(SymmetryGenerator::SU)
+            .permute(SymmetryGenerator::SU.into())
+            .permute(SymmetryGenerator::SU.into())
+            .permute(QuarterTurn::L.into())
+            .permute(SymmetryGenerator::SU.into());
+        assert_eq!(r, QuarterTurn::B.into());
     }
 
     #[test]
