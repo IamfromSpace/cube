@@ -417,6 +417,65 @@ impl From<SymmetryGenerator> for CoordCube {
     }
 }
 
+fn corner_to_facelets(corner: u8) -> [u8; 3] {
+    match corner {
+      0 => [0, 13, 8],
+      1 => [1, 17, 12],
+      2 => [2, 5, 16],
+      3 => [3, 9, 4],
+      4 => [20, 7, 10],
+      5 => [21, 19, 6],
+      6 => [22, 15, 18],
+      7 => [23, 11, 14],
+      _ => panic!("Invalid corner input!"),
+    }
+}
+
+fn edge_to_facelets(corner: u8) -> [u8; 2] {
+    match corner {
+      0 => [0, 9],
+      1 => [1, 13],
+      2 => [2, 17],
+      3 => [3, 5],
+      4 => [14, 8],
+      5 => [12, 18],
+      6 => [6, 16],
+      7 => [4, 10],
+      8 => [20, 11],
+      9 => [21, 7],
+      10 => [22, 19],
+      11 => [23, 15],
+      _ => panic!("Invalid edge input!"),
+    }
+}
+
+use super::facelet_cube::FaceletCube;
+impl From<CoordCube> for FaceletCube {
+    fn from(coord_cube: CoordCube) -> FaceletCube {
+        let mut fc = FaceletCube {
+            corners: [0; 24],
+            edges: [0; 24],
+        };
+
+        for i in 0..coord_cube.corners.len() {
+            let indexes = corner_to_facelets(i as u8);
+            let corner = corner_to_facelets(coord_cube.corners[i].0);
+            fc.corners[indexes[0] as usize] = corner[((3 - coord_cube.corners[i].1) % 3) as usize];
+            fc.corners[indexes[1] as usize] = corner[((4 - coord_cube.corners[i].1) % 3) as usize];
+            fc.corners[indexes[2] as usize] = corner[((5 - coord_cube.corners[i].1) % 3) as usize];
+        }
+
+        for i in 0..coord_cube.edges.len() {
+            let indexes = edge_to_facelets(i as u8);
+            let edge = edge_to_facelets(coord_cube.edges[i].0);
+            fc.edges[indexes[0] as usize] = edge[coord_cube.edges[i].1 as usize];
+            fc.edges[indexes[1] as usize] = edge[(coord_cube.edges[i].1 as usize + 1) % 2];
+        }
+
+        fc
+    }
+}
+
 // TODO: All functions like these should really just be implemented as
 // PermutationGroups themselves, then the "permute" for the top level
 // just uses the permute functions for each field.

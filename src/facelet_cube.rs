@@ -84,8 +84,8 @@ use std::fmt;
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
 pub struct FaceletCube {
     // u8 benchmarked as fastest for permuting
-    corners: [u8; 24],
-    edges: [u8; 24],
+    pub corners: [u8; 24],
+    pub edges: [u8; 24],
 }
 
 impl fmt::Display for FaceletCube {
