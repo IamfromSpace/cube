@@ -677,6 +677,14 @@ mod tests {
         assert_eq!(u_prime, QuarterTurn::UPrime.into());
     }
 
+    #[test]
+    fn r_is_symmetrical_to_l_prime() {
+        let l_prime = FaceletCube::from(SymmetryGenerator::SMrl)
+            .permute(QuarterTurn::R.into())
+            .permute(SymmetryGenerator::SMrl.into());
+        assert_eq!(l_prime, QuarterTurn::LPrime.into());
+    }
+
     #[bench]
     fn repeatedly_perform_1000_turns_via_complex_arr_permutation(b: &mut Bencher) {
         let mut cleanc = CLEAN_ARR;

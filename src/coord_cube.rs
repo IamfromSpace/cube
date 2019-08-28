@@ -1,9 +1,12 @@
 extern crate functional;
 
+use std::fmt;
 use super::permutation_group::PermutationGroup;
 
-// TODO: This is _drastically_ slower than FaceletCube to create a move table for.
-// a ~10% might be expected, but this is 20x the speed difference!
+// TODO: There's some issue that causes this to generate about 0.5% more cases
+// than FaceletCube for its move table.  The issue could be with either but
+// they should theoretically find the exact same positions (but reduced by
+// different symmetries).
 
 /* This representation of the cube talks in "cubies" and their orientations
  * and can represent all reachable states.
@@ -45,7 +48,7 @@ use super::permutation_group::PermutationGroup;
  */
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
 pub struct CoordCube {
-    pub corners: [(u8, u8); 8],
+    pub corners: [(u8, [u8; 3]); 8],
     pub edges: [(u8, bool); 12],
 }
 
@@ -78,8 +81,8 @@ impl PermutationGroup for CoordCube {
     }
 }
 
-const CORNER_IDENTITY: [(u8,u8); 8] =
-    [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0), (7, 0)];
+const CORNER_IDENTITY: [(u8,[u8; 3]); 8] =
+    [(0, [0, 1, 2]), (1, [0, 1, 2]), (2, [0, 1, 2]), (3, [0, 1, 2]), (4, [0, 1, 2]), (5, [0, 1, 2]), (6, [0, 1, 2]), (7, [0, 1, 2])];
 
 const EDGE_IDENTITY: [(u8,bool); 12] =
     [
@@ -98,7 +101,7 @@ const EDGE_IDENTITY: [(u8,bool); 12] =
     ];
 
 const U: CoordCube = CoordCube {
-    corners: [(1, 0), (2, 0), (3, 0), (0, 0), (4, 0), (5, 0), (6, 0), (7, 0)],
+    corners: [(1, [0, 1, 2]), (2, [0, 1, 2]), (3, [0, 1, 2]), (0, [0, 1, 2]), (4, [0, 1, 2]), (5, [0, 1, 2]), (6, [0, 1, 2]), (7, [0, 1, 2])],
     edges: [
         (1, false),
         (2, false),
@@ -116,7 +119,7 @@ const U: CoordCube = CoordCube {
 };
 
 const U_PRIME: CoordCube = CoordCube {
-    corners: [(3, 0), (0, 0), (1, 0), (2, 0), (4, 0), (5, 0), (6, 0), (7, 0)],
+    corners: [(3, [0, 1, 2]), (0, [0, 1, 2]), (1, [0, 1, 2]), (2, [0, 1, 2]), (4, [0, 1, 2]), (5, [0, 1, 2]), (6, [0, 1, 2]), (7, [0, 1, 2])],
     edges: [
         (3, false),
         (0, false),
@@ -134,7 +137,7 @@ const U_PRIME: CoordCube = CoordCube {
 };
 
 const F: CoordCube = CoordCube {
-    corners: [(0, 0), (1, 0), (5, 2), (2, 1), (3, 2), (4, 1), (6, 0), (7, 0)],
+    corners: [(0, [0, 1, 2]), (1, [0, 1, 2]), (5, [1, 2, 0]), (2, [2, 0, 1]), (3, [1, 2, 0]), (4, [2, 0, 1]), (6, [0, 1, 2]), (7, [0, 1, 2])],
     edges: [
         (0, false),
         (1, false),
@@ -152,7 +155,7 @@ const F: CoordCube = CoordCube {
 };
 
 const F_PRIME: CoordCube = CoordCube {
-    corners: [(0, 0), (1, 0), (3, 2), (4, 1), (5, 2), (2, 1), (6, 0), (7, 0)],
+    corners: [(0, [0, 1, 2]), (1, [0, 1, 2]), (3, [1, 2, 0]), (4, [2, 0, 1]), (5, [1, 2, 0]), (2, [2, 0, 1]), (6, [0, 1, 2]), (7, [0, 1, 2])],
     edges: [
         (0, false),
         (1, false),
@@ -170,7 +173,7 @@ const F_PRIME: CoordCube = CoordCube {
 };
 
 const R: CoordCube = CoordCube {
-    corners: [(3, 1), (1, 0), (2, 0), (4, 2), (7, 1), (5, 0), (6, 0), (0, 2)],
+    corners: [(3, [2, 0, 1]), (1, [0, 1, 2]), (2, [0, 1, 2]), (4, [1, 2, 0]), (7, [2, 0, 1]), (5, [0, 1, 2]), (6, [0, 1, 2]), (0, [1, 2, 0])],
     edges: [
         (7, false),
         (1, false),
@@ -188,7 +191,7 @@ const R: CoordCube = CoordCube {
 };
 
 const R_PRIME: CoordCube = CoordCube {
-    corners: [(7, 1), (1, 0), (2, 0), (0, 2), (3, 1), (5, 0), (6, 0), (4, 2)],
+    corners: [(7, [2, 0, 1]), (1, [0, 1, 2]), (2, [0, 1, 2]), (0, [1, 2, 0]), (3, [2, 0, 1]), (5, [0, 1, 2]), (6, [0, 1, 2]), (4, [1, 2, 0])],
     edges: [
         (4, false),
         (1, false),
@@ -206,7 +209,7 @@ const R_PRIME: CoordCube = CoordCube {
 };
 
 const B: CoordCube = CoordCube {
-    corners: [(7, 2), (0, 1), (2, 0), (3, 0), (4, 0), (5, 0), (1, 2), (6, 1)],
+    corners: [(7, [1, 2, 0]), (0, [2, 0, 1]), (2, [0, 1, 2]), (3, [0, 1, 2]), (4, [0, 1, 2]), (5, [0, 1, 2]), (1, [1, 2, 0]), (6, [2, 0, 1])],
     edges: [
         (0, false),
         (4, true),
@@ -224,7 +227,7 @@ const B: CoordCube = CoordCube {
 };
 
 const B_PRIME: CoordCube = CoordCube {
-    corners: [(1, 2), (6, 1), (2, 0), (3, 0), (4, 0), (5, 0), (7, 2), (0, 1)],
+    corners: [(1, [1, 2, 0]), (6, [2, 0, 1]), (2, [0, 1, 2]), (3, [0, 1, 2]), (4, [0, 1, 2]), (5, [0, 1, 2]), (7, [1, 2, 0]), (0, [2, 0, 1])],
     edges: [
         (0, false),
         (5, true),
@@ -242,7 +245,7 @@ const B_PRIME: CoordCube = CoordCube {
 };
 
 const L: CoordCube = CoordCube {
-    corners: [(0, 0), (6, 2), (1, 1), (3, 0), (4, 0), (2, 2), (5, 1), (7, 0)],
+    corners: [(0, [0, 1, 2]), (6, [1, 2, 0]), (1, [2, 0, 1]), (3, [0, 1, 2]), (4, [0, 1, 2]), (2, [1, 2, 0]), (5, [2, 0, 1]), (7, [0, 1, 2])],
     edges: [
         (0, false),
         (1, false),
@@ -260,7 +263,7 @@ const L: CoordCube = CoordCube {
 };
 
 const L_PRIME: CoordCube = CoordCube {
-    corners: [(0, 0), (2, 2), (5, 1), (3, 0), (4, 0), (6, 2), (1, 1), (7, 0)],
+    corners: [(0, [0, 1, 2]), (2, [1, 2, 0]), (5, [2, 0, 1]), (3, [0, 1, 2]), (4, [0, 1, 2]), (6, [1, 2, 0]), (1, [2, 0, 1]), (7, [0, 1, 2])],
     edges: [
         (0, false),
         (1, false),
@@ -278,7 +281,7 @@ const L_PRIME: CoordCube = CoordCube {
 };
 
 const D: CoordCube = CoordCube {
-    corners: [(0, 0), (1, 0), (2, 0), (3, 0), (5, 0), (6, 0), (7, 0), (4, 0)],
+    corners: [(0, [0, 1, 2]), (1, [0, 1, 2]), (2, [0, 1, 2]), (3, [0, 1, 2]), (5, [0, 1, 2]), (6, [0, 1, 2]), (7, [0, 1, 2]), (4, [0, 1, 2])],
     edges: [
         (0, false),
         (1, false),
@@ -296,7 +299,7 @@ const D: CoordCube = CoordCube {
 };
 
 const D_PRIME: CoordCube = CoordCube {
-    corners: [(0, 0), (1, 0), (2, 0), (3, 0), (7, 0), (4, 0), (5, 0), (6, 0)],
+    corners: [(0, [0, 1, 2]), (1, [0, 1, 2]), (2, [0, 1, 2]), (3, [0, 1, 2]), (7, [0, 1, 2]), (4, [0, 1, 2]), (5, [0, 1, 2]), (6, [0, 1, 2])],
     edges: [
         (0, false),
         (1, false),
@@ -334,7 +337,7 @@ impl From<QuarterTurn> for CoordCube {
 }
 
 const S_URF: CoordCube = CoordCube {
-    corners: [(2, 2), (5, 1), (4, 2), (3, 1), (0, 2), (7, 1), (6, 2), (1, 1)],
+    corners: [(2, [1, 2, 0]), (5, [2, 0, 1]), (4, [1, 2, 0]), (3, [2, 0, 1]), (0, [1, 2, 0]), (7, [2, 0, 1]), (6, [1, 2, 0]), (1, [2, 0, 1])],
     edges: [
         (3, true),
         (6, false),
@@ -352,7 +355,7 @@ const S_URF: CoordCube = CoordCube {
 };
 
 const S_F: CoordCube = CoordCube {
-    corners: [(6, 0), (7, 0), (4, 0), (5, 0), (2, 0), (3, 0), (0, 0), (1, 0)],
+    corners: [(6, [0, 1, 2]), (7, [0, 1, 2]), (4, [0, 1, 2]), (5, [0, 1, 2]), (2, [0, 1, 2]), (3, [0, 1, 2]), (0, [0, 1, 2]), (1, [0, 1, 2])],
     edges: [
         (10, false),
         (11, false),
@@ -370,7 +373,7 @@ const S_F: CoordCube = CoordCube {
 };
 
 const S_U: CoordCube = CoordCube {
-    corners: [(1, 0), (2, 0), (3, 0), (0, 0), (7, 0), (4, 0), (5, 0), (6, 0)],
+    corners: [(1, [0, 1, 2]), (2, [0, 1, 2]), (3, [0, 1, 2]), (0, [0, 1, 2]), (7, [0, 1, 2]), (4, [0, 1, 2]), (5, [0, 1, 2]), (6, [0, 1, 2])],
     edges: [
         (1, false),
         (2, false),
@@ -388,7 +391,7 @@ const S_U: CoordCube = CoordCube {
 };
 
 const S_MRL: CoordCube = CoordCube {
-    corners: [(1, 0), (0, 0), (3, 0), (2, 0), (5, 0), (4, 0), (7, 0), (6, 0)],
+    corners: [(1, [0, 2, 1]), (0, [0, 2, 1]), (3, [0, 2, 1]), (2, [0, 2, 1]), (5, [0, 2, 1]), (4, [0, 2, 1]), (7, [0, 2, 1]), (6, [0, 2, 1])],
     edges: [
         (2, false),
         (1, false),
@@ -459,10 +462,11 @@ impl From<CoordCube> for FaceletCube {
 
         for i in 0..coord_cube.corners.len() {
             let indexes = corner_to_facelets(i as u8);
-            let corner = corner_to_facelets(coord_cube.corners[i].0);
-            fc.corners[indexes[0] as usize] = corner[((3 - coord_cube.corners[i].1) % 3) as usize];
-            fc.corners[indexes[1] as usize] = corner[((4 - coord_cube.corners[i].1) % 3) as usize];
-            fc.corners[indexes[2] as usize] = corner[((5 - coord_cube.corners[i].1) % 3) as usize];
+            let p = coord_cube.corners[i];
+            let corner = corner_to_facelets(p.0);
+            fc.corners[indexes[0] as usize] = corner[p.1[0] as usize];
+            fc.corners[indexes[1] as usize] = corner[p.1[1] as usize];
+            fc.corners[indexes[2] as usize] = corner[p.1[2] as usize];
         }
 
         for i in 0..coord_cube.edges.len() {
@@ -476,19 +480,33 @@ impl From<CoordCube> for FaceletCube {
     }
 }
 
+impl fmt::Display for CoordCube {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        FaceletCube::from(*self).fmt(f)
+    }
+}
+
+fn permute_corner_orientation(a: [u8; 3], b: [u8; 3]) -> [u8; 3] {
+    [
+        a[b[0] as usize],
+        a[b[1] as usize],
+        a[b[2] as usize],
+    ]
+}
+
 // TODO: All functions like these should really just be implemented as
 // PermutationGroups themselves, then the "permute" for the top level
 // just uses the permute functions for each field.
-fn permute_corners(a: &[(u8, u8); 8], b: &[(u8, u8); 8]) -> [(u8, u8); 8] {
+fn permute_corners(a: &[(u8, [u8; 3]); 8], b: &[(u8, [u8; 3]); 8]) -> [(u8, [u8; 3]); 8] {
     [
-        (a[b[0].0 as usize].0, (a[b[0].0 as usize].1 + b[0].1) % 3),
-        (a[b[1].0 as usize].0, (a[b[1].0 as usize].1 + b[1].1) % 3),
-        (a[b[2].0 as usize].0, (a[b[2].0 as usize].1 + b[2].1) % 3),
-        (a[b[3].0 as usize].0, (a[b[3].0 as usize].1 + b[3].1) % 3),
-        (a[b[4].0 as usize].0, (a[b[4].0 as usize].1 + b[4].1) % 3),
-        (a[b[5].0 as usize].0, (a[b[5].0 as usize].1 + b[5].1) % 3),
-        (a[b[6].0 as usize].0, (a[b[6].0 as usize].1 + b[6].1) % 3),
-        (a[b[7].0 as usize].0, (a[b[7].0 as usize].1 + b[7].1) % 3),
+        (a[b[0].0 as usize].0, permute_corner_orientation(a[b[0].0 as usize].1, b[0].1)),
+        (a[b[1].0 as usize].0, permute_corner_orientation(a[b[1].0 as usize].1, b[1].1)),
+        (a[b[2].0 as usize].0, permute_corner_orientation(a[b[2].0 as usize].1, b[2].1)),
+        (a[b[3].0 as usize].0, permute_corner_orientation(a[b[3].0 as usize].1, b[3].1)),
+        (a[b[4].0 as usize].0, permute_corner_orientation(a[b[4].0 as usize].1, b[4].1)),
+        (a[b[5].0 as usize].0, permute_corner_orientation(a[b[5].0 as usize].1, b[5].1)),
+        (a[b[6].0 as usize].0, permute_corner_orientation(a[b[6].0 as usize].1, b[6].1)),
+        (a[b[7].0 as usize].0, permute_corner_orientation(a[b[7].0 as usize].1, b[7].1)),
     ]
 }
 
@@ -509,7 +527,7 @@ fn permute_edges(a: &[(u8, bool); 12], b: &[(u8, bool); 12]) -> [(u8, bool); 12]
     ]
 }
 
-fn corner_identity() -> [(u8, u8); 8] {
+fn corner_identity() -> [(u8, [u8; 3]); 8] {
     CORNER_IDENTITY
 }
 
@@ -517,26 +535,24 @@ fn edge_identity() -> [(u8, bool); 12] {
     EDGE_IDENTITY
 }
 
-// TODO: Is there not a more "mathematical" way to do this?
-fn corner_orientation_inv(o: u8) -> u8 {
-    match o {
-        0 => 0,
-        1 => 2,
-        2 => 1,
-        _ => panic!("Invalid corner cubie orientation"),
-    }
+fn corner_orientation_inv(a: &[u8; 3]) -> [u8; 3] {
+    let mut r = [0; 3];
+    r[a[0] as usize] = 0;
+    r[a[1] as usize] = 1;
+    r[a[2] as usize] = 2;
+    r
 }
 
-fn corner_inv(a: &[(u8, u8); 8]) -> [(u8, u8); 8] {
-    let mut r = [(0,0); 8];
-    r[a[0].0 as usize] = (0, corner_orientation_inv(a[0].1));
-    r[a[1].0 as usize] = (1, corner_orientation_inv(a[1].1));
-    r[a[2].0 as usize] = (2, corner_orientation_inv(a[2].1));
-    r[a[3].0 as usize] = (3, corner_orientation_inv(a[3].1));
-    r[a[4].0 as usize] = (4, corner_orientation_inv(a[4].1));
-    r[a[5].0 as usize] = (5, corner_orientation_inv(a[5].1));
-    r[a[6].0 as usize] = (6, corner_orientation_inv(a[6].1));
-    r[a[7].0 as usize] = (7, corner_orientation_inv(a[7].1));
+fn corner_inv(a: &[(u8, [u8; 3]); 8]) -> [(u8, [u8; 3]); 8] {
+    let mut r = [(0, [0; 3]); 8];
+    r[a[0].0 as usize] = (0, corner_orientation_inv(&a[0].1));
+    r[a[1].0 as usize] = (1, corner_orientation_inv(&a[1].1));
+    r[a[2].0 as usize] = (2, corner_orientation_inv(&a[2].1));
+    r[a[3].0 as usize] = (3, corner_orientation_inv(&a[3].1));
+    r[a[4].0 as usize] = (4, corner_orientation_inv(&a[4].1));
+    r[a[5].0 as usize] = (5, corner_orientation_inv(&a[5].1));
+    r[a[6].0 as usize] = (6, corner_orientation_inv(&a[6].1));
+    r[a[7].0 as usize] = (7, corner_orientation_inv(&a[7].1));
     r
 }
 
@@ -564,13 +580,13 @@ mod tests {
 
     #[test]
     fn permute_corners_works_for_a_simple_swap() {
-        let simple_swap = [(1, 1), (0, 2), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0), (7, 0)];
+        let simple_swap = [(1, [2, 0, 1]), (0, [1, 2, 0]), (2, [0, 1, 2]), (3, [0, 1, 2]), (4, [0, 1, 2]), (5, [0, 1, 2]), (6, [0, 1, 2]), (7, [0, 1, 2])];
         assert_eq!(CORNER_IDENTITY, permute_corners(&simple_swap, &simple_swap));
     }
 
     #[test]
     fn permute_corners_works_for_a_three_cycle() {
-        let three_cycle = [(1, 1), (2, 1), (0, 1), (3, 0), (4, 0), (5, 0), (6, 0), (7, 0)];
+        let three_cycle = [(1, [2, 0, 1]), (2, [2, 0, 1]), (0, [2, 0, 1]), (3, [0, 1, 2]), (4, [0, 1, 2]), (5, [0, 1, 2]), (6, [0, 1, 2]), (7, [0, 1, 2])];
         assert_eq!(CORNER_IDENTITY, permute_corners(&permute_corners(&three_cycle, &three_cycle), &three_cycle));
     }
 
@@ -843,6 +859,27 @@ mod tests {
             .permute(QuarterTurn::U.into())
             .permute(SymmetryGenerator::SMrl.into());
         assert_eq!(u_prime, QuarterTurn::UPrime.into());
+    }
+
+    #[test]
+    fn r_is_symmetrical_to_l_prime() {
+        let l_prime = CoordCube::from(SymmetryGenerator::SMrl)
+            .permute(QuarterTurn::R.into())
+            .permute(SymmetryGenerator::SMrl.into());
+        assert_eq!(l_prime, QuarterTurn::LPrime.into());
+    }
+
+    #[test]
+    fn r_f_is_symmetrical_to_l_prime_f_prime() {
+        let actual = CoordCube::from(SymmetryGenerator::SMrl)
+            .permute(QuarterTurn::R.into())
+            .permute(QuarterTurn::F.into())
+            .permute(SymmetryGenerator::SMrl.into());
+        let expected = CoordCube::from(QuarterTurn::LPrime)
+            .permute(QuarterTurn::FPrime.into());
+        println!("{}", actual);
+        println!("{}", expected);
+        assert_eq!(actual, expected);
     }
 
     #[bench]
