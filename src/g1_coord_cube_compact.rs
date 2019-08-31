@@ -63,13 +63,13 @@ const F2: G1CoordCubeCompact = G1CoordCubeCompact {
 const R2: G1CoordCubeCompact = G1CoordCubeCompact {
     corners: 21099,
     top_bottom_edges: 21024,
-    middle_edges: 21
+    middle_edges: 27
 };
 
 const B2: G1CoordCubeCompact = G1CoordCubeCompact {
     corners: 34864,
     top_bottom_edges: 4473,
-    middle_edges: 6
+    middle_edges: 8
 };
 
 const L2: G1CoordCubeCompact = G1CoordCubeCompact {
@@ -109,19 +109,19 @@ impl From<G1Turn> for G1CoordCubeCompact {
 const S_F: G1CoordCubeCompact = G1CoordCubeCompact {
     corners: 35152,
     top_bottom_edges: 35152,
-    middle_edges: 7
+    middle_edges: 9
 };
 
 const S_U: G1CoordCubeCompact = G1CoordCubeCompact {
     corners: 5898,
     top_bottom_edges: 5898,
-    middle_edges: 9
+    middle_edges: 11
 };
 
 const S_MRL: G1CoordCubeCompact = G1CoordCubeCompact {
     corners: 5167,
     top_bottom_edges: 5167,
-    middle_edges: 7
+    middle_edges: 9
 };
 
 use super::move_sets::g1_symmetry_generators::G1SymmetryGenerator;
@@ -159,8 +159,8 @@ impl From<G1CoordCubeCompact> for super::g1_coord_cube::G1CoordCube {
 // (depending if it's available as a single instruction)
 fn index_to_arr_4(index: u8) -> [u8; 4] {
     let mut arr = [
-        index / 6,
-        index / 2 % 3,
+        index / 8,
+        index / 2 % 4,
         index % 2,
         0,
     ];
@@ -208,9 +208,14 @@ fn arr_to_index_4(arr_raw: [u8; 4]) -> u8 {
             }
         }
     }
-    arr[0] * 6 + arr[1] * 2 + arr[2]
+    arr[0] * 8 + arr[1] * 2 + arr[2]
 }
 
+// TODO: arr_to_index_4 demonstrates using powers of two instead of a
+// fully accurate mixed-radix, and it has an ever so slight speed increase.
+// It should be greater here, but it costs 17 bits instead of 16.
+// Luckily, middle_edges has a couple bits to spare, so the radix-2 case
+// can be stored in it.
 fn arr_to_index_8(arr_raw: [u8; 8]) -> u16 {
     let mut arr = arr_raw.clone();
     for i in (1..arr.len() - 1).rev() {
@@ -241,7 +246,7 @@ mod tests {
 
     #[test]
     fn index_to_arr_4_works_for_max_case() {
-        assert_eq!(index_to_arr_4(23), [3, 2, 1, 0]);
+        assert_eq!(index_to_arr_4(29), [3, 2, 1, 0]);
     }
 
     #[test]
@@ -261,7 +266,7 @@ mod tests {
 
     #[test]
     fn arr_to_index_4_works_for_max_case() {
-        assert_eq!(arr_to_index_4([3, 2, 1, 0]), 23);
+        assert_eq!(arr_to_index_4([3, 2, 1, 0]), 29);
     }
 
     #[test]
