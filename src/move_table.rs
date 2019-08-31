@@ -215,7 +215,7 @@ fn gen_next_moves<Stored: PG + Hash + Eq + Copy + Send + Sync + From<Used>, Used
         while_iter_in_mutex_has_next(&iter_m, |(stored_perm, _): (&Stored, &(Stored, bool))| {
             let perm = Used::from(*stored_perm);
             for &as_premove in &[true, false] {
-                turns.iter().for_each(|turn| {
+                for turn in turns {
                     let pos = if as_premove {
                         turn.permute(perm)
                     } else {
@@ -223,16 +223,15 @@ fn gen_next_moves<Stored: PG + Hash + Eq + Copy + Send + Sync + From<Used>, Used
                     };
                     let (ge, sym, was_inverted) = greatest_equivalence(&syms, pos);
                     if grandparent.get(&ge.into()) == None && parent.get(&ge.into()) == None {
-                        let undo;
-                        if was_inverted {
-                            undo = turn.apply_symmetry(sym);
+                        let undo = if was_inverted {
+                            turn.apply_symmetry(sym)
                         } else {
-                            undo = turn.invert().apply_symmetry(sym);
-                        }
+                            turn.invert().apply_symmetry(sym)
+                        };
                         let mut guard = hsm.lock().unwrap();
                         (*guard).insert(ge.into(), (undo.into(), was_inverted != as_premove));
                     }
-                });
+                }
             }
         });
     });
