@@ -336,45 +336,48 @@ pub fn solve<Stored: PG + Eq + Hash + Copy + From<Used>, Used: PG + Copy + Ord +
         n += 1;
     }
 
-    let mut right_side = Vec::with_capacity(n);
-    let mut left_side = Vec::with_capacity(n);
-    let mut r = scramble_r;
-    let mut sym = s;
-    let mut push_backwards = pb;
-    for i in (1..n + 1).rev() {
-        let r_clone = r.clone();
+    if n == table.len() {
+        None
+    } else {
+        let mut right_side = Vec::with_capacity(n);
+        let mut left_side = Vec::with_capacity(n);
+        let mut r = scramble_r;
+        let mut sym = s;
+        let mut push_backwards = pb;
+        for i in (1..n + 1).rev() {
+            let r_clone = r.clone();
 
-        // TODO: Or it is solved in more turns than the table holds
-        let (turn, was_inverted) = table[i].get(&r_clone.into()).expect("Move table is corrupt");
-        let turn = Used::from(*turn);
+            let (turn, was_inverted) = table[i].get(&r_clone.into()).expect("Move table is corrupt");
+            let turn = Used::from(*turn);
 
-        let sym_fixed_turn = turn.apply_symmetry(sym.invert());
+            let sym_fixed_turn = turn.apply_symmetry(sym.invert());
 
-        let undone;
-        if *was_inverted {
-            undone = turn.permute(r_clone);
-            if push_backwards {
-                right_side.push(sym_fixed_turn.invert());
+            let undone;
+            if *was_inverted {
+                undone = turn.permute(r_clone);
+                if push_backwards {
+                    right_side.push(sym_fixed_turn.invert());
+                } else {
+                    left_side.push(sym_fixed_turn);
+                }
             } else {
-                left_side.push(sym_fixed_turn);
+                undone = r_clone.permute(turn);
+                if push_backwards {
+                    left_side.push(sym_fixed_turn.invert());
+                } else {
+                    right_side.push(sym_fixed_turn);
+                }
             }
-        } else {
-            undone = r_clone.permute(turn);
-            if push_backwards {
-                left_side.push(sym_fixed_turn.invert());
-            } else {
-                right_side.push(sym_fixed_turn);
-            }
+
+            let (next_r, s, pb) = greatest_equivalence(&syms, undone);
+            r = next_r;
+            sym = sym.permute(s);
+            push_backwards = pb != push_backwards;
         }
 
-        let (next_r, s, pb) = greatest_equivalence(&syms, undone);
-        r = next_r;
-        sym = sym.permute(s);
-        push_backwards = pb != push_backwards;
+        for i in (0..left_side.len()).rev() {
+            right_side.push(left_side[i]);
+        }
+        Some(right_side)
     }
-
-    for i in (0..left_side.len()).rev() {
-        right_side.push(left_side[i]);
-    }
-    Some(right_side)
 }
