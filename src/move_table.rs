@@ -141,6 +141,65 @@ fn greatest_equivalence<T: Ord + PG + Copy>(syms: &Vec<T>, perm: T) -> (T, T, bo
  * So there are two critical differences, the undo move works as a "pre" move.
  * Which means it undoes the permutation by being applied _before_ rather than
  * after.  And the stored move is not inverted before the symmetry is applied.
+ *
+ * As a final wrinkle, when we consider inversion to be symmetry, we will not discover
+ * all cases if we always push new moves to the front.  Instead we need to push
+ * both to the front and the back (and while that doubles our work, compounding halving our
+ * stored states is more than worth this trade off).
+ *
+ * To see this consiquence in affect, consider we were trying discover unique
+ * sequences of bits in the same manor with two symmetry cases, flipping all bits
+ * and reversing their order (inversion).  Once we add our fourth bit, we'll see
+ * that we miss cases.
+ *
+ * All possible four bit combos are listed and paired with their reductions to the
+ * smallest (big endian) value (if exist):
+ * 0000
+ * 0001
+ * 0010
+ * 0100 -> 0010
+ * 1000 -> 0001
+ * 0011
+ * 0101
+ * 1001 -> 0110
+ * 0110
+ * 1010 -> 0101
+ * 1100 -> 0011
+ * 0111 -> 0001
+ * 1011 -> 0010
+ * 1101 -> 0010
+ * 1110 -> 0001
+ * 1111 -> 0000
+ *
+ * this leaves us with six cases that we want to discover:
+ * 0000
+ * 0001
+ * 0010
+ * 0011
+ * 0101
+ * 0110
+ *
+ * However, to find these we must start with our ruduced three bit combos:
+ * 000
+ * 001
+ * 010
+ * 100 -> 001
+ * 011 -> 001
+ * 101 -> 010
+ * 110 -> 001
+ * 111 -> 000
+ *
+ * We take each of our reductions, add each unique bit, and ruduce again:
+ * 0000
+ * 0010
+ * 0100 -> 0010
+ * 0001
+ * 0011
+ * 0101
+ *
+ * Notice we've only generated five cases of the six we intended to find!
+ * Had we checked "pre-moves" as well, the 0110 case would be found via 1 + 001,
+ * which reduces to 0110.
  */
 fn gen_next_moves<Stored: PG + Hash + Eq + Copy + Send + Sync + From<Used>, Used: PG + Copy + Sync + Ord + From<Stored>>(
     syms: &Vec<Used>,
@@ -155,19 +214,26 @@ fn gen_next_moves<Stored: PG + Hash + Eq + Copy + Send + Sync + From<Used>, Used
     n_scoped_workers(8, || {
         while_iter_in_mutex_has_next(&iter_m, |(stored_perm, _): (&Stored, &(Stored, bool))| {
             let perm = Used::from(*stored_perm);
-            turns.iter().for_each(|turn| {
-                let (ge, sym, was_inverted) = greatest_equivalence(&syms, perm.permute(*turn));
-                if grandparent.get(&ge.into()) == None && parent.get(&ge.into()) == None {
-                    let undo;
-                    if was_inverted {
-                        undo = turn.apply_symmetry(sym);
+            for &as_premove in &[true, false] {
+                turns.iter().for_each(|turn| {
+                    let pos = if as_premove {
+                        turn.permute(perm)
                     } else {
-                        undo = turn.invert().apply_symmetry(sym);
+                        perm.permute(*turn)
+                    };
+                    let (ge, sym, was_inverted) = greatest_equivalence(&syms, pos);
+                    if grandparent.get(&ge.into()) == None && parent.get(&ge.into()) == None {
+                        let undo;
+                        if was_inverted {
+                            undo = turn.apply_symmetry(sym);
+                        } else {
+                            undo = turn.invert().apply_symmetry(sym);
+                        }
+                        let mut guard = hsm.lock().unwrap();
+                        (*guard).insert(ge.into(), (undo.into(), was_inverted != as_premove));
                     }
-                    let mut guard = hsm.lock().unwrap();
-                    (*guard).insert(ge.into(), (undo.into(), was_inverted));
-                }
-            });
+                });
+            }
         });
     });
     hsm.into_inner().unwrap()

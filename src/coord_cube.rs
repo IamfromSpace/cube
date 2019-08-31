@@ -3,11 +3,6 @@ extern crate functional;
 use std::fmt;
 use super::permutation_group::PermutationGroup;
 
-// TODO: There's some issue that causes this to generate about 0.5% more cases
-// than FaceletCube for its move table.  The issue could be with either but
-// they should theoretically find the exact same positions (but reduced by
-// different symmetries).
-
 /* This representation of the cube talks in "cubies" and their orientations
  * and can represent all reachable states.
  *
