@@ -21,7 +21,7 @@ use move_sets::g1_turns::G1Turn;
 use move_sets::symmetry_generators::SymmetryGenerator;
 use move_sets::g1_symmetry_generators::G1SymmetryGenerator;
 
-fn g1_move_table<Stored: PG + Hash + Eq + Send + Sync + Copy + From<Used>, Used: PG + Ord + Sync + Copy + From<Stored> + From<G1SymmetryGenerator> + From<G1Turn>>(n: usize) -> move_table::MoveTable<Stored, Used> {
+fn g1_move_table<Stored: Hash + Eq + Send + Sync + Copy + From<Used>, Used: PG + Ord + Sync + Copy + From<Stored> + From<G1SymmetryGenerator> + From<G1Turn>>(n: usize) -> move_table::MoveTable<Stored, Used> {
     let mut syms = Vec::with_capacity(16);
     for i in 0..16 {
         let fs = i % 2;
@@ -55,7 +55,7 @@ fn g1_move_table<Stored: PG + Hash + Eq + Send + Sync + Copy + From<Used>, Used:
     move_table::new(&turns, syms, n)
 }
 
-fn quarter_turn_move_table<Stored: PG + Hash + Eq + Send + Sync + Copy + From<Used>, Used: PG + Ord + Sync + Copy + From<Stored> + From<SymmetryGenerator> + From<QuarterTurn>>(n: usize) -> move_table::MoveTable<Stored, Used> {
+fn quarter_turn_move_table<Stored: Hash + Eq + Send + Sync + Copy + From<Used>, Used: PG + Ord + Sync + Copy + From<Stored> + From<SymmetryGenerator> + From<QuarterTurn>>(n: usize) -> move_table::MoveTable<Stored, Used> {
     let mut syms = Vec::with_capacity(48);
     for i in 0..48 {
         let urfs = i % 3;

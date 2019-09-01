@@ -11,12 +11,12 @@ pub struct MoveTable<Stored: Eq + Hash + From<Used>, Used: From<Stored>> {
     table: Vec<HashMap<Stored,(Stored,bool)>>,
 }
 
-pub fn new<Stored: PG + Hash + Eq + Send + Sync + Copy + From<Used>, Used: PG + Ord + Sync + Copy + From<Stored>>(turns: &Vec<Used>, syms: Vec<Used>, n: usize) -> MoveTable<Stored, Used> {
+pub fn new<Stored: Hash + Eq + Send + Sync + Copy + From<Used>, Used: PG + Ord + Sync + Copy + From<Stored>>(turns: &Vec<Used>, syms: Vec<Used>, n: usize) -> MoveTable<Stored, Used> {
     let mut table = Vec::with_capacity(n);
     let neg_one: HashMap<Stored, (Stored, bool)> = HashMap::new();
     let mut zero: HashMap<Stored, (Stored, bool)> = HashMap::new();
     // Since there is no 'turn' that 'solves' this more, we insert the identity
-    zero.insert(PG::identity(), (PG::identity(), false));
+    zero.insert(Stored::from(PG::identity()), (Stored::from(PG::identity()), false));
     let zero = zero;
     table.push(zero);
 
@@ -201,7 +201,7 @@ fn greatest_equivalence<T: Ord + PG + Copy>(syms: &Vec<T>, perm: T) -> (T, T, bo
  * Had we checked "pre-moves" as well, the 0110 case would be found via 1 + 001,
  * which reduces to 0110.
  */
-fn gen_next_moves<Stored: PG + Hash + Eq + Copy + Send + Sync + From<Used>, Used: PG + Copy + Sync + Ord + From<Stored>>(
+fn gen_next_moves<Stored: Hash + Eq + Copy + Send + Sync + From<Used>, Used: PG + Copy + Sync + Ord + From<Stored>>(
     syms: &Vec<Used>,
     turns: &Vec<Used>,
     parent: &HashMap<Stored, (Stored, bool)>,
@@ -322,7 +322,7 @@ fn gen_next_moves<Stored: PG + Hash + Eq + Copy + Send + Sync + From<Used>, Used
  */
 // TODO: Use a HashMap<FaceletCube, NamedTurn> since NamedTurn can be an enum
 // that would take up significantly less space in memory.
-pub fn solve<Stored: PG + Eq + Hash + Copy + From<Used>, Used: PG + Copy + Ord + From<Stored>>(move_table: &MoveTable<Stored, Used>, scramble: &Used) -> Option<Vec<Used>> {
+pub fn solve<Stored: Eq + Hash + Copy + From<Used>, Used: PG + Copy + Ord + From<Stored>>(move_table: &MoveTable<Stored, Used>, scramble: &Used) -> Option<Vec<Used>> {
     let syms = &move_table.syms;
     let table = &move_table.table;
     let (scramble_r, s, pb) = greatest_equivalence(&syms, *scramble);
