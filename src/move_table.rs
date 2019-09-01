@@ -3,6 +3,7 @@ use std::hash::Hash;
 use std::sync::Mutex;
 
 use permutation_group::PermutationGroup as PG;
+use equivalence_class::EquivalenceClass;
 use super::util::{n_scoped_workers, while_iter_in_mutex_has_next };
 
 #[derive(Debug)]
@@ -42,13 +43,13 @@ fn greatest_equivalence<T: Ord + PG + Copy>(syms: &Vec<T>, perm: T) -> (T, T, bo
     let mut inverted = false;
     for s in syms {
         let s = *s;
-        let e = perm.apply_symmetry(s);
+        let e = perm.get_equivalent(s);
         if e > greatest {
             greatest = e;
             sym = s;
             inverted = false;
         }
-        let e_inv = perm.invert().apply_symmetry(s);
+        let e_inv = perm.invert().get_equivalent(s);
         if e_inv > greatest {
             greatest = e_inv;
             sym = s;
@@ -224,9 +225,9 @@ fn gen_next_moves<Stored: Hash + Eq + Copy + Send + Sync + From<Used>, Used: PG 
                     let (ge, sym, was_inverted) = greatest_equivalence(&syms, pos);
                     if grandparent.get(&ge.into()) == None && parent.get(&ge.into()) == None {
                         let undo = if was_inverted {
-                            turn.apply_symmetry(sym)
+                            turn.get_equivalent(sym)
                         } else {
-                            turn.invert().apply_symmetry(sym)
+                            turn.invert().get_equivalent(sym)
                         };
                         let mut guard = hsm.lock().unwrap();
                         (*guard).insert(ge.into(), (undo.into(), was_inverted != as_premove));
@@ -349,7 +350,7 @@ pub fn solve<Stored: Eq + Hash + Copy + From<Used>, Used: PG + Copy + Ord + From
             let (turn, was_inverted) = table[i].get(&r_clone.into()).expect("Move table is corrupt");
             let turn = Used::from(*turn);
 
-            let sym_fixed_turn = turn.apply_symmetry(sym.invert());
+            let sym_fixed_turn = turn.get_equivalent(sym.invert());
 
             let undone;
             if *was_inverted {

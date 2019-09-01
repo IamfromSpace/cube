@@ -11,8 +11,11 @@ pub trait PermutationGroup: functional::Monoid<Self> where
     fn identity() -> Self {
         functional::Monoid::one()
     }
+}
 
-    fn apply_symmetry(self, perm: Self) -> Self {
-        perm.invert().permute(self).permute(perm)
+use super::equivalence_class::EquivalenceClass;
+impl<T: PermutationGroup> EquivalenceClass<T> for T {
+    fn get_equivalent(self, t: T) -> T {
+        t.invert().permute(self).permute(t)
     }
 }

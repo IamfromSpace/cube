@@ -4,6 +4,7 @@ extern crate test;
 use std::hash::Hash;
 
 mod permutation_group;
+mod equivalence_class;
 mod facelet_cube;
 mod coord_cube;
 mod g1_coord_cube;
