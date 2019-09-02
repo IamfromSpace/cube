@@ -41,8 +41,7 @@ fn greatest_equivalence<T: Ord + PG + Copy>(syms: &Vec<T>, perm: T) -> (T, T, bo
     let mut greatest = perm;
     let mut sym: T = PG::identity();
     let mut inverted = false;
-    for s in syms {
-        let s = *s;
+    for &s in syms {
         let e = perm.get_equivalent(s);
         if e > greatest {
             greatest = e;
