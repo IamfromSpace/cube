@@ -2,6 +2,7 @@ extern crate functional;
 
 use std::fmt;
 use super::permutation_group::PermutationGroup;
+use super::invertable::Invertable;
 
 /* This representation of the cube talks in "cubies" and their orientations
  * and can represent all reachable states.
@@ -67,7 +68,7 @@ impl functional::Monoid<CoordCube> for CoordCube {
     }
 }
 
-impl PermutationGroup for CoordCube {
+impl Invertable for CoordCube {
     fn invert(&self) -> CoordCube {
         CoordCube {
             corners: corner_inv(&self.corners),
@@ -75,6 +76,8 @@ impl PermutationGroup for CoordCube {
         }
     }
 }
+
+impl PermutationGroup for CoordCube {}
 
 const CORNER_IDENTITY: [(u8,[u8; 3]); 8] =
     [(0, [0, 1, 2]), (1, [0, 1, 2]), (2, [0, 1, 2]), (3, [0, 1, 2]), (4, [0, 1, 2]), (5, [0, 1, 2]), (6, [0, 1, 2]), (7, [0, 1, 2])];

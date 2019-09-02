@@ -3,6 +3,7 @@ extern crate test;
 
 use std::hash::Hash;
 
+mod invertable;
 mod permutation_group;
 mod equivalence_class;
 mod facelet_cube;

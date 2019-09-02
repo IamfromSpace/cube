@@ -2,6 +2,7 @@ extern crate ansi_term;
 extern crate functional;
 
 use super::permutation_group::PermutationGroup;
+use super::invertable::Invertable;
 
 use std::fmt;
 
@@ -182,7 +183,7 @@ impl functional::Monoid<FaceletCube> for FaceletCube {
     }
 }
 
-impl PermutationGroup for FaceletCube {
+impl Invertable for FaceletCube {
     fn invert(&self) -> FaceletCube {
         FaceletCube {
             edges: arr_inv(&self.edges),
@@ -190,6 +191,8 @@ impl PermutationGroup for FaceletCube {
         }
     }
 }
+
+impl PermutationGroup for FaceletCube {}
 
 const U: FaceletCube = FaceletCube {
     corners: [1, 2, 3, 0, 8, 9, 6, 7, 12, 13, 10, 11, 16, 17, 14, 15, 4, 5, 18, 19, 20, 21, 22, 23],

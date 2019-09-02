@@ -1,6 +1,7 @@
 extern crate functional;
 
 use super::permutation_group::PermutationGroup;
+use super::invertable::Invertable;
 
 /* This is exactly like the G1CoordCube, but it is more memory efficient.
  * It compacts each piece group into a single numeric representation to
@@ -36,11 +37,13 @@ impl functional::Monoid<G1CoordCubeCompact> for G1CoordCubeCompact {
     }
 }
 
-impl PermutationGroup for G1CoordCubeCompact {
+impl Invertable for G1CoordCubeCompact {
     fn invert(&self) -> G1CoordCubeCompact {
         super::g1_coord_cube::G1CoordCube::from(*self).invert().into()
     }
 }
+
+impl PermutationGroup for G1CoordCubeCompact {}
 
 const U: G1CoordCubeCompact = G1CoordCubeCompact {
     corners: 5880,

@@ -1,6 +1,7 @@
 extern crate functional;
 
 use super::permutation_group::PermutationGroup;
+use super::invertable::Invertable;
 
 /* A Cube in G1 can only rotate the top and bottom side with quarter turns,
  * all others are 180 deg turns only.  This means that the edges and corners
@@ -46,7 +47,7 @@ impl functional::Monoid<G1CoordCube> for G1CoordCube {
     }
 }
 
-impl PermutationGroup for G1CoordCube {
+impl Invertable for G1CoordCube {
     fn invert(&self) -> G1CoordCube {
         G1CoordCube {
             corners: arr_inv_8(&self.corners),
@@ -55,6 +56,8 @@ impl PermutationGroup for G1CoordCube {
         }
     }
 }
+
+impl PermutationGroup for G1CoordCube {}
 
 const U: G1CoordCube = G1CoordCube {
     corners: [1, 2, 3, 0, 4, 5, 6, 7],
