@@ -7,12 +7,13 @@ use equivalence_class::EquivalenceClass;
 use super::util::{n_scoped_workers, while_iter_in_mutex_has_next };
 
 #[derive(Debug)]
-pub struct MoveTable<Stored: Eq + Hash + From<Used>, Used: From<Stored>> {
-    syms: Vec<Used>,
+pub struct MoveTable<Stored: Eq + Hash + From<Used>, Used: EquivalenceClass<Sym> + From<Stored>, Sym> {
+    syms: Vec<Sym>,
     table: Vec<HashMap<Stored,(Stored,bool)>>,
+    phantom: std::marker::PhantomData<Used>,
 }
 
-pub fn new<Stored: Hash + Eq + Send + Sync + Copy + From<Used>, Used: PG + Ord + Sync + Copy + From<Stored>>(turns: &Vec<Used>, syms: Vec<Used>, n: usize) -> MoveTable<Stored, Used> {
+pub fn new<Stored: Hash + Eq + Send + Sync + Copy + From<Used>, Used: PG + Ord + Sync + Copy + EquivalenceClass<Sym> + From<Stored>, Sym: Copy + Sync>(turns: &Vec<Used>, syms: Vec<Sym>, n: usize) -> MoveTable<Stored, Used, Sym> {
     let mut table = Vec::with_capacity(n);
     let neg_one: HashMap<Stored, (Stored, bool)> = HashMap::new();
     let mut zero: HashMap<Stored, (Stored, bool)> = HashMap::new();
@@ -34,12 +35,15 @@ pub fn new<Stored: Hash + Eq + Send + Sync + Copy + From<Used>, Used: PG + Ord +
     MoveTable {
         table: table,
         syms: syms,
+        phantom: std::marker::PhantomData,
     }
 }
 
-fn greatest_equivalence<T: Ord + PG + Copy>(syms: &Vec<T>, perm: T) -> (T, T, bool) {
-    let mut greatest = perm;
-    let mut sym: T = PG::identity();
+
+fn greatest_equivalence<Perm: Ord + PG + Copy + EquivalenceClass<Sym>, Sym: Copy>(syms: &Vec<Sym>, perm: Perm) -> (Perm, Sym, bool) {
+    // at a minimum, the identity permutation must be included the sym list
+    let mut sym: Sym = syms[0];
+    let mut greatest = perm.get_equivalent(sym);
     let mut inverted = false;
     for &s in syms {
         let e = perm.get_equivalent(s);
@@ -201,8 +205,8 @@ fn greatest_equivalence<T: Ord + PG + Copy>(syms: &Vec<T>, perm: T) -> (T, T, bo
  * Had we checked "pre-moves" as well, the 0110 case would be found via 1 + 001,
  * which reduces to 0110.
  */
-fn gen_next_moves<Stored: Hash + Eq + Copy + Send + Sync + From<Used>, Used: PG + Copy + Sync + Ord + From<Stored>>(
-    syms: &Vec<Used>,
+fn gen_next_moves<Stored: Hash + Eq + Copy + Send + Sync + From<Used>, Used: PG + Copy + Sync + Ord + EquivalenceClass<Sym> + From<Stored>, Sym: Copy + Sync>(
+    syms: &Vec<Sym>,
     turns: &Vec<Used>,
     parent: &HashMap<Stored, (Stored, bool)>,
     grandparent: &HashMap<Stored, (Stored, bool)>,
@@ -322,7 +326,16 @@ fn gen_next_moves<Stored: Hash + Eq + Copy + Send + Sync + From<Used>, Used: PG 
  */
 // TODO: Use a HashMap<FaceletCube, NamedTurn> since NamedTurn can be an enum
 // that would take up significantly less space in memory.
-pub fn solve<Stored: Eq + Hash + Copy + From<Used>, Used: PG + Copy + Ord + From<Stored>>(move_table: &MoveTable<Stored, Used>, scramble: &Used) -> Option<Vec<Used>> {
+// TODO: This requires that Sym be a permutation, which is interesting.
+// Theoretically a less efficient procedure would be to make a list of syms that
+// grows with each turn and apply them all to each new move.
+// However, syms certainly need to have an inverse here (and generally this makes sense,
+// if we can find some symmetry S that creates the greatest_equivalence of some perm P,
+// then there must be some inverse symmetry S-1 that creates tho original perm P from
+// that greatest_equivalence.  Notably, finding the greatest_equivalence mandates that
+// the identity be in the list of symmetries!  Ultimately the question is, must Sym be
+// a permutation?
+pub fn solve<Stored: Eq + Hash + Copy + From<Used>, Used: PG + Copy + Ord + EquivalenceClass<Sym> + From<Stored>, Sym: PG + Copy>(move_table: &MoveTable<Stored, Used, Sym>, scramble: &Used) -> Option<Vec<Used>> {
     let syms = &move_table.syms;
     let table = &move_table.table;
     let (scramble_r, s, pb) = greatest_equivalence(&syms, *scramble);
