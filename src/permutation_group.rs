@@ -14,8 +14,8 @@ pub trait PermutationGroup: functional::Monoid<Self> where
 }
 
 use super::equivalence_class::EquivalenceClass;
-impl<T: PermutationGroup> EquivalenceClass<T> for T {
-    fn get_equivalent(self, t: T) -> T {
-        t.invert().permute(self).permute(t)
+impl<T: PermutationGroup + Copy> EquivalenceClass<T> for T {
+    fn get_equivalent(self, t: &T) -> T {
+        t.invert().permute(self).permute(*t)
     }
 }

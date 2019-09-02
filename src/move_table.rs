@@ -43,16 +43,16 @@ pub fn new<Stored: Hash + Eq + Send + Sync + Copy + From<Used>, Used: PG + Ord +
 fn greatest_equivalence<Perm: Ord + PG + Copy + EquivalenceClass<Sym>, Sym: Copy>(syms: &Vec<Sym>, perm: Perm) -> (Perm, Sym, bool) {
     // at a minimum, the identity permutation must be included the sym list
     let mut sym: Sym = syms[0];
-    let mut greatest = perm.get_equivalent(sym);
+    let mut greatest = perm.get_equivalent(&sym);
     let mut inverted = false;
     for &s in syms {
-        let e = perm.get_equivalent(s);
+        let e = perm.get_equivalent(&s);
         if e > greatest {
             greatest = e;
             sym = s;
             inverted = false;
         }
-        let e_inv = perm.invert().get_equivalent(s);
+        let e_inv = perm.invert().get_equivalent(&s);
         if e_inv > greatest {
             greatest = e_inv;
             sym = s;
@@ -228,9 +228,9 @@ fn gen_next_moves<Stored: Hash + Eq + Copy + Send + Sync + From<Used>, Used: PG 
                     let (ge, sym, was_inverted) = greatest_equivalence(&syms, pos);
                     if grandparent.get(&ge.into()) == None && parent.get(&ge.into()) == None {
                         let undo = if was_inverted {
-                            turn.get_equivalent(sym)
+                            turn.get_equivalent(&sym)
                         } else {
-                            turn.invert().get_equivalent(sym)
+                            turn.invert().get_equivalent(&sym)
                         };
                         let mut guard = hsm.lock().unwrap();
                         (*guard).insert(ge.into(), (undo.into(), was_inverted != as_premove));
@@ -362,7 +362,7 @@ pub fn solve<Stored: Eq + Hash + Copy + From<Used>, Used: PG + Copy + Ord + Equi
             let (turn, was_inverted) = table[i].get(&r_clone.into()).expect("Move table is corrupt");
             let turn = Used::from(*turn);
 
-            let sym_fixed_turn = turn.get_equivalent(sym.invert());
+            let sym_fixed_turn = turn.get_equivalent(&sym.invert());
 
             let undone;
             if *was_inverted {
