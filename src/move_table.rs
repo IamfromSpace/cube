@@ -3,22 +3,25 @@ use std::hash::Hash;
 use std::sync::Mutex;
 
 use permutation_group::PermutationGroup as PG;
+use invertable::Invertable;
 use equivalence_class::EquivalenceClass;
 use super::util::{n_scoped_workers, while_iter_in_mutex_has_next };
 
 #[derive(Debug)]
-pub struct MoveTable<Stored: Eq + Hash + From<Used>, Used: EquivalenceClass<Sym> + From<Stored>, Sym> {
+pub struct MoveTable<Stored: Eq + Hash + From<Used>, Used: EquivalenceClass<Sym> + From<Stored>, Sym, Turn> {
+    turns: Vec<Turn>,
     syms: Vec<Sym>,
-    table: Vec<HashMap<Stored,(Stored,bool)>>,
+    pub table: Vec<HashMap<Stored,(Turn,bool)>>,
     phantom: std::marker::PhantomData<Used>,
 }
 
-pub fn new<Stored: Hash + Eq + Send + Sync + Copy + From<Used>, Used: PG + Ord + Sync + Copy + EquivalenceClass<Sym> + From<Stored>, Sym: Copy + Sync>(turns: &Vec<Used>, syms: Vec<Sym>, n: usize) -> MoveTable<Stored, Used, Sym> {
+pub fn new<Stored: Hash + Eq + Send + Sync + Copy + From<Used>, Used: PG + Ord + Sync + Copy + EquivalenceClass<Sym> + From<Stored> + From<Turn>, Sym: Clone + Sync, Turn: Send + Sync + Copy + Invertable + EquivalenceClass<Sym>>(turns: Vec<Turn>, syms: Vec<Sym>, n: usize) -> MoveTable<Stored, Used, Sym, Turn> {
     let mut table = Vec::with_capacity(n);
-    let neg_one: HashMap<Stored, (Stored, bool)> = HashMap::new();
-    let mut zero: HashMap<Stored, (Stored, bool)> = HashMap::new();
+    let neg_one: HashMap<Stored, (Turn, bool)> = HashMap::new();
+    let mut zero: HashMap<Stored, (Turn, bool)> = HashMap::new();
     // Since there is no 'turn' that 'solves' this more, we insert the identity
-    zero.insert(Stored::from(PG::identity()), (Stored::from(PG::identity()), false));
+    // TODO: inserting the first move seems pretty dumb
+    zero.insert(Stored::from(PG::identity()), (turns[0], false));
     let zero = zero;
     table.push(zero);
 
@@ -34,35 +37,36 @@ pub fn new<Stored: Hash + Eq + Send + Sync + Copy + From<Used>, Used: PG + Ord +
 
     MoveTable {
         table: table,
+        turns: turns,
         syms: syms,
         phantom: std::marker::PhantomData,
     }
 }
 
 
-fn greatest_equivalence<Perm: Ord + PG + Copy + EquivalenceClass<Sym>, Sym: Copy>(syms: &Vec<Sym>, perm: Perm) -> (Perm, Sym, bool) {
+fn greatest_equivalence<Perm: Ord + PG + Copy + EquivalenceClass<Sym>, Sym: Clone>(syms: &Vec<Sym>, perm: Perm) -> (Perm, Sym, bool) {
     // at a minimum, the identity permutation must be included the sym list
-    let mut sym: Sym = syms[0];
+    let mut sym: Sym = syms[0].clone();
     let mut greatest = perm.get_equivalent(&sym);
     let mut inverted = false;
-    for &s in syms {
+    for s in syms {
         let e = perm.get_equivalent(&s);
         if e > greatest {
             greatest = e;
-            sym = s;
+            sym = s.clone();
             inverted = false;
         }
         let e_inv = perm.invert().get_equivalent(&s);
         if e_inv > greatest {
             greatest = e_inv;
-            sym = s;
+            sym = s.clone();
             inverted = true;
         }
     }
     // TODO: It seems like these would make more sense to be borrow?
     // However, it gets pretty weird because they have to last as long as
     // syms, syms_inv.  However, the user can always copy.
-    ( greatest, sym.clone(), inverted )
+    ( greatest, sym, inverted )
 }
 
 /* Given our previous table entries, we now generate the next.
@@ -205,35 +209,35 @@ fn greatest_equivalence<Perm: Ord + PG + Copy + EquivalenceClass<Sym>, Sym: Copy
  * Had we checked "pre-moves" as well, the 0110 case would be found via 1 + 001,
  * which reduces to 0110.
  */
-fn gen_next_moves<Stored: Hash + Eq + Copy + Send + Sync + From<Used>, Used: PG + Copy + Sync + Ord + EquivalenceClass<Sym> + From<Stored>, Sym: Copy + Sync>(
+fn gen_next_moves<Stored: Hash + Eq + Copy + Send + Sync + From<Used>, Used: PG + Copy + Sync + Ord + EquivalenceClass<Sym> + From<Stored> + From<Turn>, Sym: Clone + Sync, Turn: Send + Sync + Copy + Invertable + EquivalenceClass<Sym>>(
     syms: &Vec<Sym>,
-    turns: &Vec<Used>,
-    parent: &HashMap<Stored, (Stored, bool)>,
-    grandparent: &HashMap<Stored, (Stored, bool)>,
-) -> HashMap<Stored, (Stored, bool)> {
-    let hsm: Mutex<HashMap<Stored, (Stored, bool)>> =
+    turns: &Vec<Turn>,
+    parent: &HashMap<Stored, (Turn, bool)>,
+    grandparent: &HashMap<Stored, (Turn, bool)>,
+) -> HashMap<Stored, (Turn, bool)> {
+    let hsm: Mutex<HashMap<Stored, (Turn, bool)>> =
         Mutex::new(HashMap::new());
     let iter_m = Mutex::new(parent.iter());
 
     n_scoped_workers(8, || {
-        while_iter_in_mutex_has_next(&iter_m, |(stored_perm, _): (&Stored, &(Stored, bool))| {
+        while_iter_in_mutex_has_next(&iter_m, |(stored_perm, _): (&Stored, &(Turn, bool))| {
             let perm = Used::from(*stored_perm);
             for &as_premove in &[true, false] {
-                for turn in turns {
+                for &turn in turns {
                     let pos = if as_premove {
-                        turn.permute(perm)
+                        Used::from(turn).permute(perm)
                     } else {
-                        perm.permute(*turn)
+                        perm.permute(Used::from(turn))
                     };
                     let (ge, sym, was_inverted) = greatest_equivalence(&syms, pos);
-                    if grandparent.get(&ge.into()) == None && parent.get(&ge.into()) == None {
+                    if Option::is_none(&grandparent.get(&ge.into())) && Option::is_none(&parent.get(&ge.into())) {
                         let undo = if was_inverted {
                             turn.get_equivalent(&sym)
                         } else {
                             turn.invert().get_equivalent(&sym)
                         };
                         let mut guard = hsm.lock().unwrap();
-                        (*guard).insert(ge.into(), (undo.into(), was_inverted != as_premove));
+                        (*guard).insert(ge.into(), (undo, was_inverted != as_premove));
                     }
                 }
             }
@@ -335,14 +339,14 @@ fn gen_next_moves<Stored: Hash + Eq + Copy + Send + Sync + From<Used>, Used: PG 
 // that greatest_equivalence.  Notably, finding the greatest_equivalence mandates that
 // the identity be in the list of symmetries!  Ultimately the question is, must Sym be
 // a permutation?
-pub fn solve<Stored: Eq + Hash + Copy + From<Used>, Used: PG + Copy + Ord + EquivalenceClass<Sym> + From<Stored>, Sym: PG + Copy>(move_table: &MoveTable<Stored, Used, Sym>, scramble: &Used) -> Option<Vec<Used>> {
+pub fn solve<Stored: Eq + Hash + Copy + From<Used>, Used: PG + Copy + Ord + EquivalenceClass<Sym> + From<Stored> + From<Turn>, Sym: PG + Clone, Turn: Copy + Invertable + EquivalenceClass<Sym>>(move_table: &MoveTable<Stored, Used, Sym, Turn>, scramble: &Used) -> Option<Vec<Turn>> {
     let syms = &move_table.syms;
     let table = &move_table.table;
     let (scramble_r, s, pb) = greatest_equivalence(&syms, *scramble);
 
     let mut n = 0;
     for hm in table {
-        if hm.get(&scramble_r.into()) != None {
+        if Option::is_some(&hm.get(&scramble_r.into())) {
             break;
         }
         n += 1;
@@ -360,20 +364,19 @@ pub fn solve<Stored: Eq + Hash + Copy + From<Used>, Used: PG + Copy + Ord + Equi
             let r_clone = r.clone();
 
             let (turn, was_inverted) = table[i].get(&r_clone.into()).expect("Move table is corrupt");
-            let turn = Used::from(*turn);
 
             let sym_fixed_turn = turn.get_equivalent(&sym.invert());
 
             let undone;
             if *was_inverted {
-                undone = turn.permute(r_clone);
+                undone = Used::from(*turn).permute(r_clone);
                 if push_backwards {
                     right_side.push(sym_fixed_turn.invert());
                 } else {
                     left_side.push(sym_fixed_turn);
                 }
             } else {
-                undone = r_clone.permute(turn);
+                undone = r_clone.permute(Used::from(*turn));
                 if push_backwards {
                     left_side.push(sym_fixed_turn.invert());
                 } else {

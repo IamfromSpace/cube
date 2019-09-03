@@ -152,6 +152,25 @@ impl From<G1SymmetryGenerator> for G1CoordCube {
     }
 }
 
+use super::move_sets::g1_symmetry_generators::G1SymGenList;
+impl From<G1SymGenList> for G1CoordCube {
+    fn from(sgl: G1SymGenList) -> G1CoordCube {
+        let mut perm = G1CoordCube::identity();
+        for x in sgl.0 {
+            perm = perm.permute(x.into());
+        }
+        perm
+    }
+}
+
+use super::equivalence_class::EquivalenceClass;
+impl EquivalenceClass<G1SymGenList> for G1CoordCube {
+    fn get_equivalent(self, sgl: &G1SymGenList) -> G1CoordCube {
+        let x = G1CoordCube::from(sgl.clone());
+        x.invert().permute(self).permute(x)
+    }
+}
+
 fn permute_arr_8(a: &[u8; 8], b: &[u8; 8]) -> [u8; 8] {
     [
         a[b[0] as usize],

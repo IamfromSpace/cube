@@ -306,6 +306,25 @@ impl From<SymmetryGenerator> for FaceletCube {
     }
 }
 
+use super::move_sets::symmetry_generators::SymGenList;
+impl From<SymGenList> for FaceletCube {
+    fn from(sgl: SymGenList) -> FaceletCube {
+        let mut perm = FaceletCube::identity();
+        for x in sgl.0 {
+            perm = perm.permute(x.into());
+        }
+        perm
+    }
+}
+
+use super::equivalence_class::EquivalenceClass;
+impl EquivalenceClass<SymGenList> for FaceletCube {
+    fn get_equivalent(self, sgl: &SymGenList) -> FaceletCube {
+        let x = FaceletCube::from(sgl.clone());
+        x.invert().permute(self).permute(x)
+    }
+}
+
 fn arr_identity() -> [u8; 24] {
     let mut r = [0; 24];
     //silly looking, but twice as fast ;)

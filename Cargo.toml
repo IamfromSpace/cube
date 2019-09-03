@@ -7,3 +7,4 @@ authors = ["Nathan Fairhurst. <nathan.p3pictures@gmail.com>"]
 ansi_term = "0.9"
 crossbeam = "0.7.1"
 functional = "0.0.5"
+im = "13.0.0"

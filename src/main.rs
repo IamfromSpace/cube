@@ -21,17 +21,17 @@ use g1_coord_cube::G1CoordCube;
 use g1_coord_cube_compact::G1CoordCubeCompact;
 use move_sets::quarter_turns::QuarterTurn;
 use move_sets::g1_turns::G1Turn;
-use move_sets::symmetry_generators::SymmetryGenerator;
-use move_sets::g1_symmetry_generators::G1SymmetryGenerator;
+use move_sets::symmetry_generators::{SymmetryGenerator, SymGenList};
+use move_sets::g1_symmetry_generators::{G1SymmetryGenerator, G1SymGenList};
 
-fn g1_move_table<Stored: Hash + Eq + Send + Sync + Copy + From<Used>, Used: PG + Ord + Sync + Copy + EquivalenceClass<Used> + From<Stored> + From<G1SymmetryGenerator> + From<G1Turn>>(n: usize) -> move_table::MoveTable<Stored, Used, Used> {
+fn g1_move_table<Stored: Hash + Eq + Send + Sync + Copy + From<Used>, Used: PG + Ord + Send + Sync + Copy + EquivalenceClass<G1SymGenList> + From<Stored> + From<G1Turn>>(n: usize) -> move_table::MoveTable<Stored, Used, G1SymGenList, G1Turn> {
     let mut syms = Vec::with_capacity(16);
     for i in 0..16 {
         let fs = i % 2;
         let us = i / 2 % 4;
         let ms = i / 8;
 
-        let mut c: Used = PG::identity();
+        let mut c: G1SymGenList = PG::identity();
         for _ in 0..fs {
             c = c.permute(G1SymmetryGenerator::SF.into());
         }
@@ -44,21 +44,21 @@ fn g1_move_table<Stored: Hash + Eq + Send + Sync + Copy + From<Used>, Used: PG +
         syms.push(c);
     }
 
-    let turns: Vec<Used> = vec![
-        G1Turn::U.into(),
-        G1Turn::UPrime.into(),
-        G1Turn::F2.into(),
-        G1Turn::R2.into(),
-        G1Turn::B2.into(),
-        G1Turn::L2.into(),
-        G1Turn::D.into(),
-        G1Turn::DPrime.into(),
+    let turns: Vec<G1Turn> = vec![
+        G1Turn::U,
+        G1Turn::UPrime,
+        G1Turn::F2,
+        G1Turn::R2,
+        G1Turn::B2,
+        G1Turn::L2,
+        G1Turn::D,
+        G1Turn::DPrime,
     ];
 
-    move_table::new(&turns, syms, n)
+    move_table::new(turns, syms, n)
 }
 
-fn quarter_turn_move_table<Stored: Hash + Eq + Send + Sync + Copy + From<Used>, Used: PG + Ord + Sync + Copy + EquivalenceClass<Used> + From<Stored> + From<SymmetryGenerator> + From<QuarterTurn>>(n: usize) -> move_table::MoveTable<Stored, Used, Used> {
+fn quarter_turn_move_table<Stored: Hash + Eq + Send + Sync + Copy + From<Used>, Used: PG + Ord + Send + Sync + Copy + EquivalenceClass<SymGenList> + From<Stored> + From<QuarterTurn>>(n: usize) -> move_table::MoveTable<Stored, Used, SymGenList, QuarterTurn> {
     let mut syms = Vec::with_capacity(48);
     for i in 0..48 {
         let urfs = i % 3;
@@ -66,7 +66,7 @@ fn quarter_turn_move_table<Stored: Hash + Eq + Send + Sync + Copy + From<Used>, 
         let us = i / 6 % 4;
         let ms = i / 24;
 
-        let mut c: Used = PG::identity();
+        let mut c: SymGenList = PG::identity();
         for _ in 0..urfs {
             c = c.permute(SymmetryGenerator::SUrf.into());
         }
@@ -82,28 +82,28 @@ fn quarter_turn_move_table<Stored: Hash + Eq + Send + Sync + Copy + From<Used>, 
         syms.push(c);
     }
 
-    let turns: Vec<Used> = vec![
-        QuarterTurn::U.into(),
-        QuarterTurn::UPrime.into(),
-        QuarterTurn::F.into(),
-        QuarterTurn::FPrime.into(),
-        QuarterTurn::R.into(),
-        QuarterTurn::RPrime.into(),
-        QuarterTurn::B.into(),
-        QuarterTurn::BPrime.into(),
-        QuarterTurn::L.into(),
-        QuarterTurn::LPrime.into(),
-        QuarterTurn::D.into(),
-        QuarterTurn::DPrime.into(),
+    let turns: Vec<QuarterTurn> = vec![
+        QuarterTurn::U,
+        QuarterTurn::UPrime,
+        QuarterTurn::F,
+        QuarterTurn::FPrime,
+        QuarterTurn::R,
+        QuarterTurn::RPrime,
+        QuarterTurn::B,
+        QuarterTurn::BPrime,
+        QuarterTurn::L,
+        QuarterTurn::LPrime,
+        QuarterTurn::D,
+        QuarterTurn::DPrime,
     ];
 
-    move_table::new(&turns, syms, n)
+    move_table::new(turns, syms, n)
 }
 
 fn main() {
-    let qt_mt: move_table::MoveTable<FaceletCube, FaceletCube, FaceletCube> = quarter_turn_move_table(4);
+    let qt_mt: move_table::MoveTable<FaceletCube, FaceletCube, SymGenList, QuarterTurn> = quarter_turn_move_table(4);
     move_table::solve(&qt_mt, &QuarterTurn::U.into());
 
-    let _g1c_mt: move_table::MoveTable<G1CoordCubeCompact, G1CoordCube, G1CoordCube> = g1_move_table(4);
+    let g1c_mt: move_table::MoveTable<G1CoordCubeCompact, G1CoordCube, G1SymGenList, G1Turn> = g1_move_table(4);
     move_table::solve(&g1c_mt, &G1Turn::U.into());
 }
