@@ -328,8 +328,6 @@ fn gen_next_moves<Stored: Hash + Eq + Copy + Send + Sync + From<Used>, Used: PG 
  * takes affect until we encounter another.  When operating in this inverted mode,
  * we push to the opposite vector that we normally would and invert the position.
  */
-// TODO: Use a HashMap<FaceletCube, NamedTurn> since NamedTurn can be an enum
-// that would take up significantly less space in memory.
 // TODO: This requires that Sym be a permutation, which is interesting.
 // Theoretically a less efficient procedure would be to make a list of syms that
 // grows with each turn and apply them all to each new move.
