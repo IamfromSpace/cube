@@ -225,6 +225,7 @@ impl From<CubieOrientationAndUDSlice> for CoordCube {
     }
 }
 
+#[cfg(test)]
 mod tests {
     use super::*;
     use test::Bencher;
