@@ -10,6 +10,7 @@ mod facelet_cube;
 mod coord_cube;
 mod g1_coord_cube;
 mod g1_coord_cube_compact;
+mod cubie_orientations_and_ud_slice;
 mod move_sets;
 mod move_table;
 mod util;

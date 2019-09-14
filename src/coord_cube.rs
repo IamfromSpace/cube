@@ -44,6 +44,9 @@ use super::invertable::Invertable;
  */
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
 pub struct CoordCube {
+    // TODO: These lists should probably be separate, because certain coordinates
+    // completely ignore half pieces of data, and being able to simply copy one
+    // piece would be better than having to map over them.
     pub corners: [(u8, [u8; 3]); 8],
     pub edges: [(u8, bool); 12],
 }
