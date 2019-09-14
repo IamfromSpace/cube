@@ -11,7 +11,7 @@ use super::util::{n_scoped_workers, while_iter_in_mutex_has_next };
 pub struct MoveTable<Stored: Eq + Hash + From<Used>, Used: EquivalenceClass<Sym> + From<Stored>, Sym, Turn> {
     turns: Vec<Turn>,
     syms: Vec<Sym>,
-    pub table: Vec<HashMap<Stored,(Turn,bool)>>,
+    table: Vec<HashMap<Stored,(Turn,bool)>>,
     phantom: std::marker::PhantomData<Used>,
 }
 
