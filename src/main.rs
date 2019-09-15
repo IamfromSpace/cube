@@ -126,13 +126,13 @@ fn group_h_move_table<Stored: Hash + Eq + Ord + Send + Sync + Copy + From<Used>,
 
 fn main() {
     let qt_mt: move_table::MoveTable<FaceletCube, FaceletCube, SymGenList, QuarterTurn> = quarter_turn_move_table(4);
-    move_table::solve(&qt_mt, &QuarterTurn::U.into());
+    qt_mt.solve(&QuarterTurn::U.into());
 
     let g1c_mt: move_table::MoveTable<G1CoordCubeCompact, G1CoordCube, G1SymGenList, G1Turn> = g1_move_table(4);
-    move_table::solve(&g1c_mt, &G1Turn::U.into());
+    g1c_mt.solve(&G1Turn::U.into());
 
     use cubie_orientations_and_ud_slice::CubieOrientationAndUDSlice;
     use coord_cube::CoordCube;
     let gh_mt: coord_move_table::MoveTable<CubieOrientationAndUDSlice, CoordCube, G1SymGenList, QuarterTurn> = group_h_move_table(4);
-    coord_move_table::solve(&gh_mt, &QuarterTurn::U.into());
+    gh_mt.solve(&QuarterTurn::U.into());
 }

@@ -246,151 +246,153 @@ fn gen_next_moves<Stored: Hash + Eq + Copy + Send + Sync + From<Used>, Used: PG 
     hsm.into_inner().unwrap()
 }
 
-/* Our move table is designed to be memory efficient, and this makes
- * our computation of a 'solve' more complex.
- * It's fairly easy to lookup any given position to see if it's solvable in n turns,
- * but to get those turns takes some work, due to our symmetry reductions.
- *
- * Some cube algebra to help us:
- * X is the permutation we are trying to solve
- * Xr "smallest" permutation that is symmetrical to X
- * so:
- * Xr = Srx' * X * Srx
- *
- * If we find Xr in the HashMap at position n, we know X is solvable in n moves.
- * Tx is the value at HashMap[Xr].  It is the next turn in the solve (for Xr, not X).
- * We call the resulting permuation Y:
- * Y = Xr * Tx
- *
- * However, Y will (likely) not be present in the n-1 HashMap.
- * We must also reduce it first, so:
- * Yr = Sry' * Y * Sry
- * Yr = Sry' * Xr * Tx * Sry
- *
- * This is where we'll see recursion take place (parenthesis for emphasis):
- * Zr = Srz' * (Sry' * Xr * Tx * Sry) * Ty * Srz
- *
- * Eventually, at n=1, the final permutation Ar and its turn Ta, when combine, result
- * in the identity I, which needs no reduction:
- * I = Ar * Ta
- *
- * Assume in the above case, this is where we end at the next move:
- * I = Srz' * (Sry' * Xr * Tx * Sry) * Ty * Srz * Tz
- *
- * We know that:
- * Sa' * X * Y * Sa = Sa' * X * Sa * Sa' * Y * Sa
- *
- * So we can begin to move out and cancel our symmetries:
- * I = Srz' * Sry' * Xr * Tx * Sry * Ty * Srz * Tz
- * I * Srz' = Srz' * Sry' * Xr * Tx * Sry * Ty * Srz * Tz * Srz
- * Srz * I * Srz' = Sry' * Xr * Tx * Sry * Ty * Srz * Tz * Srz
- * Srz * Srz' = Sry' * Xr * Tx * Sry * Ty * Srz * Tz * Srz
- * I = Sry' * Xr * Tx * Sry * Ty * Srz * Tz * Srz
- * Sry * I * Sry' = Sry * Sry' * Xr * Tx * Sry * Ty * Srz * Tz * Srz' * Sry
- * Sry * Sry' = Xr * Tx * Sry * Ty * Srz * Tz * Srz' * Sry
- * I = Xr * Tx * Sry * Ty * Srz * Tz * Srz' * Sry
- *
- * Let's replace Xr to get our goal in the formula:
- * I = Srx' * X * Srx * Tx * Sry * Ty * Srz * Tz * Srz' * Sry
- * Srx * I * Srx' = Srx * Srx' * X * Srx * Tx * Sry * Ty * Srz * Tz * Srz' * Sry' * Srx
- * Srx * Srx' = X * Srx * Tx * Sry * Ty * Srz * Tz * Srz' * Sry' * Srx
- * I = X * Srx * Tx * Sry * Ty * Srz * Tz * Srz' * Sry' * Srx
- * X' * I = X' * X * Srx * Tx * Sry * Ty * Srz * Tz * Srz' * Sry' * Srx
- * X' = Srx * Tx * Sry * Ty * Srz * Tz * Srz' * Sry' * Srx
- *
- * Now we finally have both sides as our target--the inverse of our scramble permutation.
- * However, we don't have it broken down nicely into turns.
- * We can do this by simply inserting some "garbage" symmetries that would cancel out
- * X' = Srx * Tx * Sry * Ty * Srz * Tz * Srz' * Sry' * Srx
- * X' = Srx * Tx * Srx' * Srx * Sry * Ty * Srz * Tz * Srz' * Sry' * Srx
- *
- * Since every permutation that is symmetrical to a turn is also a turn,
- * we've now found T0, and move on to the next:
- * T0 = Srx * Tx * Srx
- * X' = T0 * Srx * Sry * Ty * Srz * Tz * Srz' * Sry' * Srx
- * X' = T0 * Srx * Sry * Ty * Sry' * Sry * Srz * Tz * Srz' * Sry' * Srx
- *
- * Which reveals T1 and T2
- * T1 = Srx * Sry * Ty * Sry' * Srx
- * T2 = Srx * Sry * Srz * Tz * Srz' * Sry' * Srx
- * X' = T0 * T1 * T2
- *
- *
- * Our last consideration is when symmetry of inversion is involved.
- * And within this there are two cases to consider: the undo move is a "pre" move
- * which means it will affect the final order of the solves.
- * Or, the reduction from the "undone" permutation requires inversion.
- *
- * In the first case, the effect is temporary, we push to a left queue whenever
- * it occurs.
- *
- * The second effect cascades.  Every time we have to "invert," this inversion
- * takes affect until we encounter another.  When operating in this inverted mode,
- * we push to the opposite vector that we normally would and invert the position.
- */
-// TODO: This requires that Sym be a permutation, which is interesting.
-// Theoretically a less efficient procedure would be to make a list of syms that
-// grows with each turn and apply them all to each new move.
-// However, syms certainly need to have an inverse here (and generally this makes sense,
-// if we can find some symmetry S that creates the greatest_equivalence of some perm P,
-// then there must be some inverse symmetry S-1 that creates tho original perm P from
-// that greatest_equivalence.  Notably, finding the greatest_equivalence mandates that
-// the identity be in the list of symmetries!  Ultimately the question is, must Sym be
-// a permutation?
-pub fn solve<Stored: Eq + Hash + Copy + From<Used>, Used: PG + Copy + Ord + EquivalenceClass<Sym> + From<Stored> + From<Turn>, Sym: PG + Clone, Turn: Copy + Invertable + EquivalenceClass<Sym>>(move_table: &MoveTable<Stored, Used, Sym, Turn>, scramble: &Used) -> Option<Vec<Turn>> {
-    let syms = &move_table.syms;
-    let table = &move_table.table;
-    let (scramble_r, s, pb) = greatest_equivalence(&syms, *scramble);
+impl<Stored: Eq + Hash + Copy + From<Used>, Used: PG + Copy + Ord + EquivalenceClass<Sym> + From<Stored> + From<Turn>, Sym: PG + Clone, Turn: Copy + Invertable + EquivalenceClass<Sym>> MoveTable<Stored, Used, Sym, Turn> {
+    /* Our move table is designed to be memory efficient, and this makes
+     * our computation of a 'solve' more complex.
+     * It's fairly easy to lookup any given position to see if it's solvable in n turns,
+     * but to get those turns takes some work, due to our symmetry reductions.
+     *
+     * Some cube algebra to help us:
+     * X is the permutation we are trying to solve
+     * Xr "smallest" permutation that is symmetrical to X
+     * so:
+     * Xr = Srx' * X * Srx
+     *
+     * If we find Xr in the HashMap at position n, we know X is solvable in n moves.
+     * Tx is the value at HashMap[Xr].  It is the next turn in the solve (for Xr, not X).
+     * We call the resulting permuation Y:
+     * Y = Xr * Tx
+     *
+     * However, Y will (likely) not be present in the n-1 HashMap.
+     * We must also reduce it first, so:
+     * Yr = Sry' * Y * Sry
+     * Yr = Sry' * Xr * Tx * Sry
+     *
+     * This is where we'll see recursion take place (parenthesis for emphasis):
+     * Zr = Srz' * (Sry' * Xr * Tx * Sry) * Ty * Srz
+     *
+     * Eventually, at n=1, the final permutation Ar and its turn Ta, when combine, result
+     * in the identity I, which needs no reduction:
+     * I = Ar * Ta
+     *
+     * Assume in the above case, this is where we end at the next move:
+     * I = Srz' * (Sry' * Xr * Tx * Sry) * Ty * Srz * Tz
+     *
+     * We know that:
+     * Sa' * X * Y * Sa = Sa' * X * Sa * Sa' * Y * Sa
+     *
+     * So we can begin to move out and cancel our symmetries:
+     * I = Srz' * Sry' * Xr * Tx * Sry * Ty * Srz * Tz
+     * I * Srz' = Srz' * Sry' * Xr * Tx * Sry * Ty * Srz * Tz * Srz
+     * Srz * I * Srz' = Sry' * Xr * Tx * Sry * Ty * Srz * Tz * Srz
+     * Srz * Srz' = Sry' * Xr * Tx * Sry * Ty * Srz * Tz * Srz
+     * I = Sry' * Xr * Tx * Sry * Ty * Srz * Tz * Srz
+     * Sry * I * Sry' = Sry * Sry' * Xr * Tx * Sry * Ty * Srz * Tz * Srz' * Sry
+     * Sry * Sry' = Xr * Tx * Sry * Ty * Srz * Tz * Srz' * Sry
+     * I = Xr * Tx * Sry * Ty * Srz * Tz * Srz' * Sry
+     *
+     * Let's replace Xr to get our goal in the formula:
+     * I = Srx' * X * Srx * Tx * Sry * Ty * Srz * Tz * Srz' * Sry
+     * Srx * I * Srx' = Srx * Srx' * X * Srx * Tx * Sry * Ty * Srz * Tz * Srz' * Sry' * Srx
+     * Srx * Srx' = X * Srx * Tx * Sry * Ty * Srz * Tz * Srz' * Sry' * Srx
+     * I = X * Srx * Tx * Sry * Ty * Srz * Tz * Srz' * Sry' * Srx
+     * X' * I = X' * X * Srx * Tx * Sry * Ty * Srz * Tz * Srz' * Sry' * Srx
+     * X' = Srx * Tx * Sry * Ty * Srz * Tz * Srz' * Sry' * Srx
+     *
+     * Now we finally have both sides as our target--the inverse of our scramble permutation.
+     * However, we don't have it broken down nicely into turns.
+     * We can do this by simply inserting some "garbage" symmetries that would cancel out
+     * X' = Srx * Tx * Sry * Ty * Srz * Tz * Srz' * Sry' * Srx
+     * X' = Srx * Tx * Srx' * Srx * Sry * Ty * Srz * Tz * Srz' * Sry' * Srx
+     *
+     * Since every permutation that is symmetrical to a turn is also a turn,
+     * we've now found T0, and move on to the next:
+     * T0 = Srx * Tx * Srx
+     * X' = T0 * Srx * Sry * Ty * Srz * Tz * Srz' * Sry' * Srx
+     * X' = T0 * Srx * Sry * Ty * Sry' * Sry * Srz * Tz * Srz' * Sry' * Srx
+     *
+     * Which reveals T1 and T2
+     * T1 = Srx * Sry * Ty * Sry' * Srx
+     * T2 = Srx * Sry * Srz * Tz * Srz' * Sry' * Srx
+     * X' = T0 * T1 * T2
+     *
+     *
+     * Our last consideration is when symmetry of inversion is involved.
+     * And within this there are two cases to consider: the undo move is a "pre" move
+     * which means it will affect the final order of the solves.
+     * Or, the reduction from the "undone" permutation requires inversion.
+     *
+     * In the first case, the effect is temporary, we push to a left queue whenever
+     * it occurs.
+     *
+     * The second effect cascades.  Every time we have to "invert," this inversion
+     * takes affect until we encounter another.  When operating in this inverted mode,
+     * we push to the opposite vector that we normally would and invert the position.
+     */
+    // TODO: This requires that Sym be a permutation, which is interesting.
+    // Theoretically a less efficient procedure would be to make a list of syms that
+    // grows with each turn and apply them all to each new move.
+    // However, syms certainly need to have an inverse here (and generally this makes sense,
+    // if we can find some symmetry S that creates the greatest_equivalence of some perm P,
+    // then there must be some inverse symmetry S-1 that creates tho original perm P from
+    // that greatest_equivalence.  Notably, finding the greatest_equivalence mandates that
+    // the identity be in the list of symmetries!  Ultimately the question is, must Sym be
+    // a permutation?
+    pub fn solve(&self, scramble: &Used) -> Option<Vec<Turn>> {
+        let syms = &self.syms;
+        let table = &self.table;
+        let (scramble_r, s, pb) = greatest_equivalence(&syms, *scramble);
 
-    let mut n = 0;
-    for hm in table {
-        if Option::is_some(&hm.get(&scramble_r.into())) {
-            break;
+        let mut n = 0;
+        for hm in table {
+            if Option::is_some(&hm.get(&scramble_r.into())) {
+                break;
+            }
+            n += 1;
         }
-        n += 1;
-    }
 
-    if n == table.len() {
-        None
-    } else {
-        let mut right_side = Vec::with_capacity(n);
-        let mut left_side = Vec::with_capacity(n);
-        let mut r = scramble_r;
-        let mut sym = s;
-        let mut push_backwards = pb;
-        for i in (1..n + 1).rev() {
-            let r_clone = r.clone();
+        if n == table.len() {
+            None
+        } else {
+            let mut right_side = Vec::with_capacity(n);
+            let mut left_side = Vec::with_capacity(n);
+            let mut r = scramble_r;
+            let mut sym = s;
+            let mut push_backwards = pb;
+            for i in (1..n + 1).rev() {
+                let r_clone = r.clone();
 
-            let (turn, was_inverted) = table[i].get(&r_clone.into()).expect("Move table is corrupt");
+                let (turn, was_inverted) = table[i].get(&r_clone.into()).expect("Move table is corrupt");
 
-            let sym_fixed_turn = turn.get_equivalent(&sym.invert());
+                let sym_fixed_turn = turn.get_equivalent(&sym.invert());
 
-            let undone;
-            if *was_inverted {
-                undone = Used::from(*turn).permute(r_clone);
-                if push_backwards {
-                    right_side.push(sym_fixed_turn.invert());
+                let undone;
+                if *was_inverted {
+                    undone = Used::from(*turn).permute(r_clone);
+                    if push_backwards {
+                        right_side.push(sym_fixed_turn.invert());
+                    } else {
+                        left_side.push(sym_fixed_turn);
+                    }
                 } else {
-                    left_side.push(sym_fixed_turn);
+                    undone = r_clone.permute(Used::from(*turn));
+                    if push_backwards {
+                        left_side.push(sym_fixed_turn.invert());
+                    } else {
+                        right_side.push(sym_fixed_turn);
+                    }
                 }
-            } else {
-                undone = r_clone.permute(Used::from(*turn));
-                if push_backwards {
-                    left_side.push(sym_fixed_turn.invert());
-                } else {
-                    right_side.push(sym_fixed_turn);
-                }
+
+                let (next_r, s, pb) = greatest_equivalence(&syms, undone);
+                r = next_r;
+                sym = sym.permute(s);
+                push_backwards = pb != push_backwards;
             }
 
-            let (next_r, s, pb) = greatest_equivalence(&syms, undone);
-            r = next_r;
-            sym = sym.permute(s);
-            push_backwards = pb != push_backwards;
+            for i in (0..left_side.len()).rev() {
+                right_side.push(left_side[i]);
+            }
+            Some(right_side)
         }
-
-        for i in (0..left_side.len()).rev() {
-            right_side.push(left_side[i]);
-        }
-        Some(right_side)
     }
 }
