@@ -14,6 +14,17 @@ pub struct CubieOrientationAndUDSlice {
     ud_slice: u16,
 }
 
+impl CubieOrientationAndUDSlice {
+    pub fn is_solved(&self) -> bool {
+        // TODO: There are more solved cases, since we only care that
+        // the the middle slice edges are _somewhere_ in the middle slice,
+        // but not that they are in their correct position.
+        self.corner_orientations == [0,0,0]
+            && self.edge_orientations == 0
+            && self.ud_slice == 30292
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
 struct CubieOrientationAndUDSliceInternal {
     corner_orientations: [[u8; 3]; 8],

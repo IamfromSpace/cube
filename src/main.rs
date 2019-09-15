@@ -19,6 +19,8 @@ mod util;
 use permutation_group::PermutationGroup as PG;
 use equivalence_class::EquivalenceClass;
 use facelet_cube::FaceletCube;
+use cubie_orientations_and_ud_slice::CubieOrientationAndUDSlice;
+use coord_cube::CoordCube;
 use g1_coord_cube::G1CoordCube;
 use g1_coord_cube_compact::G1CoordCubeCompact;
 use move_sets::quarter_turns::QuarterTurn;
@@ -124,6 +126,55 @@ fn group_h_move_table<Stored: Hash + Eq + Ord + Send + Sync + Copy + From<Used>,
     coord_move_table::new(turns, syms, n)
 }
 
+use std::convert::TryInto;
+
+// TODO: The Turn type should be parameterized
+// it needs something like the following, but this didn't satisfy From<Turn> for CoordCube
+// Turn: Copy + invertable::Invertable + Into<CoordCube> + EquivalenceClass<G1SymGenList>
+fn two_phase(
+    gh_mt: &coord_move_table::MoveTable<CubieOrientationAndUDSlice, CoordCube, G1SymGenList, QuarterTurn>,
+    g1_mt: &move_table::MoveTable<G1CoordCubeCompact, G1CoordCube, G1SymGenList, G1Turn>,
+    scramble: &CoordCube,
+) -> Option<Vec<QuarterTurn>> {
+    let mut ts = gh_mt.solve(&scramble)?;
+
+    let mut half_solved = scramble.clone();
+    for &t in &ts {
+        half_solved = half_solved.permute(t.into());
+    }
+    let hs_g1 = half_solved
+        .try_into()
+        .expect("Solution to move scramble into G1 didn't result to G1!");
+
+    let t2s = g1_mt.solve(&hs_g1)?;
+    for t in t2s {
+        // TODO: this should be more generic and use a From somewhere
+        match t {
+            G1Turn::U => ts.push(QuarterTurn::U),
+            G1Turn::UPrime => ts.push(QuarterTurn::UPrime),
+            G1Turn::F2 => {
+                ts.push(QuarterTurn::F);
+                ts.push(QuarterTurn::F);
+            },
+            G1Turn::R2 => {
+                ts.push(QuarterTurn::R);
+                ts.push(QuarterTurn::R);
+            },
+            G1Turn::B2 => {
+                ts.push(QuarterTurn::B);
+                ts.push(QuarterTurn::B);
+            },
+            G1Turn::L2 => {
+                ts.push(QuarterTurn::L);
+                ts.push(QuarterTurn::L);
+            },
+            G1Turn::D => ts.push(QuarterTurn::D),
+            G1Turn::DPrime => ts.push(QuarterTurn::DPrime),
+        }
+    }
+    Some(ts)
+}
+
 fn main() {
     let qt_mt: move_table::MoveTable<FaceletCube, FaceletCube, SymGenList, QuarterTurn> = quarter_turn_move_table(4);
     qt_mt.solve(&QuarterTurn::U.into());
@@ -131,8 +182,8 @@ fn main() {
     let g1c_mt: move_table::MoveTable<G1CoordCubeCompact, G1CoordCube, G1SymGenList, G1Turn> = g1_move_table(4);
     g1c_mt.solve(&G1Turn::U.into());
 
-    use cubie_orientations_and_ud_slice::CubieOrientationAndUDSlice;
-    use coord_cube::CoordCube;
     let gh_mt: coord_move_table::MoveTable<CubieOrientationAndUDSlice, CoordCube, G1SymGenList, QuarterTurn> = group_h_move_table(4);
     gh_mt.solve(&QuarterTurn::U.into());
+
+    two_phase(&gh_mt, &g1c_mt, &QuarterTurn::U.into());
 }
