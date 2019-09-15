@@ -188,13 +188,32 @@ impl From<CubieOrientationAndUDSliceInternal> for CoordCube {
             (6, coaudsd.corner_orientations[6]),
             (7, coaudsd.corner_orientations[7]),
         ];
-        let mut edges_p: [u8; 12] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+
+        const EMPTY: u8 = 12;
+
+        // try to leave any edges in their solved positions if possible
+        let mut edges_p: [u8; 12] = [0, 1, 2, 3, EMPTY, EMPTY, EMPTY, EMPTY, 8, 9, 10, 11];
+
+        // place the middle slice, since it's fully known
+        // and if we displace another edge, record it
+        let mut displaced = Vec::new();
         for i in 0..coaudsd.ud_slice.len() {
-            let tmp = edges_p[coaudsd.ud_slice[i] as usize];
-            // Our array of edge perms starts at 0 here, but the middle slice
-            // starts at 4 in the CoordCube
-            edges_p[coaudsd.ud_slice[i] as usize] = i as u8 + 4;
-            edges_p[i as usize + 4] = tmp;
+            if coaudsd.ud_slice[i] < 4 || coaudsd.ud_slice[i] > 7 {
+                displaced.push(coaudsd.ud_slice[i]);
+            }
+            edges_p[coaudsd.ud_slice[i] as usize] = (i as u8) + 4;
+        }
+
+        // put displaced edges in any empty spot
+        let mut i = 0;
+        for x in displaced {
+            loop {
+                if edges_p[i] == EMPTY {
+                    edges_p[i] = x;
+                    break;
+                }
+                i = i + 1;
+            }
         }
 
         let mut edges = [(0,false); 12];
@@ -299,6 +318,70 @@ mod tests {
                 CoordCube::from(CubieOrientationAndUDSlice::from(coord_cube.permute(t.into())));
         }
         assert_eq!(coord_cube, CoordCube::identity());
+    }
+
+    #[test]
+    fn special_sequence_round_trips_two_independent_middle_slice_swaps() {
+        let ud_seq = [
+            QuarterTurn::F,
+            QuarterTurn::F,
+            QuarterTurn::B,
+            QuarterTurn::B,
+        ];
+        let coord_cube_seq = [
+            QuarterTurn::D,
+            QuarterTurn::D,
+            QuarterTurn::B,
+            QuarterTurn::B,
+            QuarterTurn::D,
+            QuarterTurn::D,
+            QuarterTurn::U,
+            QuarterTurn::U,
+            QuarterTurn::F,
+            QuarterTurn::F,
+            QuarterTurn::U,
+            QuarterTurn::U,
+        ];
+        let mut ud_cube = CoordCube::identity();
+        let mut coord_cube = CoordCube::identity();
+        for &t in &ud_seq {
+            ud_cube =
+                CoordCube::from(CubieOrientationAndUDSlice::from(ud_cube.permute(t.into())));
+        }
+        for &t in &coord_cube_seq {
+            coord_cube = coord_cube.permute(t.into());
+        }
+        assert_eq!(ud_cube, coord_cube);
+    }
+
+    #[test]
+    fn special_sequence_round_trips_two_connected_middle_slice_swaps() {
+        let ud_seq = [
+            QuarterTurn::L,
+            QuarterTurn::L,
+            QuarterTurn::B,
+            QuarterTurn::B,
+        ];
+        let coord_cube_seq = [
+            QuarterTurn::L,
+            QuarterTurn::L,
+            QuarterTurn::DPrime,
+            QuarterTurn::U,
+            QuarterTurn::B,
+            QuarterTurn::B,
+            QuarterTurn::D,
+            QuarterTurn::UPrime,
+        ];
+        let mut ud_cube = CoordCube::identity();
+        let mut coord_cube = CoordCube::identity();
+        for &t in &ud_seq {
+            ud_cube =
+                CoordCube::from(CubieOrientationAndUDSlice::from(ud_cube.permute(t.into())));
+        }
+        for &t in &coord_cube_seq {
+            coord_cube = coord_cube.permute(t.into());
+        }
+        assert_eq!(ud_cube, coord_cube);
     }
 
     #[bench]
