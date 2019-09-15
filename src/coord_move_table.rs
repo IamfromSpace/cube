@@ -20,7 +20,7 @@ use super::util::{n_scoped_workers, while_iter_in_mutex_has_next };
  *
  */
 #[derive(Debug)]
-pub struct MoveTable<Stored: Eq + Hash + From<Used>, Used: EquivalenceClass<Sym> + From<Stored>, Sym, Turn> {
+pub struct MoveTable<Stored: Eq + Hash, Used, Sym, Turn> {
     turns: Vec<Turn>,
     syms: Vec<Sym>,
     table: Vec<HashMap<Stored,Turn>>,
