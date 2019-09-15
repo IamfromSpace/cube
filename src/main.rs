@@ -13,6 +13,7 @@ mod g1_coord_cube_compact;
 mod cubie_orientations_and_ud_slice;
 mod move_sets;
 mod move_table;
+mod coord_move_table;
 mod util;
 
 use permutation_group::PermutationGroup as PG;
@@ -101,10 +102,37 @@ fn quarter_turn_move_table<Stored: Hash + Eq + Send + Sync + Copy + From<Used>, 
     move_table::new(turns, syms, n)
 }
 
+fn group_h_move_table<Stored: Hash + Eq + Ord + Send + Sync + Copy + From<Used>, Used: PG + Send + Sync + Copy + EquivalenceClass<G1SymGenList> + From<Stored> + From<QuarterTurn>>(n: usize) -> coord_move_table::MoveTable<Stored, Used, G1SymGenList, QuarterTurn> {
+    // TODO: Edge flips are not symmetric, but we can do piece-wise reduction?
+    let syms = vec!(PG::identity());
+
+    let turns: Vec<QuarterTurn> = vec![
+        QuarterTurn::U,
+        QuarterTurn::UPrime,
+        QuarterTurn::F,
+        QuarterTurn::FPrime,
+        QuarterTurn::R,
+        QuarterTurn::RPrime,
+        QuarterTurn::B,
+        QuarterTurn::BPrime,
+        QuarterTurn::L,
+        QuarterTurn::LPrime,
+        QuarterTurn::D,
+        QuarterTurn::DPrime,
+    ];
+
+    coord_move_table::new(turns, syms, n)
+}
+
 fn main() {
     let qt_mt: move_table::MoveTable<FaceletCube, FaceletCube, SymGenList, QuarterTurn> = quarter_turn_move_table(4);
     move_table::solve(&qt_mt, &QuarterTurn::U.into());
 
     let g1c_mt: move_table::MoveTable<G1CoordCubeCompact, G1CoordCube, G1SymGenList, G1Turn> = g1_move_table(4);
     move_table::solve(&g1c_mt, &G1Turn::U.into());
+
+    use cubie_orientations_and_ud_slice::CubieOrientationAndUDSlice;
+    use coord_cube::CoordCube;
+    let gh_mt: coord_move_table::MoveTable<CubieOrientationAndUDSlice, CoordCube, G1SymGenList, QuarterTurn> = group_h_move_table(4);
+    coord_move_table::solve(&gh_mt, &QuarterTurn::U.into());
 }

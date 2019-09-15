@@ -98,6 +98,74 @@ pub mod quarter_turns {
         }
     }
 
+    use super::g1_symmetry_generators::G1SymmetryGenerator;
+    impl EquivalenceClass<G1SymmetryGenerator> for QuarterTurn {
+        fn get_equivalent(self, sym: &G1SymmetryGenerator) -> QuarterTurn {
+            match self {
+                QuarterTurn::U => match sym {
+                    G1SymmetryGenerator::SF => QuarterTurn::D,
+                    G1SymmetryGenerator::SU => QuarterTurn::U,
+                    G1SymmetryGenerator::SMrl => QuarterTurn::UPrime,
+                },
+                QuarterTurn::UPrime => match sym {
+                    G1SymmetryGenerator::SF => QuarterTurn::DPrime,
+                    G1SymmetryGenerator::SU => QuarterTurn::UPrime,
+                    G1SymmetryGenerator::SMrl => QuarterTurn::U,
+                },
+                QuarterTurn::F => match sym {
+                    G1SymmetryGenerator::SF => QuarterTurn::F,
+                    G1SymmetryGenerator::SU => QuarterTurn::L,
+                    G1SymmetryGenerator::SMrl => QuarterTurn::FPrime,
+                },
+                QuarterTurn::FPrime => match sym {
+                    G1SymmetryGenerator::SF => QuarterTurn::FPrime,
+                    G1SymmetryGenerator::SU => QuarterTurn::LPrime,
+                    G1SymmetryGenerator::SMrl => QuarterTurn::F,
+                },
+                QuarterTurn::R => match sym {
+                    G1SymmetryGenerator::SF => QuarterTurn::L,
+                    G1SymmetryGenerator::SU => QuarterTurn::F,
+                    G1SymmetryGenerator::SMrl => QuarterTurn::LPrime,
+                },
+                QuarterTurn::RPrime => match sym {
+                    G1SymmetryGenerator::SF => QuarterTurn::LPrime,
+                    G1SymmetryGenerator::SU => QuarterTurn::FPrime,
+                    G1SymmetryGenerator::SMrl => QuarterTurn::L,
+                },
+                QuarterTurn::B => match sym {
+                    G1SymmetryGenerator::SF => QuarterTurn::B,
+                    G1SymmetryGenerator::SU => QuarterTurn::R,
+                    G1SymmetryGenerator::SMrl => QuarterTurn::BPrime,
+                },
+                QuarterTurn::BPrime => match sym {
+                    G1SymmetryGenerator::SF => QuarterTurn::BPrime,
+                    G1SymmetryGenerator::SU => QuarterTurn::RPrime,
+                    G1SymmetryGenerator::SMrl => QuarterTurn::B,
+                },
+                QuarterTurn::L => match sym {
+                    G1SymmetryGenerator::SF => QuarterTurn::R,
+                    G1SymmetryGenerator::SU => QuarterTurn::B,
+                    G1SymmetryGenerator::SMrl => QuarterTurn::RPrime,
+                },
+                QuarterTurn::LPrime => match sym {
+                    G1SymmetryGenerator::SF => QuarterTurn::RPrime,
+                    G1SymmetryGenerator::SU => QuarterTurn::BPrime,
+                    G1SymmetryGenerator::SMrl => QuarterTurn::R,
+                },
+                QuarterTurn::D => match sym {
+                    G1SymmetryGenerator::SF => QuarterTurn::U,
+                    G1SymmetryGenerator::SU => QuarterTurn::D,
+                    G1SymmetryGenerator::SMrl => QuarterTurn::DPrime,
+                },
+                QuarterTurn::DPrime => match sym {
+                    G1SymmetryGenerator::SF => QuarterTurn::UPrime,
+                    G1SymmetryGenerator::SU => QuarterTurn::DPrime,
+                    G1SymmetryGenerator::SMrl => QuarterTurn::D,
+                },
+            }
+        }
+    }
+
     use super::super::invertable::Invertable;
     impl Invertable for QuarterTurn {
         fn invert(&self) -> QuarterTurn {
@@ -121,6 +189,17 @@ pub mod quarter_turns {
     use super::symmetry_generators::SymGenList;
     impl EquivalenceClass<SymGenList> for QuarterTurn {
         fn get_equivalent(self, sym_gen_list: &SymGenList) -> QuarterTurn {
+            let mut t = self;
+            for x in &sym_gen_list.0 {
+                t = t.get_equivalent(x);
+            }
+            t
+        }
+    }
+
+    use super::g1_symmetry_generators::G1SymGenList;
+    impl EquivalenceClass<G1SymGenList> for QuarterTurn {
+        fn get_equivalent(self, sym_gen_list: &G1SymGenList) -> QuarterTurn {
             let mut t = self;
             for x in &sym_gen_list.0 {
                 t = t.get_equivalent(x);
@@ -297,7 +376,7 @@ pub mod symmetry_generators {
 }
 
 pub mod g1_symmetry_generators {
-    #[derive(Copy, Clone)]
+    #[derive(Copy, Clone, Debug)]
     pub enum G1SymmetryGenerator {
         // Create a 180deg turn of the whole cube on the F face
         SF,
@@ -310,7 +389,7 @@ pub mod g1_symmetry_generators {
     use super::im::Vector;
 
     // TODO: Ideally the inner would not be public at all
-    #[derive(Clone)]
+    #[derive(Clone, Debug)]
     pub struct G1SymGenList(pub Vector<G1SymmetryGenerator>);
 
     extern crate functional;

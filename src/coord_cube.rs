@@ -409,6 +409,36 @@ const S_MRL: CoordCube = CoordCube {
     ],
 };
 
+use super::move_sets::g1_symmetry_generators::G1SymmetryGenerator;
+impl From<G1SymmetryGenerator> for CoordCube {
+    fn from(g1sg: G1SymmetryGenerator) -> CoordCube {
+        match g1sg {
+            G1SymmetryGenerator::SF => S_F,
+            G1SymmetryGenerator::SU => S_U,
+            G1SymmetryGenerator::SMrl => S_MRL,
+        }
+    }
+}
+
+use super::move_sets::g1_symmetry_generators::G1SymGenList;
+impl From<G1SymGenList> for CoordCube {
+    fn from(sgl: G1SymGenList) -> CoordCube {
+        let mut perm = CoordCube::identity();
+        for x in sgl.0 {
+            perm = perm.permute(x.into());
+        }
+        perm
+    }
+}
+
+use super::equivalence_class::EquivalenceClass;
+impl EquivalenceClass<G1SymGenList> for CoordCube {
+    fn get_equivalent(self, sgl: &G1SymGenList) -> CoordCube {
+        let x = CoordCube::from(sgl.clone());
+        x.invert().permute(self).permute(x)
+    }
+}
+
 use super::move_sets::symmetry_generators::SymmetryGenerator;
 impl From<SymmetryGenerator> for CoordCube {
     fn from(g1sg: SymmetryGenerator) -> CoordCube {
@@ -418,6 +448,24 @@ impl From<SymmetryGenerator> for CoordCube {
             SymmetryGenerator::SU => S_U,
             SymmetryGenerator::SMrl => S_MRL,
         }
+    }
+}
+
+use super::move_sets::symmetry_generators::SymGenList;
+impl From<SymGenList> for CoordCube {
+    fn from(sgl: SymGenList) -> CoordCube {
+        let mut perm = CoordCube::identity();
+        for x in sgl.0 {
+            perm = perm.permute(x.into());
+        }
+        perm
+    }
+}
+
+impl EquivalenceClass<SymGenList> for CoordCube {
+    fn get_equivalent(self, sgl: &SymGenList) -> CoordCube {
+        let x = CoordCube::from(sgl.clone());
+        x.invert().permute(self).permute(x)
     }
 }
 
