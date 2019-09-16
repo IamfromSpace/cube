@@ -14,6 +14,7 @@ mod cubie_orientations_and_ud_slice;
 mod move_sets;
 mod move_table;
 mod coord_move_table;
+mod pruning_table;
 mod util;
 
 use permutation_group::PermutationGroup as PG;
@@ -104,7 +105,7 @@ fn quarter_turn_move_table<Stored: Hash + Eq + Send + Sync + Copy + From<Used>, 
     move_table::new(turns, syms, n)
 }
 
-fn group_h_move_table<Stored: Hash + Eq + Ord + Send + Sync + Copy + From<Used>, Used: PG + Send + Sync + Copy + EquivalenceClass<G1SymGenList> + From<Stored> + From<QuarterTurn>>(n: usize) -> coord_move_table::MoveTable<Stored, Used, G1SymGenList, QuarterTurn> {
+fn group_h_pruning_table<Stored: Hash + Eq + Ord + Send + Sync + Copy + From<Used>, Used: PG + Send + Sync + Copy + EquivalenceClass<G1SymGenList> + From<Stored> + From<QuarterTurn>>(n: usize) -> pruning_table::PruningTable<Stored, Used, G1SymGenList, QuarterTurn> {
     // TODO: Edge flips are not symmetric, but we can do piece-wise reduction?
     let syms = vec!(PG::identity());
 
@@ -123,7 +124,7 @@ fn group_h_move_table<Stored: Hash + Eq + Ord + Send + Sync + Copy + From<Used>,
         QuarterTurn::DPrime,
     ];
 
-    coord_move_table::new(turns, syms, n)
+    pruning_table::new(turns, syms, n)
 }
 
 use std::convert::TryInto;
@@ -132,7 +133,7 @@ use std::convert::TryInto;
 // it needs something like the following, but this didn't satisfy From<Turn> for CoordCube
 // Turn: Copy + invertable::Invertable + Into<CoordCube> + EquivalenceClass<G1SymGenList>
 fn two_phase(
-    gh_mt: &coord_move_table::MoveTable<CubieOrientationAndUDSlice, CoordCube, G1SymGenList, QuarterTurn>,
+    gh_mt: &pruning_table::PruningTable<CubieOrientationAndUDSlice, CoordCube, G1SymGenList, QuarterTurn>,
     g1_mt: &move_table::MoveTable<G1CoordCubeCompact, G1CoordCube, G1SymGenList, G1Turn>,
     scramble: &CoordCube,
 ) -> Option<Vec<QuarterTurn>> {
@@ -182,7 +183,7 @@ fn main() {
     let g1c_mt: move_table::MoveTable<G1CoordCubeCompact, G1CoordCube, G1SymGenList, G1Turn> = g1_move_table(4);
     g1c_mt.solve(&G1Turn::U.into());
 
-    let gh_mt: coord_move_table::MoveTable<CubieOrientationAndUDSlice, CoordCube, G1SymGenList, QuarterTurn> = group_h_move_table(4);
+    let gh_mt: pruning_table::PruningTable<CubieOrientationAndUDSlice, CoordCube, G1SymGenList, QuarterTurn> = group_h_pruning_table(4);
     gh_mt.solve(&QuarterTurn::U.into());
 
     two_phase(&gh_mt, &g1c_mt, &QuarterTurn::U.into());
