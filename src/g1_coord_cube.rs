@@ -225,6 +225,14 @@ fn arr_inv_4(a: &[u8; 4]) -> [u8; 4] {
     r
 }
 
+fn squish(x: u8) -> u8 {
+    if x >= 4 {
+        x - 4
+    } else {
+        x
+    }
+}
+
 use std::convert::TryFrom;
 use super::coord_cube::CoordCube;
 use super::cubie_orientations_and_ud_slice::CubieOrientationAndUDSlice;
@@ -245,14 +253,14 @@ impl TryFrom<CoordCube> for G1CoordCube {
             ];
 
             let top_bottom_edges = [
-                coord_cube.edges[0].0,
-                coord_cube.edges[1].0,
-                coord_cube.edges[2].0,
-                coord_cube.edges[3].0,
-                coord_cube.edges[8].0 - 4,
-                coord_cube.edges[9].0 - 4,
-                coord_cube.edges[10].0 - 4,
-                coord_cube.edges[11].0 - 4,
+                squish(coord_cube.edges[0].0),
+                squish(coord_cube.edges[1].0),
+                squish(coord_cube.edges[2].0),
+                squish(coord_cube.edges[3].0),
+                squish(coord_cube.edges[8].0),
+                squish(coord_cube.edges[9].0),
+                squish(coord_cube.edges[10].0),
+                squish(coord_cube.edges[11].0),
             ];
 
             let middle_edges = [
