@@ -183,8 +183,8 @@ fn main() {
     let g1c_mt: move_table::MoveTable<G1CoordCubeCompact, G1CoordCube, G1SymGenList, G1Turn> = g1_move_table(4);
     g1c_mt.solve(&G1Turn::U.into());
 
-    let gh_mt: pruning_table::PruningTable<CubieOrientationAndUDSlice, CoordCube, G1SymGenList, QuarterTurn> = group_h_pruning_table(4);
-    gh_mt.solve(&QuarterTurn::U.into());
+    let gh_pt: pruning_table::PruningTable<CubieOrientationAndUDSlice, CoordCube, G1SymGenList, QuarterTurn> = group_h_pruning_table(4);
+    gh_pt.solve(&QuarterTurn::U.into());
 
-    two_phase(&gh_mt, &g1c_mt, &QuarterTurn::U.into());
+    two_phase(&gh_pt, &g1c_mt, &QuarterTurn::U.into());
 }
