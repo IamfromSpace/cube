@@ -137,7 +137,7 @@ const S_U: G1CoordCube = G1CoordCube {
 
 const S_MRL: G1CoordCube = G1CoordCube {
     corners: [1, 0, 3, 2, 5, 4, 7, 6],
-    top_bottom_edges: [1, 0, 3, 2, 5, 4, 7, 6],
+    top_bottom_edges: [2, 1, 0, 3, 6, 5, 4, 7],
     middle_edges: [1, 0, 3, 2],
 };
 
