@@ -30,8 +30,7 @@ use super::util::{n_scoped_workers, while_iter_in_mutex_has_next };
 pub struct PruningTable<Stored: Eq + Hash, Used, Sym, Turn> {
     turns: Vec<Turn>,
     syms: Vec<Sym>,
-    // TODO: Not public!
-    pub table: Vec<HashSet<Stored>>,
+    table: Vec<HashSet<Stored>>,
     phantom: std::marker::PhantomData<Used>,
 }
 
