@@ -281,6 +281,55 @@ impl TryFrom<CoordCube> for G1CoordCube {
     }
 }
 
+fn squash(x: u8) -> u8 {
+    if x >= 4 {
+        x + 4
+    } else {
+        x
+    }
+}
+
+impl From<G1CoordCube> for CoordCube {
+    fn from(g1_coord_cube: G1CoordCube) -> CoordCube {
+        let corners = [
+            (g1_coord_cube.corners[0], [0, 1, 2]),
+            (g1_coord_cube.corners[1], [0, 1, 2]),
+            (g1_coord_cube.corners[2], [0, 1, 2]),
+            (g1_coord_cube.corners[3], [0, 1, 2]),
+            (g1_coord_cube.corners[4], [0, 1, 2]),
+            (g1_coord_cube.corners[5], [0, 1, 2]),
+            (g1_coord_cube.corners[6], [0, 1, 2]),
+            (g1_coord_cube.corners[7], [0, 1, 2]),
+        ];
+
+        let edges = [
+            (squash(g1_coord_cube.top_bottom_edges[0]), false),
+            (squash(g1_coord_cube.top_bottom_edges[1]), false),
+            (squash(g1_coord_cube.top_bottom_edges[2]), false),
+            (squash(g1_coord_cube.top_bottom_edges[3]), false),
+            (g1_coord_cube.middle_edges[0] + 4, false),
+            (g1_coord_cube.middle_edges[1] + 4, false),
+            (g1_coord_cube.middle_edges[2] + 4, false),
+            (g1_coord_cube.middle_edges[3] + 4, false),
+            (squash(g1_coord_cube.top_bottom_edges[4]), false),
+            (squash(g1_coord_cube.top_bottom_edges[5]), false),
+            (squash(g1_coord_cube.top_bottom_edges[6]), false),
+            (squash(g1_coord_cube.top_bottom_edges[7]), false),
+        ];
+
+        CoordCube {
+            corners,
+            edges,
+        }
+    }
+}
+
+impl std::fmt::Display for G1CoordCube {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        CoordCube::from(*self).fmt(f)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
