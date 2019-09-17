@@ -108,7 +108,7 @@ fn gen_next_moves<Stored: Hash + Eq + Copy + Send + Sync + Ord + From<Used>, Use
     hsm.into_inner().unwrap()
 }
 
-impl<Stored: Eq + Hash + Ord + From<Used>, Used: From<Stored> + PG + Copy + EquivalenceClass<Sym> + From<Turn>, Sym: Clone, Turn: Copy> PruningTable<Stored, Used, Sym, Turn> {
+impl<Stored: Eq + Hash + Ord + From<Used>, Used: PG + Copy + EquivalenceClass<Sym> + From<Turn>, Sym: Clone, Turn: Copy> PruningTable<Stored, Used, Sym, Turn> {
     /* To solve a cube with a PruningTable it's simple to discover how many
      * moves it will take (check each HashSet for the reduced case), but more
      * work to discover the solve.
