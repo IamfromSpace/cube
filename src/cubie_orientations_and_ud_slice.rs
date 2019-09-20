@@ -6,6 +6,9 @@
  *
  * Corner orientation support mirroring, so they are a full
  * permutation of the three facelets (stickers).
+ *
+ * We also sort the middle edges, because we don't actually care
+ * what order they're in, just that they're _in_ the middle slice.
  */
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
 pub struct CubieOrientationAndUDSlice {
@@ -169,6 +172,7 @@ impl From<CoordCube> for CubieOrientationAndUDSliceInternal {
                 ud_slice[3] = i as u8;
             }
         }
+        ud_slice.sort();
 
         let mut edge_orientations = [false; 12];
         for i in 0..edge_orientations.len() {
@@ -332,67 +336,35 @@ mod tests {
     }
 
     #[test]
-    fn special_sequence_round_trips_two_independent_middle_slice_swaps() {
+    fn special_sequence_is_solution_two_independent_middle_slice_swaps() {
         let ud_seq = [
             QuarterTurn::F,
             QuarterTurn::F,
             QuarterTurn::B,
             QuarterTurn::B,
         ];
-        let coord_cube_seq = [
-            QuarterTurn::D,
-            QuarterTurn::D,
-            QuarterTurn::B,
-            QuarterTurn::B,
-            QuarterTurn::D,
-            QuarterTurn::D,
-            QuarterTurn::U,
-            QuarterTurn::U,
-            QuarterTurn::F,
-            QuarterTurn::F,
-            QuarterTurn::U,
-            QuarterTurn::U,
-        ];
         let mut ud_cube = CoordCube::identity();
-        let mut coord_cube = CoordCube::identity();
         for &t in &ud_seq {
             ud_cube =
                 CoordCube::from(CubieOrientationAndUDSlice::from(ud_cube.permute(t.into())));
         }
-        for &t in &coord_cube_seq {
-            coord_cube = coord_cube.permute(t.into());
-        }
-        assert_eq!(ud_cube, coord_cube);
+        assert_eq!(ud_cube, CoordCube::identity());
     }
 
     #[test]
-    fn special_sequence_round_trips_two_connected_middle_slice_swaps() {
+    fn special_sequence_is_solution_two_connected_middle_slice_swaps() {
         let ud_seq = [
             QuarterTurn::L,
             QuarterTurn::L,
             QuarterTurn::B,
             QuarterTurn::B,
         ];
-        let coord_cube_seq = [
-            QuarterTurn::L,
-            QuarterTurn::L,
-            QuarterTurn::DPrime,
-            QuarterTurn::U,
-            QuarterTurn::B,
-            QuarterTurn::B,
-            QuarterTurn::D,
-            QuarterTurn::UPrime,
-        ];
         let mut ud_cube = CoordCube::identity();
-        let mut coord_cube = CoordCube::identity();
         for &t in &ud_seq {
             ud_cube =
                 CoordCube::from(CubieOrientationAndUDSlice::from(ud_cube.permute(t.into())));
         }
-        for &t in &coord_cube_seq {
-            coord_cube = coord_cube.permute(t.into());
-        }
-        assert_eq!(ud_cube, coord_cube);
+        assert_eq!(ud_cube, CoordCube::identity());
     }
 
     #[bench]
