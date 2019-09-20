@@ -106,8 +106,24 @@ fn quarter_turn_move_table<Stored: Hash + Eq + Send + Sync + Copy + From<Used>, 
 }
 
 fn group_h_pruning_table<Stored: Hash + Eq + Ord + Send + Sync + Copy + From<Used>, Used: PG + Send + Sync + Copy + EquivalenceClass<G1SymGenList> + From<Stored> + From<QuarterTurn>>(n: usize) -> pruning_table::PruningTable<Stored, Used, G1SymGenList, QuarterTurn> {
-    // TODO: Edge flips are not symmetric, but we can do piece-wise reduction?
-    let syms = vec!(PG::identity());
+    let mut syms = Vec::with_capacity(16);
+    for i in 0..16 {
+        let fs = i % 2;
+        let us = i / 2 % 4;
+        let ms = i / 8;
+
+        let mut c: G1SymGenList = PG::identity();
+        for _ in 0..fs {
+            c = c.permute(G1SymmetryGenerator::SF.into());
+        }
+        for _ in 0..us {
+            c = c.permute(G1SymmetryGenerator::SU.into());
+        }
+        for _ in 0..ms {
+            c = c.permute(G1SymmetryGenerator::SMrl.into());
+        }
+        syms.push(c);
+    }
 
     let turns: Vec<QuarterTurn> = vec![
         QuarterTurn::U,
