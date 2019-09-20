@@ -123,7 +123,7 @@ const S_U: G1CoordCubeCompact = G1CoordCubeCompact {
 
 const S_MRL: G1CoordCubeCompact = G1CoordCubeCompact {
     corners: 5167,
-    top_bottom_edges: 5167,
+    top_bottom_edges: 10814,
     middle_edges: 9
 };
 
