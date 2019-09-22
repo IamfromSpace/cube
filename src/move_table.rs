@@ -364,24 +364,23 @@ impl<Stored: Eq + Hash + Copy + From<Used>, Used: PG + Copy + Ord + EquivalenceC
 
                 let (turn, was_inverted) = table[i].get(&r_clone.into()).expect("Move table is corrupt");
 
-                let sym_fixed_turn = turn.get_equivalent(&sym.invert());
-
-                let undone;
-                if *was_inverted {
-                    undone = Used::from(*turn).permute(r_clone);
-                    if push_backwards {
-                        right_side.push(sym_fixed_turn.invert());
-                    } else {
-                        left_side.push(sym_fixed_turn);
-                    }
+                let sym_fixed_turn = if *was_inverted {
+                    turn.get_equivalent(&sym.invert()).invert()
                 } else {
-                    undone = r_clone.permute(Used::from(*turn));
-                    if push_backwards {
-                        left_side.push(sym_fixed_turn.invert());
-                    } else {
-                        right_side.push(sym_fixed_turn);
-                    }
+                    turn.get_equivalent(&sym.invert())
+                };
+
+                if *was_inverted == push_backwards {
+                    right_side.push(sym_fixed_turn);
+                } else {
+                    left_side.push(sym_fixed_turn);
                 }
+
+                let undone = if *was_inverted {
+                    Used::from(*turn).permute(r_clone)
+                } else {
+                    r_clone.permute(Used::from(*turn))
+                };
 
                 let (next_r, s, pb) = greatest_equivalence(&syms, undone);
                 r = next_r;
@@ -390,7 +389,7 @@ impl<Stored: Eq + Hash + Copy + From<Used>, Used: PG + Copy + Ord + EquivalenceC
             }
 
             for i in (0..left_side.len()).rev() {
-                right_side.push(left_side[i]);
+                right_side.push(left_side[i].invert());
             }
             Some(right_side)
         }
