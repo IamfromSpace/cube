@@ -344,19 +344,19 @@ pub mod symmetry_generators {
             for x in &self.0 {
                 match x {
                     SymmetryGenerator::SUrf => {
-                        r.push_back(SymmetryGenerator::SUrf);
-                        r.push_back(SymmetryGenerator::SUrf);
+                        r.push_front(SymmetryGenerator::SUrf);
+                        r.push_front(SymmetryGenerator::SUrf);
                     },
                     SymmetryGenerator::SF => {
-                        r.push_back(SymmetryGenerator::SF);
+                        r.push_front(SymmetryGenerator::SF);
                     },
                     SymmetryGenerator::SU => {
-                        r.push_back(SymmetryGenerator::SU);
-                        r.push_back(SymmetryGenerator::SU);
-                        r.push_back(SymmetryGenerator::SU);
+                        r.push_front(SymmetryGenerator::SU);
+                        r.push_front(SymmetryGenerator::SU);
+                        r.push_front(SymmetryGenerator::SU);
                     },
                     SymmetryGenerator::SMrl => {
-                        r.push_back(SymmetryGenerator::SMrl);
+                        r.push_front(SymmetryGenerator::SMrl);
                     },
                 }
             }
@@ -421,15 +421,15 @@ pub mod g1_symmetry_generators {
             for x in &self.0 {
                 match x {
                     G1SymmetryGenerator::SF => {
-                        r.push_back(G1SymmetryGenerator::SF);
+                        r.push_front(G1SymmetryGenerator::SF);
                     },
                     G1SymmetryGenerator::SU => {
-                        r.push_back(G1SymmetryGenerator::SU);
-                        r.push_back(G1SymmetryGenerator::SU);
-                        r.push_back(G1SymmetryGenerator::SU);
+                        r.push_front(G1SymmetryGenerator::SU);
+                        r.push_front(G1SymmetryGenerator::SU);
+                        r.push_front(G1SymmetryGenerator::SU);
                     },
                     G1SymmetryGenerator::SMrl => {
-                        r.push_back(G1SymmetryGenerator::SMrl);
+                        r.push_front(G1SymmetryGenerator::SMrl);
                     },
                 }
             }
