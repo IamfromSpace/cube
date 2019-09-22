@@ -341,28 +341,28 @@ impl<Stored: Eq + Hash + Copy + From<Used>, Used: PG + Copy + Ord + EquivalenceC
     pub fn solve(&self, scramble: &Used) -> Option<Vec<Turn>> {
         let syms = &self.syms;
         let table = &self.table;
-        let (scramble_r, s, pb) = greatest_equivalence(&syms, *scramble);
+        let (scramble_reduced, s, pb) = greatest_equivalence(&syms, *scramble);
 
-        let mut n = 0;
+        let mut moves_required = 0;
         for hm in table {
-            if Option::is_some(&hm.get(&scramble_r.into())) {
+            if Option::is_some(&hm.get(&scramble_reduced.into())) {
                 break;
             }
-            n += 1;
+            moves_required += 1;
         }
 
-        if n == table.len() {
+        if moves_required == table.len() {
             None
         } else {
-            let mut right_side = Vec::with_capacity(n);
-            let mut left_side = Vec::with_capacity(n);
-            let mut r = scramble_r;
+            let mut right_side = Vec::with_capacity(moves_required);
+            let mut left_side = Vec::with_capacity(moves_required);
+            let mut remaining_scramble_reduced = scramble_reduced;
             let mut sym = s;
             let mut push_backwards = pb;
-            for i in (1..n + 1).rev() {
-                let r_clone = r.clone();
-
-                let (turn, was_inverted) = table[i].get(&r_clone.into()).expect("Move table is corrupt");
+            for i in (1..moves_required + 1).rev() {
+                let (turn, was_inverted) = table[i]
+                    .get(&remaining_scramble_reduced.into())
+                    .expect("Move table is corrupt");
 
                 let sym_fixed_turn = if *was_inverted {
                     turn.get_equivalent(&sym.invert()).invert()
@@ -377,13 +377,14 @@ impl<Stored: Eq + Hash + Copy + From<Used>, Used: PG + Copy + Ord + EquivalenceC
                 }
 
                 let undone = if *was_inverted {
-                    Used::from(*turn).permute(r_clone)
+                    Used::from(*turn).permute(remaining_scramble_reduced)
                 } else {
-                    r_clone.permute(Used::from(*turn))
+                    remaining_scramble_reduced.permute(Used::from(*turn))
                 };
 
-                let (next_r, s, pb) = greatest_equivalence(&syms, undone);
-                r = next_r;
+                let (next_rsr, s, pb) = greatest_equivalence(&syms, undone);
+
+                remaining_scramble_reduced = next_rsr;
                 sym = sym.permute(s);
                 push_backwards = pb != push_backwards;
             }

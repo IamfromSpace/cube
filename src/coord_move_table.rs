@@ -241,11 +241,11 @@ impl<Stored: Eq + Hash + Ord + Copy + From<Used>, Used: PG + Copy + EquivalenceC
     pub fn solve(&self, scramble: &Used) -> Option<Vec<Turn>> {
         let syms = &self.syms;
         let table = &self.table;
-        let (scramble_r, s): (Stored, Sym) = greatest_equivalence(&syms, *scramble);
+        let (scramble_reduced, s): (Stored, Sym) = greatest_equivalence(&syms, *scramble);
 
         let mut n = 0;
         for hm in table {
-            if Option::is_some(&hm.get(&scramble_r)) {
+            if Option::is_some(&hm.get(&scramble_reduced)) {
                 break;
             }
             n += 1;
@@ -255,20 +255,20 @@ impl<Stored: Eq + Hash + Ord + Copy + From<Used>, Used: PG + Copy + EquivalenceC
             None
         } else {
             let mut turns = Vec::with_capacity(n);
-            let mut r = scramble_r;
+            let mut remaining_scramble_reduced: Used = scramble_reduced.into();
             let mut sym = s;
             for i in (1..n + 1).rev() {
-                let r_clone: Used = r.clone().into();
-
-                let turn = table[i].get(&r_clone.into()).expect("Move table is corrupt");
+                let turn = table[i]
+                    .get(&remaining_scramble_reduced.into())
+                    .expect("Move table is corrupt");
 
                 let sym_fixed_turn = turn.get_equivalent(&sym.invert());
-
-                let undone = r_clone.permute(Used::from(*turn));
                 turns.push(sym_fixed_turn);
 
-                let (next_r, s) = greatest_equivalence(&syms, undone);
-                r = next_r;
+                let undone = remaining_scramble_reduced.permute(Used::from(*turn));
+                let (next_rsr, s): (Stored, Sym) = greatest_equivalence(&syms, undone);
+
+                remaining_scramble_reduced = next_rsr.into();
                 sym = sym.permute(s);
             }
 
