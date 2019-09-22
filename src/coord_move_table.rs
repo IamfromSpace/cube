@@ -206,27 +206,27 @@ impl<Stored: Eq + Hash + Ord + Copy + From<Used>, Used: PG + Copy + EquivalenceC
      *
      * Let's replace Xr to get our goal in the formula:
      * I = Srx' * X * Srx * Tx * Sry * Ty * Srz * Tz * Srz' * Sry
-     * Srx * I * Srx' = Srx * Srx' * X * Srx * Tx * Sry * Ty * Srz * Tz * Srz' * Sry' * Srx
-     * Srx * Srx' = X * Srx * Tx * Sry * Ty * Srz * Tz * Srz' * Sry' * Srx
-     * I = X * Srx * Tx * Sry * Ty * Srz * Tz * Srz' * Sry' * Srx
-     * X' * I = X' * X * Srx * Tx * Sry * Ty * Srz * Tz * Srz' * Sry' * Srx
-     * X' = Srx * Tx * Sry * Ty * Srz * Tz * Srz' * Sry' * Srx
+     * Srx * I * Srx' = Srx * Srx' * X * Srx * Tx * Sry * Ty * Srz * Tz * Srz' * Sry' * Srx'
+     * Srx * Srx' = X * Srx * Tx * Sry * Ty * Srz * Tz * Srz' * Sry' * Srx'
+     * I = X * Srx * Tx * Sry * Ty * Srz * Tz * Srz' * Sry' * Srx'
+     * X' * I = X' * X * Srx * Tx * Sry * Ty * Srz * Tz * Srz' * Sry' * Srx'
+     * X' = Srx * Tx * Sry * Ty * Srz * Tz * Srz' * Sry' * Srx'
      *
      * Now we finally have both sides as our target--the inverse of our scramble permutation.
      * However, we don't have it broken down nicely into turns.
      * We can do this by simply inserting some "garbage" symmetries that would cancel out
-     * X' = Srx * Tx * Sry * Ty * Srz * Tz * Srz' * Sry' * Srx
-     * X' = Srx * Tx * Srx' * Srx * Sry * Ty * Srz * Tz * Srz' * Sry' * Srx
+     * X' = Srx * Tx * Sry * Ty * Srz * Tz * Srz' * Sry' * Srx'
+     * X' = Srx * Tx * Srx' * Srx * Sry * Ty * Srz * Tz * Srz' * Sry' * Srx'
      *
      * Since every permutation that is symmetrical to a turn is also a turn,
      * we've now found T0, and move on to the next:
-     * T0 = Srx * Tx * Srx
-     * X' = T0 * Srx * Sry * Ty * Srz * Tz * Srz' * Sry' * Srx
-     * X' = T0 * Srx * Sry * Ty * Sry' * Sry * Srz * Tz * Srz' * Sry' * Srx
+     * T0 = Srx * Tx * Srx'
+     * X' = T0 * Srx * Sry * Ty * Srz * Tz * Srz' * Sry' * Srx'
+     * X' = T0 * Srx * Sry * Ty * Sry' * Sry * Srz * Tz * Srz' * Sry' * Srx'
      *
      * Which reveals T1 and T2
-     * T1 = Srx * Sry * Ty * Sry' * Srx
-     * T2 = Srx * Sry * Srz * Tz * Srz' * Sry' * Srx
+     * T1 = Srx * Sry * Ty * Sry' * Srx'
+     * T2 = Srx * Sry * Srz * Tz * Srz' * Sry' * Srx'
      * X' = T0 * T1 * T2
      */
     // TODO: This requires that Sym be a permutation, which is interesting.
