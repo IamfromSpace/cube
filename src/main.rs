@@ -204,3 +204,103 @@ fn main() {
 
     two_phase(&gh_pt, &g1c_mt, &QuarterTurn::U.into());
 }
+
+#[macro_use]
+extern crate quickcheck;
+extern crate rand;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use super::quickcheck::Gen;
+    use super::rand::Rng;
+
+    impl super::quickcheck::Arbitrary for QuarterTurn {
+        fn arbitrary<G: Gen>(g: &mut G) -> QuarterTurn {
+            *g.choose(&[
+              QuarterTurn::U,
+              QuarterTurn::UPrime,
+              QuarterTurn::F,
+              QuarterTurn::FPrime,
+              QuarterTurn::R,
+              QuarterTurn::RPrime,
+              QuarterTurn::B,
+              QuarterTurn::BPrime,
+              QuarterTurn::L,
+              QuarterTurn::LPrime,
+              QuarterTurn::D,
+              QuarterTurn::DPrime,
+            ]).unwrap()
+        }
+    }
+
+    impl super::quickcheck::Arbitrary for G1Turn {
+        fn arbitrary<G: Gen>(g: &mut G) -> G1Turn {
+            *g.choose(&[
+              G1Turn::U,
+              G1Turn::UPrime,
+              G1Turn::F2,
+              G1Turn::R2,
+              G1Turn::B2,
+              G1Turn::L2,
+              G1Turn::D,
+              G1Turn::DPrime,
+            ]).unwrap()
+        }
+    }
+
+    use quickcheck::TestResult;
+    quickcheck! {
+        fn gh_pt_works(turns: Vec<QuarterTurn>) -> TestResult {
+            let max_turns = 3;
+            if turns.len() > max_turns {
+                TestResult::discard()
+            } else {
+                let gh_pt: pruning_table::PruningTable<CubieOrientationAndUDSlice, CoordCube, G1SymGenList, QuarterTurn> = group_h_pruning_table(max_turns + 1);
+
+                let mut scramble = CoordCube::identity();
+                for turn in turns {
+                    scramble = scramble.permute(turn.into());
+                }
+                let scramble = scramble;
+                match gh_pt.solve(&scramble) {
+                    Some(solution) => {
+                        let mut solved = scramble;
+                        for turn in solution {
+                            solved = solved.permute(turn.into());
+                        }
+                        TestResult::from_bool(CubieOrientationAndUDSlice::from(solved).is_solved())
+                    },
+                    None => TestResult::from_bool(false),
+                }
+            }
+        }
+    }
+
+    quickcheck! {
+        fn g1c_mt_works(turns: Vec<G1Turn>) -> TestResult {
+            let max_turns = 4;
+            if turns.len() > max_turns {
+                TestResult::discard()
+            } else {
+                let g1c_mt: move_table::MoveTable<G1CoordCube, G1CoordCube, G1SymGenList, G1Turn> = g1_move_table(max_turns + 1);
+
+                let mut scramble = G1CoordCube::identity();
+                for turn in turns {
+                    scramble = scramble.permute(turn.into());
+                }
+                let scramble = scramble;
+                match g1c_mt.solve(&scramble) {
+                    Some(solution) => {
+                        let mut solved = scramble;
+                        for turn in solution {
+                            solved = solved.permute(turn.into());
+                        }
+                        TestResult::from_bool(solved == G1CoordCube::identity())
+                    },
+                    None => TestResult::from_bool(false),
+                }
+            }
+        }
+    }
+}
