@@ -207,6 +207,293 @@ pub mod quarter_turns {
     }
 }
 
+pub mod face_turns {
+    #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash, Serialize, Deserialize)]
+    pub enum FaceTurn {
+        U,
+        U2,
+        UPrime,
+        F,
+        F2,
+        FPrime,
+        R,
+        R2,
+        RPrime,
+        B,
+        B2,
+        BPrime,
+        L,
+        L2,
+        LPrime,
+        D,
+        D2,
+        DPrime,
+    }
+
+    use super::super::equivalence_class::EquivalenceClass;
+    use super::symmetry_generators::SymmetryGenerator;
+    impl EquivalenceClass<SymmetryGenerator> for FaceTurn {
+        fn get_equivalent(self, sym: &SymmetryGenerator) -> FaceTurn {
+            match self {
+                FaceTurn::U => match sym {
+                    SymmetryGenerator::SUrf => FaceTurn::R,
+                    SymmetryGenerator::SF => FaceTurn::D,
+                    SymmetryGenerator::SU => FaceTurn::U,
+                    SymmetryGenerator::SMrl => FaceTurn::UPrime,
+                },
+                FaceTurn::U2 => match sym {
+                    SymmetryGenerator::SUrf => FaceTurn::R2,
+                    SymmetryGenerator::SF => FaceTurn::D2,
+                    SymmetryGenerator::SU => FaceTurn::U2,
+                    SymmetryGenerator::SMrl => FaceTurn::U2,
+                },
+                FaceTurn::UPrime => match sym {
+                    SymmetryGenerator::SUrf => FaceTurn::RPrime,
+                    SymmetryGenerator::SF => FaceTurn::DPrime,
+                    SymmetryGenerator::SU => FaceTurn::UPrime,
+                    SymmetryGenerator::SMrl => FaceTurn::U,
+                },
+                FaceTurn::F => match sym {
+                    SymmetryGenerator::SUrf => FaceTurn::U,
+                    SymmetryGenerator::SF => FaceTurn::F,
+                    SymmetryGenerator::SU => FaceTurn::L,
+                    SymmetryGenerator::SMrl => FaceTurn::FPrime,
+                },
+                FaceTurn::F2 => match sym {
+                    SymmetryGenerator::SUrf => FaceTurn::U2,
+                    SymmetryGenerator::SF => FaceTurn::F2,
+                    SymmetryGenerator::SU => FaceTurn::L2,
+                    SymmetryGenerator::SMrl => FaceTurn::F2,
+                },
+                FaceTurn::FPrime => match sym {
+                    SymmetryGenerator::SUrf => FaceTurn::UPrime,
+                    SymmetryGenerator::SF => FaceTurn::FPrime,
+                    SymmetryGenerator::SU => FaceTurn::LPrime,
+                    SymmetryGenerator::SMrl => FaceTurn::F,
+                },
+                FaceTurn::R => match sym {
+                    SymmetryGenerator::SUrf => FaceTurn::F,
+                    SymmetryGenerator::SF => FaceTurn::L,
+                    SymmetryGenerator::SU => FaceTurn::F,
+                    SymmetryGenerator::SMrl => FaceTurn::LPrime,
+                },
+                FaceTurn::R2 => match sym {
+                    SymmetryGenerator::SUrf => FaceTurn::F2,
+                    SymmetryGenerator::SF => FaceTurn::L2,
+                    SymmetryGenerator::SU => FaceTurn::F2,
+                    SymmetryGenerator::SMrl => FaceTurn::L2,
+                },
+                FaceTurn::RPrime => match sym {
+                    SymmetryGenerator::SUrf => FaceTurn::FPrime,
+                    SymmetryGenerator::SF => FaceTurn::LPrime,
+                    SymmetryGenerator::SU => FaceTurn::FPrime,
+                    SymmetryGenerator::SMrl => FaceTurn::L,
+                },
+                FaceTurn::B => match sym {
+                    SymmetryGenerator::SUrf => FaceTurn::D,
+                    SymmetryGenerator::SF => FaceTurn::B,
+                    SymmetryGenerator::SU => FaceTurn::R,
+                    SymmetryGenerator::SMrl => FaceTurn::BPrime,
+                },
+                FaceTurn::B2 => match sym {
+                    SymmetryGenerator::SUrf => FaceTurn::D2,
+                    SymmetryGenerator::SF => FaceTurn::B2,
+                    SymmetryGenerator::SU => FaceTurn::R2,
+                    SymmetryGenerator::SMrl => FaceTurn::B2,
+                },
+                FaceTurn::BPrime => match sym {
+                    SymmetryGenerator::SUrf => FaceTurn::DPrime,
+                    SymmetryGenerator::SF => FaceTurn::BPrime,
+                    SymmetryGenerator::SU => FaceTurn::RPrime,
+                    SymmetryGenerator::SMrl => FaceTurn::B,
+                },
+                FaceTurn::L => match sym {
+                    SymmetryGenerator::SUrf => FaceTurn::B,
+                    SymmetryGenerator::SF => FaceTurn::R,
+                    SymmetryGenerator::SU => FaceTurn::B,
+                    SymmetryGenerator::SMrl => FaceTurn::RPrime,
+                },
+                FaceTurn::L2 => match sym {
+                    SymmetryGenerator::SUrf => FaceTurn::B2,
+                    SymmetryGenerator::SF => FaceTurn::R2,
+                    SymmetryGenerator::SU => FaceTurn::B2,
+                    SymmetryGenerator::SMrl => FaceTurn::R2,
+                },
+                FaceTurn::LPrime => match sym {
+                    SymmetryGenerator::SUrf => FaceTurn::BPrime,
+                    SymmetryGenerator::SF => FaceTurn::RPrime,
+                    SymmetryGenerator::SU => FaceTurn::BPrime,
+                    SymmetryGenerator::SMrl => FaceTurn::R,
+                },
+                FaceTurn::D => match sym {
+                    SymmetryGenerator::SUrf => FaceTurn::L,
+                    SymmetryGenerator::SF => FaceTurn::U,
+                    SymmetryGenerator::SU => FaceTurn::D,
+                    SymmetryGenerator::SMrl => FaceTurn::DPrime,
+                },
+                FaceTurn::D2 => match sym {
+                    SymmetryGenerator::SUrf => FaceTurn::L2,
+                    SymmetryGenerator::SF => FaceTurn::U2,
+                    SymmetryGenerator::SU => FaceTurn::D2,
+                    SymmetryGenerator::SMrl => FaceTurn::D2,
+                },
+                FaceTurn::DPrime => match sym {
+                    SymmetryGenerator::SUrf => FaceTurn::LPrime,
+                    SymmetryGenerator::SF => FaceTurn::UPrime,
+                    SymmetryGenerator::SU => FaceTurn::DPrime,
+                    SymmetryGenerator::SMrl => FaceTurn::D,
+                },
+            }
+        }
+    }
+
+    use super::g1_symmetry_generators::G1SymmetryGenerator;
+    impl EquivalenceClass<G1SymmetryGenerator> for FaceTurn {
+        fn get_equivalent(self, sym: &G1SymmetryGenerator) -> FaceTurn {
+            match self {
+                FaceTurn::U => match sym {
+                    G1SymmetryGenerator::SF => FaceTurn::D,
+                    G1SymmetryGenerator::SU => FaceTurn::U,
+                    G1SymmetryGenerator::SMrl => FaceTurn::UPrime,
+                },
+                FaceTurn::U2 => match sym {
+                    G1SymmetryGenerator::SF => FaceTurn::D2,
+                    G1SymmetryGenerator::SU => FaceTurn::U2,
+                    G1SymmetryGenerator::SMrl => FaceTurn::U2,
+                },
+                FaceTurn::UPrime => match sym {
+                    G1SymmetryGenerator::SF => FaceTurn::DPrime,
+                    G1SymmetryGenerator::SU => FaceTurn::UPrime,
+                    G1SymmetryGenerator::SMrl => FaceTurn::U,
+                },
+                FaceTurn::F => match sym {
+                    G1SymmetryGenerator::SF => FaceTurn::F,
+                    G1SymmetryGenerator::SU => FaceTurn::L,
+                    G1SymmetryGenerator::SMrl => FaceTurn::FPrime,
+                },
+                FaceTurn::F2 => match sym {
+                    G1SymmetryGenerator::SF => FaceTurn::F2,
+                    G1SymmetryGenerator::SU => FaceTurn::L2,
+                    G1SymmetryGenerator::SMrl => FaceTurn::F2,
+                },
+                FaceTurn::FPrime => match sym {
+                    G1SymmetryGenerator::SF => FaceTurn::FPrime,
+                    G1SymmetryGenerator::SU => FaceTurn::LPrime,
+                    G1SymmetryGenerator::SMrl => FaceTurn::F,
+                },
+                FaceTurn::R => match sym {
+                    G1SymmetryGenerator::SF => FaceTurn::L,
+                    G1SymmetryGenerator::SU => FaceTurn::F,
+                    G1SymmetryGenerator::SMrl => FaceTurn::LPrime,
+                },
+                FaceTurn::R2 => match sym {
+                    G1SymmetryGenerator::SF => FaceTurn::L2,
+                    G1SymmetryGenerator::SU => FaceTurn::F2,
+                    G1SymmetryGenerator::SMrl => FaceTurn::L2,
+                },
+                FaceTurn::RPrime => match sym {
+                    G1SymmetryGenerator::SF => FaceTurn::LPrime,
+                    G1SymmetryGenerator::SU => FaceTurn::FPrime,
+                    G1SymmetryGenerator::SMrl => FaceTurn::L,
+                },
+                FaceTurn::B => match sym {
+                    G1SymmetryGenerator::SF => FaceTurn::B,
+                    G1SymmetryGenerator::SU => FaceTurn::R,
+                    G1SymmetryGenerator::SMrl => FaceTurn::BPrime,
+                },
+                FaceTurn::B2 => match sym {
+                    G1SymmetryGenerator::SF => FaceTurn::B2,
+                    G1SymmetryGenerator::SU => FaceTurn::R2,
+                    G1SymmetryGenerator::SMrl => FaceTurn::B2,
+                },
+                FaceTurn::BPrime => match sym {
+                    G1SymmetryGenerator::SF => FaceTurn::BPrime,
+                    G1SymmetryGenerator::SU => FaceTurn::RPrime,
+                    G1SymmetryGenerator::SMrl => FaceTurn::B,
+                },
+                FaceTurn::L => match sym {
+                    G1SymmetryGenerator::SF => FaceTurn::R,
+                    G1SymmetryGenerator::SU => FaceTurn::B,
+                    G1SymmetryGenerator::SMrl => FaceTurn::RPrime,
+                },
+                FaceTurn::L2 => match sym {
+                    G1SymmetryGenerator::SF => FaceTurn::R2,
+                    G1SymmetryGenerator::SU => FaceTurn::B2,
+                    G1SymmetryGenerator::SMrl => FaceTurn::R2,
+                },
+                FaceTurn::LPrime => match sym {
+                    G1SymmetryGenerator::SF => FaceTurn::RPrime,
+                    G1SymmetryGenerator::SU => FaceTurn::BPrime,
+                    G1SymmetryGenerator::SMrl => FaceTurn::R,
+                },
+                FaceTurn::D => match sym {
+                    G1SymmetryGenerator::SF => FaceTurn::U,
+                    G1SymmetryGenerator::SU => FaceTurn::D,
+                    G1SymmetryGenerator::SMrl => FaceTurn::DPrime,
+                },
+                FaceTurn::D2 => match sym {
+                    G1SymmetryGenerator::SF => FaceTurn::U2,
+                    G1SymmetryGenerator::SU => FaceTurn::D2,
+                    G1SymmetryGenerator::SMrl => FaceTurn::D2,
+                },
+                FaceTurn::DPrime => match sym {
+                    G1SymmetryGenerator::SF => FaceTurn::UPrime,
+                    G1SymmetryGenerator::SU => FaceTurn::DPrime,
+                    G1SymmetryGenerator::SMrl => FaceTurn::D,
+                },
+            }
+        }
+    }
+
+    use super::super::invertable::Invertable;
+    impl Invertable for FaceTurn {
+        fn invert(&self) -> FaceTurn {
+            match self {
+                FaceTurn::U => FaceTurn::UPrime,
+                FaceTurn::U2 => FaceTurn::U2,
+                FaceTurn::UPrime => FaceTurn::U,
+                FaceTurn::F => FaceTurn::FPrime,
+                FaceTurn::F2 => FaceTurn::F2,
+                FaceTurn::FPrime => FaceTurn::F,
+                FaceTurn::R => FaceTurn::RPrime,
+                FaceTurn::R2 => FaceTurn::R2,
+                FaceTurn::RPrime => FaceTurn::R,
+                FaceTurn::B => FaceTurn::BPrime,
+                FaceTurn::B2 => FaceTurn::B2,
+                FaceTurn::BPrime => FaceTurn::B,
+                FaceTurn::L => FaceTurn::LPrime,
+                FaceTurn::L2 => FaceTurn::L2,
+                FaceTurn::LPrime => FaceTurn::L,
+                FaceTurn::D => FaceTurn::DPrime,
+                FaceTurn::D2 => FaceTurn::D2,
+                FaceTurn::DPrime => FaceTurn::D,
+            }
+        }
+    }
+
+    use super::symmetry_generators::SymGenList;
+    impl EquivalenceClass<SymGenList> for FaceTurn {
+        fn get_equivalent(self, sym_gen_list: &SymGenList) -> FaceTurn {
+            let mut t = self;
+            for x in &sym_gen_list.0 {
+                t = t.get_equivalent(x);
+            }
+            t
+        }
+    }
+
+    use super::g1_symmetry_generators::G1SymGenList;
+    impl EquivalenceClass<G1SymGenList> for FaceTurn {
+        fn get_equivalent(self, sym_gen_list: &G1SymGenList) -> FaceTurn {
+            let mut t = self;
+            for x in &sym_gen_list.0 {
+                t = t.get_equivalent(x);
+            }
+            t
+        }
+    }
+}
+
 pub mod g1_turns {
     #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash, Serialize, Deserialize)]
     pub enum G1Turn {
