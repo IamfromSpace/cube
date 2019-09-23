@@ -4,7 +4,7 @@
  * Since this is not symmetrical via mirroring, we store
  * a basic orientation representation.
  */
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash, Serialize, Deserialize)]
 pub struct TwoByTwoByTwo {
     corner: u8,
     edges: u16,

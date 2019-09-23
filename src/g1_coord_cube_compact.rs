@@ -9,7 +9,7 @@ use super::invertable::Invertable;
  * because to do turns we must convert it to its more usable version,
  * permute and then convert it back.
  */
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash, Serialize, Deserialize)]
 pub struct G1CoordCubeCompact {
     corners: u16,
     top_bottom_edges: u16,

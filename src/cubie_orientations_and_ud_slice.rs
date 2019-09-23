@@ -10,7 +10,7 @@
  * We also sort the middle edges, because we don't actually care
  * what order they're in, just that they're _in_ the middle slice.
  */
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash, Serialize, Deserialize)]
 pub struct CubieOrientationAndUDSlice {
     corner_orientations: [u8; 3],
     edge_orientations: u16,

@@ -19,7 +19,7 @@ use super::util::{n_scoped_workers, while_iter_in_mutex_has_next };
  * representing only the middle slice).
  *
  */
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct MoveTable<Stored: Eq + Hash, Used, Sym, Turn> {
     turns: Vec<Turn>,
     syms: Vec<Sym>,

@@ -26,7 +26,7 @@ use super::util::{n_scoped_workers, while_iter_in_mutex_has_next };
  * to create a MoveTable with these reductions--so a PruningTable is used
  * instead.
  */
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct PruningTable<Stored: Eq + Hash, Used, Sym, Turn> {
     turns: Vec<Turn>,
     syms: Vec<Sym>,

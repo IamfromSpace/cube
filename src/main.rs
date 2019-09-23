@@ -1,5 +1,7 @@
 #![feature(test)]
 extern crate test;
+#[macro_use]
+extern crate serde;
 
 use std::hash::Hash;
 

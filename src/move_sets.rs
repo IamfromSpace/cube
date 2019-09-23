@@ -1,7 +1,5 @@
-extern crate im;
-
 pub mod quarter_turns {
-    #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
+    #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash, Serialize, Deserialize)]
     pub enum QuarterTurn {
         U,
         UPrime,
@@ -210,7 +208,7 @@ pub mod quarter_turns {
 }
 
 pub mod g1_turns {
-    #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
+    #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash, Serialize, Deserialize)]
     pub enum G1Turn {
         U,
         UPrime,
@@ -300,7 +298,7 @@ pub mod g1_turns {
 }
 
 pub mod symmetry_generators {
-    #[derive(Copy, Clone, Debug)]
+    #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
     pub enum SymmetryGenerator {
         // Create a Clockwise turn of the whole cube on the axis from URF to DBL
         SUrf,
@@ -312,11 +310,11 @@ pub mod symmetry_generators {
         SMrl,
     }
 
-    use super::im::Vector;
+    use std::collections::VecDeque;
 
     // TODO: Ideally the inner would not be public at all
-    #[derive(Clone, Debug)]
-    pub struct SymGenList(pub Vector<SymmetryGenerator>);
+    #[derive(Clone, Debug, Serialize, Deserialize)]
+    pub struct SymGenList(pub VecDeque<SymmetryGenerator>);
 
     extern crate functional;
     use super::super::invertable::Invertable;
@@ -334,13 +332,13 @@ pub mod symmetry_generators {
 
     impl functional::Monoid<SymGenList> for SymGenList {
         fn one() -> SymGenList {
-            SymGenList(Vector::new())
+            SymGenList(VecDeque::new())
         }
     }
 
     impl Invertable for SymGenList {
         fn invert(&self) -> SymGenList {
-            let mut r = Vector::new();
+            let mut r = VecDeque::new();
             for x in &self.0 {
                 match x {
                     SymmetryGenerator::SUrf => {
@@ -368,7 +366,7 @@ pub mod symmetry_generators {
 
     impl From<SymmetryGenerator> for SymGenList {
         fn from(x: SymmetryGenerator) -> SymGenList {
-            let mut r = Vector::new();
+            let mut r = VecDeque::new();
             r.push_front(x);
             SymGenList(r)
         }
@@ -376,7 +374,7 @@ pub mod symmetry_generators {
 }
 
 pub mod g1_symmetry_generators {
-    #[derive(Copy, Clone, Debug)]
+    #[derive(Copy, Clone, Debug, Serialize, Deserialize)]
     pub enum G1SymmetryGenerator {
         // Create a 180deg turn of the whole cube on the F face
         SF,
@@ -386,19 +384,16 @@ pub mod g1_symmetry_generators {
         SMrl,
     }
 
-    use super::im::Vector;
+    use std::collections::VecDeque;
 
     // TODO: Ideally the inner would not be public at all
-    #[derive(Clone, Debug)]
-    pub struct G1SymGenList(pub Vector<G1SymmetryGenerator>);
+    #[derive(Clone, Debug, Serialize, Deserialize)]
+    pub struct G1SymGenList(pub VecDeque<G1SymmetryGenerator>);
 
     extern crate functional;
     use super::super::invertable::Invertable;
     use super::super::permutation_group::PermutationGroup;
 
-    // This is not a great representation because this list could grow to be huge.
-    // We use immutable Vector to take advantage of structural sharing as we
-    // concat lists together.
     impl functional::BinaryOperation<G1SymGenList> for G1SymGenList {
         fn apply(a: G1SymGenList, b: G1SymGenList) -> G1SymGenList {
             let mut r = a.0.clone();
@@ -411,13 +406,13 @@ pub mod g1_symmetry_generators {
 
     impl functional::Monoid<G1SymGenList> for G1SymGenList {
         fn one() -> G1SymGenList {
-            G1SymGenList(Vector::new())
+            G1SymGenList(VecDeque::new())
         }
     }
 
     impl Invertable for G1SymGenList {
         fn invert(&self) -> G1SymGenList {
-            let mut r = Vector::new();
+            let mut r = VecDeque::new();
             for x in &self.0 {
                 match x {
                     G1SymmetryGenerator::SF => {
@@ -441,7 +436,7 @@ pub mod g1_symmetry_generators {
 
     impl From<G1SymmetryGenerator> for G1SymGenList {
         fn from(x: G1SymmetryGenerator) -> G1SymGenList {
-            let mut r = Vector::new();
+            let mut r = VecDeque::new();
             r.push_front(x);
             G1SymGenList(r)
         }

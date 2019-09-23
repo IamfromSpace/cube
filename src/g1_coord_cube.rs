@@ -18,7 +18,7 @@ use super::invertable::Invertable;
  * efficient but it's drastically easier to operate on.  The other is for
  * storage, this is for permuting.
  */
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash, Serialize, Deserialize)]
 pub struct G1CoordCube {
     pub corners: [u8; 8],
     pub top_bottom_edges: [u8; 8],

@@ -42,7 +42,7 @@ use super::invertable::Invertable;
  * (the axis that would point to 0 on the unit circle) and then repeat the same process.
  * So DB gets index 8 and DF gets 9.  DFR gets 8 and so on.
  */
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash, Serialize, Deserialize)]
 pub struct CoordCube {
     // TODO: These lists should probably be separate, because certain coordinates
     // completely ignore half pieces of data, and being able to simply copy one

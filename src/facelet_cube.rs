@@ -82,7 +82,7 @@ use std::fmt;
  * it may make sense to make this a "Permute" trait.
  * It seems like requirements would be: identity, invert, permute
  */
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash, Serialize, Deserialize)]
 pub struct FaceletCube {
     // u8 benchmarked as fastest for permuting
     pub corners: [u8; 24],

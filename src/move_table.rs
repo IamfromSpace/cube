@@ -7,7 +7,7 @@ use invertable::Invertable;
 use equivalence_class::EquivalenceClass;
 use super::util::{n_scoped_workers, while_iter_in_mutex_has_next };
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct MoveTable<Stored: Eq + Hash, Used, Sym, Turn> {
     turns: Vec<Turn>,
     syms: Vec<Sym>,
