@@ -1,5 +1,6 @@
 #![feature(test)]
 extern crate test;
+extern crate bincode;
 #[macro_use]
 extern crate serde;
 
@@ -20,6 +21,8 @@ mod coord_move_table;
 mod pruning_table;
 mod util;
 
+use std::fs::File;
+use std::io::Write;
 use invertable::Invertable;
 use permutation_group::PermutationGroup as PG;
 use equivalence_class::EquivalenceClass;
@@ -281,7 +284,20 @@ fn main() {
     let g1c_mt: move_table::MoveTable<G1CoordCubeCompact, G1CoordCube, G1SymGenList, G1Turn> = g1_move_table(4);
     g1c_mt.solve(&G1Turn::U.into());
 
-    let gh_pt: pruning_table::PruningTable<CubieOrientationAndUDSlice, CoordCube, G1SymGenList, QuarterTurn> = group_h_pruning_table(4);
+    let file_name = "group_h_pruning_table";
+    let create_and_write = false;
+    // TODO: These should be buffered to be efficient
+    let gh_pt: pruning_table::PruningTable<CubieOrientationAndUDSlice, CoordCube, G1SymGenList, QuarterTurn> = if create_and_write {
+        let x = group_h_pruning_table(4);
+        let serialized = bincode::serialize(&x).unwrap();
+
+        let mut file = File::create(file_name).expect("Could not create file!");
+        file.write_all(&serialized).expect("Could not write file!");
+        x
+    } else {
+        let contents = std::fs::read(file_name).expect("Could not read file");
+        bincode::deserialize(&contents).expect("Failed to deserialize!")
+    };
     gh_pt.solve(&QuarterTurn::U.into());
 
     two_phase(&gh_pt, &g1c_mt, &QuarterTurn::U.into());
