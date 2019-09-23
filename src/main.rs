@@ -287,6 +287,7 @@ fn main() {
     two_phase(&gh_pt, &g1c_mt, &QuarterTurn::U.into());
 }
 
+#[cfg(test)]
 #[macro_use]
 extern crate quickcheck;
 extern crate rand;
