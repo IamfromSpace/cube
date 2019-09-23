@@ -18,6 +18,7 @@ mod coord_move_table;
 mod pruning_table;
 mod util;
 
+use invertable::Invertable;
 use permutation_group::PermutationGroup as PG;
 use equivalence_class::EquivalenceClass;
 use facelet_cube::FaceletCube;
@@ -142,6 +143,84 @@ fn group_h_pruning_table<Stored: Hash + Eq + Ord + Send + Sync + Copy + From<Use
     ];
 
     pruning_table::new(turns, syms, n)
+}
+
+fn two_by_two_by_two_pruning_table<Stored: Hash + Eq + Ord + Send + Sync + Copy + From<Used>, Used: PG + Send + Sync + Copy + EquivalenceClass<SymGenList> + From<Stored> + From<QuarterTurn>>(n: usize) -> pruning_table::PruningTable<Stored, Used, SymGenList, QuarterTurn> {
+    // TODO: SymGenList has more syms than we'd like the type system to enforce
+    let mut syms = Vec::with_capacity(3);
+    for i in 0..3 {
+        let mut c: SymGenList = PG::identity();
+        for _ in 0..i {
+            c = c.permute(SymmetryGenerator::SUrf.into());
+        }
+        syms.push(c);
+    }
+
+    // TODO: Definitely prefer half turn here
+    let turns: Vec<QuarterTurn> = vec![
+        QuarterTurn::U,
+        QuarterTurn::UPrime,
+        QuarterTurn::F,
+        QuarterTurn::FPrime,
+        QuarterTurn::R,
+        QuarterTurn::RPrime,
+        QuarterTurn::B,
+        QuarterTurn::BPrime,
+        QuarterTurn::L,
+        QuarterTurn::LPrime,
+        QuarterTurn::D,
+        QuarterTurn::DPrime,
+    ];
+
+    pruning_table::new(turns, syms, n)
+}
+
+fn solve_two_by_two_by_two(
+    pt: &pruning_table::PruningTable<two_by_two_by_two::TwoByTwoByTwo, CoordCube, SymGenList, QuarterTurn>,
+    scramble: &CoordCube,
+) -> Option<Vec<QuarterTurn>> {
+    let mut best = None;
+    for i in 0..8 {
+        let fs = i % 2;
+        let us = i / 2 % 4;
+
+        let mut c: SymGenList = PG::identity();
+        for _ in 0..fs {
+            c = c.permute(SymmetryGenerator::SF.into());
+        }
+        for _ in 0..us {
+            c = c.permute(SymmetryGenerator::SU.into());
+        }
+
+        let uncorrected_solution: Option<Vec<QuarterTurn>> = pt.solve(&scramble.get_equivalent(&c));
+        let solution = match uncorrected_solution {
+            None => None,
+            Some(moves) => {
+                let mut s = Vec::with_capacity(moves.len());
+                for m in moves {
+                    s.push(m.get_equivalent(&c.invert()));
+                }
+                Some(s)
+            },
+        };
+
+        match best {
+            None => best = solution,
+            Some(b) => {
+                match solution {
+                    None => best = Some(b),
+                    Some(s) => {
+                        if s.len() < b.len() {
+                            best = Some(s);
+                        } else {
+                            best = Some(b);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    best
 }
 
 use std::convert::TryInto;
