@@ -476,12 +476,14 @@ pub mod face_turns {
         fn from(t: G1Turn) -> FaceTurn {
             match t {
                 G1Turn::U => FaceTurn::U,
+                G1Turn::U2 => FaceTurn::U2,
                 G1Turn::UPrime => FaceTurn::UPrime,
                 G1Turn::F2 => FaceTurn::F2,
                 G1Turn::R2 => FaceTurn::R2,
                 G1Turn::B2 => FaceTurn::B2,
                 G1Turn::L2 => FaceTurn::L2,
                 G1Turn::D => FaceTurn::D,
+                G1Turn::D2 => FaceTurn::D2,
                 G1Turn::DPrime => FaceTurn::DPrime,
             }
         }
@@ -534,12 +536,14 @@ pub mod g1_turns {
     #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash, Serialize, Deserialize)]
     pub enum G1Turn {
         U,
+        U2,
         UPrime,
         F2,
         R2,
         B2,
         L2,
         D,
+        D2,
         DPrime,
     }
 
@@ -552,6 +556,11 @@ pub mod g1_turns {
                     G1SymmetryGenerator::SF => G1Turn::D,
                     G1SymmetryGenerator::SU => G1Turn::U,
                     G1SymmetryGenerator::SMrl => G1Turn::UPrime,
+                },
+                G1Turn::U2 => match sym {
+                    G1SymmetryGenerator::SF => G1Turn::D2,
+                    G1SymmetryGenerator::SU => G1Turn::U2,
+                    G1SymmetryGenerator::SMrl => G1Turn::U2,
                 },
                 G1Turn::UPrime => match sym {
                     G1SymmetryGenerator::SF => G1Turn::DPrime,
@@ -583,6 +592,11 @@ pub mod g1_turns {
                     G1SymmetryGenerator::SU => G1Turn::D,
                     G1SymmetryGenerator::SMrl => G1Turn::DPrime,
                 },
+                G1Turn::D2 => match sym {
+                    G1SymmetryGenerator::SF => G1Turn::U2,
+                    G1SymmetryGenerator::SU => G1Turn::D2,
+                    G1SymmetryGenerator::SMrl => G1Turn::D2,
+                },
                 G1Turn::DPrime => match sym {
                     G1SymmetryGenerator::SF => G1Turn::UPrime,
                     G1SymmetryGenerator::SU => G1Turn::DPrime,
@@ -597,12 +611,14 @@ pub mod g1_turns {
         fn invert(&self) -> G1Turn {
             match self {
                 G1Turn::U => G1Turn::UPrime,
+                G1Turn::U2 => G1Turn::U2,
                 G1Turn::UPrime => G1Turn::U,
                 G1Turn::F2 => G1Turn::F2,
                 G1Turn::R2 => G1Turn::R2,
                 G1Turn::B2 => G1Turn::B2,
                 G1Turn::L2 => G1Turn::L2,
                 G1Turn::D => G1Turn::DPrime,
+                G1Turn::D2 => G1Turn::D2,
                 G1Turn::DPrime => G1Turn::D,
             }
         }

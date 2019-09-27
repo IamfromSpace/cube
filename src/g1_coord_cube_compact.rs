@@ -51,6 +51,12 @@ const U: G1CoordCubeCompact = G1CoordCubeCompact {
     middle_edges: 0
 };
 
+const U2: G1CoordCubeCompact = G1CoordCubeCompact {
+    corners: 11520,
+    top_bottom_edges: 11520,
+    middle_edges: 0
+};
+
 const U_PRIME: G1CoordCubeCompact = G1CoordCubeCompact {
     corners: 15120,
     top_bottom_edges: 15120,
@@ -87,6 +93,12 @@ const D: G1CoordCubeCompact = G1CoordCubeCompact {
     middle_edges: 0
 };
 
+const D2: G1CoordCubeCompact = G1CoordCubeCompact {
+    corners: 16,
+    top_bottom_edges: 16,
+    middle_edges: 0
+};
+
 const D_PRIME: G1CoordCubeCompact = G1CoordCubeCompact {
     corners: 18,
     top_bottom_edges: 18,
@@ -98,12 +110,14 @@ impl From<G1Turn> for G1CoordCubeCompact {
     fn from(g1t: G1Turn) -> G1CoordCubeCompact {
         match g1t {
             G1Turn::U => U,
+            G1Turn::U2 => U2,
             G1Turn::UPrime => U_PRIME,
             G1Turn::F2 => F2,
             G1Turn::R2 => R2,
             G1Turn::B2 => B2,
             G1Turn::L2 => L2,
             G1Turn::D => D,
+            G1Turn::D2 => D2,
             G1Turn::DPrime => D_PRIME,
         }
     }

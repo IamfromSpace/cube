@@ -65,6 +65,12 @@ const U: G1CoordCube = G1CoordCube {
     middle_edges: [0, 1, 2, 3],
 };
 
+const U2: G1CoordCube = G1CoordCube {
+    corners: [2, 3, 0, 1, 4, 5, 6, 7],
+    top_bottom_edges: [2, 3, 0, 1, 4, 5, 6, 7],
+    middle_edges: [0, 1, 2, 3],
+};
+
 const U_PRIME: G1CoordCube = G1CoordCube {
     corners: [3, 0, 1, 2, 4, 5, 6, 7],
     top_bottom_edges: [3, 0, 1, 2, 4, 5, 6, 7],
@@ -101,6 +107,12 @@ const D: G1CoordCube = G1CoordCube {
     middle_edges: [0, 1, 2, 3],
 };
 
+const D2: G1CoordCube = G1CoordCube {
+    corners: [0, 1, 2, 3, 6, 7, 4, 5],
+    top_bottom_edges: [0, 1, 2, 3, 6, 7, 4, 5],
+    middle_edges: [0, 1, 2, 3],
+};
+
 const D_PRIME: G1CoordCube = G1CoordCube {
     corners: [0, 1, 2, 3, 7, 4, 5, 6],
     top_bottom_edges: [0, 1, 2, 3, 7, 4, 5, 6],
@@ -112,12 +124,14 @@ impl From<G1Turn> for G1CoordCube {
     fn from(g1t: G1Turn) -> G1CoordCube {
         match g1t {
             G1Turn::U => U,
+            G1Turn::U2 => U2,
             G1Turn::UPrime => U_PRIME,
             G1Turn::F2 => F2,
             G1Turn::R2 => R2,
             G1Turn::B2 => B2,
             G1Turn::L2 => L2,
             G1Turn::D => D,
+            G1Turn::D2 => D2,
             G1Turn::DPrime => D_PRIME,
         }
     }

@@ -59,12 +59,14 @@ fn g1_move_table<Stored: Hash + Eq + Send + Sync + Copy + From<Used>, Used: PG +
 
     let turns: Vec<G1Turn> = vec![
         G1Turn::U,
+        G1Turn::U2,
         G1Turn::UPrime,
         G1Turn::F2,
         G1Turn::R2,
         G1Turn::B2,
         G1Turn::L2,
         G1Turn::D,
+        G1Turn::D2,
         G1Turn::DPrime,
     ];
 
@@ -340,12 +342,14 @@ mod tests {
         fn arbitrary<G: Gen>(g: &mut G) -> G1Turn {
             *g.choose(&[
               G1Turn::U,
+              G1Turn::U2,
               G1Turn::UPrime,
               G1Turn::F2,
               G1Turn::R2,
               G1Turn::B2,
               G1Turn::L2,
               G1Turn::D,
+              G1Turn::D2,
               G1Turn::DPrime,
             ]).unwrap()
         }

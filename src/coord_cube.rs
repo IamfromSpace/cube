@@ -430,12 +430,14 @@ impl From<G1Turn> for CoordCube {
     fn from(g1t: G1Turn) -> CoordCube {
         match g1t {
             G1Turn::U => U,
+            G1Turn::U2 => U2,
             G1Turn::UPrime => U_PRIME,
             G1Turn::F2 => F2,
             G1Turn::R2 => R2,
             G1Turn::B2 => B2,
             G1Turn::L2 => L2,
             G1Turn::D => D,
+            G1Turn::D2 => D2,
             G1Turn::DPrime => D_PRIME,
         }
     }
