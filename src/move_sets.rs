@@ -471,6 +471,42 @@ pub mod face_turns {
         }
     }
 
+    use super::g1_turns::G1Turn;
+    impl From<G1Turn> for FaceTurn {
+        fn from(t: G1Turn) -> FaceTurn {
+            match t {
+                G1Turn::U => FaceTurn::U,
+                G1Turn::UPrime => FaceTurn::UPrime,
+                G1Turn::F2 => FaceTurn::F2,
+                G1Turn::R2 => FaceTurn::R2,
+                G1Turn::B2 => FaceTurn::B2,
+                G1Turn::L2 => FaceTurn::L2,
+                G1Turn::D => FaceTurn::D,
+                G1Turn::DPrime => FaceTurn::DPrime,
+            }
+        }
+    }
+
+    use super::quarter_turns::QuarterTurn;
+    impl From<QuarterTurn> for FaceTurn {
+        fn from(t: QuarterTurn) -> FaceTurn {
+            match t {
+                QuarterTurn::U => FaceTurn::U,
+                QuarterTurn::UPrime => FaceTurn::UPrime,
+                QuarterTurn::F => FaceTurn::F,
+                QuarterTurn::FPrime => FaceTurn::FPrime,
+                QuarterTurn::R => FaceTurn::R,
+                QuarterTurn::RPrime => FaceTurn::RPrime,
+                QuarterTurn::B => FaceTurn::B,
+                QuarterTurn::BPrime => FaceTurn::BPrime,
+                QuarterTurn::L => FaceTurn::L,
+                QuarterTurn::LPrime => FaceTurn::LPrime,
+                QuarterTurn::D => FaceTurn::D,
+                QuarterTurn::DPrime => FaceTurn::DPrime,
+            }
+        }
+    }
+
     use super::symmetry_generators::SymGenList;
     impl EquivalenceClass<SymGenList> for FaceTurn {
         fn get_equivalent(self, sym_gen_list: &SymGenList) -> FaceTurn {
