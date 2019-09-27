@@ -119,6 +119,24 @@ const U: CoordCube = CoordCube {
     ],
 };
 
+const U2: CoordCube = CoordCube {
+    corners: [(2, [0, 1, 2]), (3, [0, 1, 2]), (0, [0, 1, 2]), (1, [0, 1, 2]), (4, [0, 1, 2]), (5, [0, 1, 2]), (6, [0, 1, 2]), (7, [0, 1, 2])],
+    edges: [
+        (2, false),
+        (3, false),
+        (0, false),
+        (1, false),
+        (4, false),
+        (5, false),
+        (6, false),
+        (7, false),
+        (8, false),
+        (9, false),
+        (10, false),
+        (11, false),
+    ],
+};
+
 const U_PRIME: CoordCube = CoordCube {
     corners: [(3, [0, 1, 2]), (0, [0, 1, 2]), (1, [0, 1, 2]), (2, [0, 1, 2]), (4, [0, 1, 2]), (5, [0, 1, 2]), (6, [0, 1, 2]), (7, [0, 1, 2])],
     edges: [
@@ -155,6 +173,24 @@ const F: CoordCube = CoordCube {
     ],
 };
 
+const F2: CoordCube = CoordCube {
+    corners: [(0, [0, 1, 2]), (1, [0, 1, 2]), (4, [0, 1, 2]), (5, [0, 1, 2]), (2, [0, 1, 2]), (3, [0, 1, 2]), (6, [0, 1, 2]), (7, [0, 1, 2])],
+    edges: [
+        (0, false),
+        (1, false),
+        (2, false),
+        (9, false),
+        (4, false),
+        (5, false),
+        (7, false),
+        (6, false),
+        (8, false),
+        (3, false),
+        (10, false),
+        (11, false),
+    ],
+};
+
 const F_PRIME: CoordCube = CoordCube {
     corners: [(0, [0, 1, 2]), (1, [0, 1, 2]), (3, [1, 2, 0]), (4, [2, 0, 1]), (5, [1, 2, 0]), (2, [2, 0, 1]), (6, [0, 1, 2]), (7, [0, 1, 2])],
     edges: [
@@ -185,6 +221,24 @@ const R: CoordCube = CoordCube {
         (6, false),
         (8, false),
         (4, false),
+        (9, false),
+        (10, false),
+        (11, false),
+    ],
+};
+
+const R2: CoordCube = CoordCube {
+    corners: [(4, [0, 1, 2]), (1, [0, 1, 2]), (2, [0, 1, 2]), (7, [0, 1, 2]), (0, [0, 1, 2]), (5, [0, 1, 2]), (6, [0, 1, 2]), (3, [0, 1, 2])],
+    edges: [
+        (8, false),
+        (1, false),
+        (2, false),
+        (3, false),
+        (7, false),
+        (5, false),
+        (6, false),
+        (4, false),
+        (0, false),
         (9, false),
         (10, false),
         (11, false),
@@ -227,6 +281,24 @@ const B: CoordCube = CoordCube {
     ],
 };
 
+const B2: CoordCube = CoordCube {
+    corners: [(6, [0, 1, 2]), (7, [0, 1, 2]), (2, [0, 1, 2]), (3, [0, 1, 2]), (4, [0, 1, 2]), (5, [0, 1, 2]), (0, [0, 1, 2]), (1, [0, 1, 2])],
+    edges: [
+        (0, false),
+        (11, false),
+        (2, false),
+        (3, false),
+        (5, false),
+        (4, false),
+        (6, false),
+        (7, false),
+        (8, false),
+        (9, false),
+        (10, false),
+        (1, false),
+    ],
+};
+
 const B_PRIME: CoordCube = CoordCube {
     corners: [(1, [1, 2, 0]), (6, [2, 0, 1]), (2, [0, 1, 2]), (3, [0, 1, 2]), (4, [0, 1, 2]), (5, [0, 1, 2]), (7, [1, 2, 0]), (0, [2, 0, 1])],
     edges: [
@@ -259,6 +331,24 @@ const L: CoordCube = CoordCube {
         (8, false),
         (9, false),
         (6, false),
+        (11, false),
+    ],
+};
+
+const L2: CoordCube = CoordCube {
+    corners: [(0, [0, 1, 2]), (5, [0, 1, 2]), (6, [0, 1, 2]), (3, [0, 1, 2]), (4, [0, 1, 2]), (1, [0, 1, 2]), (2, [0, 1, 2]), (7, [0, 1, 2])],
+    edges: [
+        (0, false),
+        (1, false),
+        (10, false),
+        (3, false),
+        (4, false),
+        (6, false),
+        (5, false),
+        (7, false),
+        (8, false),
+        (9, false),
+        (2, false),
         (11, false),
     ],
 };
@@ -299,6 +389,24 @@ const D: CoordCube = CoordCube {
     ],
 };
 
+const D2: CoordCube = CoordCube {
+    corners: [(0, [0, 1, 2]), (1, [0, 1, 2]), (2, [0, 1, 2]), (3, [0, 1, 2]), (6, [0, 1, 2]), (7, [0, 1, 2]), (4, [0, 1, 2]), (5, [0, 1, 2])],
+    edges: [
+        (0, false),
+        (1, false),
+        (2, false),
+        (3, false),
+        (4, false),
+        (5, false),
+        (6, false),
+        (7, false),
+        (10, false),
+        (11, false),
+        (8, false),
+        (9, false),
+    ],
+};
+
 const D_PRIME: CoordCube = CoordCube {
     corners: [(0, [0, 1, 2]), (1, [0, 1, 2]), (2, [0, 1, 2]), (3, [0, 1, 2]), (7, [0, 1, 2]), (4, [0, 1, 2]), (5, [0, 1, 2]), (6, [0, 1, 2])],
     edges: [
@@ -316,6 +424,22 @@ const D_PRIME: CoordCube = CoordCube {
         (10, false),
     ],
 };
+
+use super::move_sets::g1_turns::G1Turn;
+impl From<G1Turn> for CoordCube {
+    fn from(g1t: G1Turn) -> CoordCube {
+        match g1t {
+            G1Turn::U => U,
+            G1Turn::UPrime => U_PRIME,
+            G1Turn::F2 => F2,
+            G1Turn::R2 => R2,
+            G1Turn::B2 => B2,
+            G1Turn::L2 => L2,
+            G1Turn::D => D,
+            G1Turn::DPrime => D_PRIME,
+        }
+    }
+}
 
 use super::move_sets::quarter_turns::QuarterTurn;
 impl From<QuarterTurn> for CoordCube {
@@ -336,6 +460,33 @@ impl From<QuarterTurn> for CoordCube {
         }
     }
 }
+
+use super::move_sets::face_turns::FaceTurn;
+impl From<FaceTurn> for CoordCube {
+    fn from(ft: FaceTurn) -> CoordCube {
+        match ft {
+            FaceTurn::U => U,
+            FaceTurn::U2 => U2,
+            FaceTurn::UPrime => U_PRIME,
+            FaceTurn::F => F,
+            FaceTurn::F2 => F2,
+            FaceTurn::FPrime => F_PRIME,
+            FaceTurn::R => R,
+            FaceTurn::R2 => R2,
+            FaceTurn::RPrime => R_PRIME,
+            FaceTurn::B => B,
+            FaceTurn::B2 => B2,
+            FaceTurn::BPrime => B_PRIME,
+            FaceTurn::L => L,
+            FaceTurn::L2 => L2,
+            FaceTurn::LPrime => L_PRIME,
+            FaceTurn::D => D,
+            FaceTurn::D2 => D2,
+            FaceTurn::DPrime => D_PRIME,
+        }
+    }
+}
+
 
 const S_URF: CoordCube = CoordCube {
     corners: [(2, [1, 2, 0]), (5, [2, 0, 1]), (4, [1, 2, 0]), (3, [2, 0, 1]), (0, [1, 2, 0]), (7, [2, 0, 1]), (6, [1, 2, 0]), (1, [2, 0, 1])],
@@ -761,7 +912,35 @@ mod tests {
     }
 
     #[test]
-    fn should_be_able_to_generate_one_turn_with_a_combination_of_the_other_five() {
+    fn should_be_able_to_generate_180_turn_with_a_combination_of_the_other_five_g1() {
+        let l2 = CoordCube::from(G1Turn::D)
+            .permute(G1Turn::UPrime.into())
+            .permute(G1Turn::F2.into())
+            .permute(G1Turn::R2.into())
+            .permute(G1Turn::B2.into())
+            .permute(G1Turn::DPrime.into())
+            .permute(G1Turn::U.into())
+            .permute(G1Turn::R2.into())
+            .permute(G1Turn::F2.into());
+        assert_eq!(l2, G1Turn::L2.into());
+    }
+
+    #[test]
+    fn should_be_able_to_generate_180_turn_with_a_combination_of_the_other_five_ft() {
+        let l2 = CoordCube::from(FaceTurn::D)
+            .permute(FaceTurn::UPrime.into())
+            .permute(FaceTurn::F2.into())
+            .permute(FaceTurn::R2.into())
+            .permute(FaceTurn::B2.into())
+            .permute(FaceTurn::DPrime.into())
+            .permute(FaceTurn::U.into())
+            .permute(FaceTurn::R2.into())
+            .permute(FaceTurn::F2.into());
+        assert_eq!(l2, FaceTurn::L2.into());
+    }
+
+    #[test]
+    fn should_be_able_to_generate_90_turn_with_a_combination_of_the_other_five_qt() {
         let d = CoordCube::from(QuarterTurn::R)
             .permute(QuarterTurn::L.into())
             .permute(QuarterTurn::F.into())
@@ -780,6 +959,24 @@ mod tests {
             .permute(QuarterTurn::RPrime.into())
             .permute(QuarterTurn::LPrime.into());
         assert_eq!(d, QuarterTurn::D.into());
+    }
+
+    #[test]
+    fn should_be_able_to_generate_90_turn_with_a_combination_of_the_other_five_ft() {
+        let d = CoordCube::from(FaceTurn::R)
+            .permute(FaceTurn::L.into())
+            .permute(FaceTurn::F2.into())
+            .permute(FaceTurn::B2.into())
+            .permute(FaceTurn::RPrime.into())
+            .permute(FaceTurn::LPrime.into())
+            .permute(FaceTurn::U.into())
+            .permute(FaceTurn::R.into())
+            .permute(FaceTurn::L.into())
+            .permute(FaceTurn::F2.into())
+            .permute(FaceTurn::B2.into())
+            .permute(FaceTurn::RPrime.into())
+            .permute(FaceTurn::LPrime.into());
+        assert_eq!(d, FaceTurn::D.into());
     }
 
     #[test]
