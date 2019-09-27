@@ -113,7 +113,7 @@ fn quarter_turn_move_table<Stored: Hash + Eq + Send + Sync + Copy + From<Used>, 
     move_table::new(turns, syms, n)
 }
 
-fn group_h_pruning_table<Stored: Hash + Eq + Ord + Send + Sync + Copy + From<Used>, Used: PG + Send + Sync + Copy + EquivalenceClass<G1SymGenList> + From<Stored> + From<QuarterTurn>>(n: usize) -> pruning_table::PruningTable<Stored, Used, G1SymGenList, QuarterTurn> {
+fn group_h_pruning_table<Stored: Hash + Eq + Ord + Send + Sync + Copy + From<Used>, Used: PG + Send + Sync + Copy + EquivalenceClass<G1SymGenList> + From<Stored> + From<FaceTurn>>(n: usize) -> pruning_table::PruningTable<Stored, Used, G1SymGenList, FaceTurn> {
     let mut syms = Vec::with_capacity(16);
     for i in 0..16 {
         let fs = i % 2;
@@ -133,19 +133,25 @@ fn group_h_pruning_table<Stored: Hash + Eq + Ord + Send + Sync + Copy + From<Use
         syms.push(c);
     }
 
-    let turns: Vec<QuarterTurn> = vec![
-        QuarterTurn::U,
-        QuarterTurn::UPrime,
-        QuarterTurn::F,
-        QuarterTurn::FPrime,
-        QuarterTurn::R,
-        QuarterTurn::RPrime,
-        QuarterTurn::B,
-        QuarterTurn::BPrime,
-        QuarterTurn::L,
-        QuarterTurn::LPrime,
-        QuarterTurn::D,
-        QuarterTurn::DPrime,
+    let turns: Vec<FaceTurn> = vec![
+        FaceTurn::U,
+        FaceTurn::U2,
+        FaceTurn::UPrime,
+        FaceTurn::F,
+        FaceTurn::F2,
+        FaceTurn::FPrime,
+        FaceTurn::R,
+        FaceTurn::R2,
+        FaceTurn::RPrime,
+        FaceTurn::B,
+        FaceTurn::B2,
+        FaceTurn::BPrime,
+        FaceTurn::L,
+        FaceTurn::L2,
+        FaceTurn::LPrime,
+        FaceTurn::D,
+        FaceTurn::D2,
+        FaceTurn::DPrime,
     ];
 
     pruning_table::new(turns, syms, n)
@@ -234,10 +240,10 @@ use std::convert::TryInto;
 // it needs something like the following, but this didn't satisfy From<Turn> for CoordCube
 // Turn: Copy + invertable::Invertable + Into<CoordCube> + EquivalenceClass<G1SymGenList>
 fn two_phase(
-    gh_mt: &pruning_table::PruningTable<CubieOrientationAndUDSlice, CoordCube, G1SymGenList, QuarterTurn>,
+    gh_mt: &pruning_table::PruningTable<CubieOrientationAndUDSlice, CoordCube, G1SymGenList, FaceTurn>,
     g1_mt: &move_table::MoveTable<G1CoordCubeCompact, G1CoordCube, G1SymGenList, G1Turn>,
     scramble: &CoordCube,
-) -> Option<Vec<QuarterTurn>> {
+) -> Option<Vec<FaceTurn>> {
     let mut ts = gh_mt.solve(&scramble)?;
 
     let mut half_solved = scramble.clone();
@@ -250,29 +256,7 @@ fn two_phase(
 
     let t2s = g1_mt.solve(&hs_g1)?;
     for t in t2s {
-        // TODO: this should be more generic and use a From somewhere
-        match t {
-            G1Turn::U => ts.push(QuarterTurn::U),
-            G1Turn::UPrime => ts.push(QuarterTurn::UPrime),
-            G1Turn::F2 => {
-                ts.push(QuarterTurn::F);
-                ts.push(QuarterTurn::F);
-            },
-            G1Turn::R2 => {
-                ts.push(QuarterTurn::R);
-                ts.push(QuarterTurn::R);
-            },
-            G1Turn::B2 => {
-                ts.push(QuarterTurn::B);
-                ts.push(QuarterTurn::B);
-            },
-            G1Turn::L2 => {
-                ts.push(QuarterTurn::L);
-                ts.push(QuarterTurn::L);
-            },
-            G1Turn::D => ts.push(QuarterTurn::D),
-            G1Turn::DPrime => ts.push(QuarterTurn::DPrime),
-        }
+        ts.push(t.into());
     }
     Some(ts)
 }
@@ -287,8 +271,8 @@ fn main() {
     let file_name = "group_h_pruning_table";
     let create_and_write = false;
     // TODO: These should be buffered to be efficient
-    let gh_pt: pruning_table::PruningTable<CubieOrientationAndUDSlice, CoordCube, G1SymGenList, QuarterTurn> = if create_and_write {
-        let x = group_h_pruning_table(4);
+    let gh_pt: pruning_table::PruningTable<CubieOrientationAndUDSlice, CoordCube, G1SymGenList, FaceTurn> = if create_and_write {
+        let x = group_h_pruning_table(14);
         let serialized = bincode::serialize(&x).unwrap();
 
         let mut file = File::create(file_name).expect("Could not create file!");
@@ -374,7 +358,7 @@ mod tests {
             if turns.len() > max_turns {
                 TestResult::discard()
             } else {
-                let gh_pt: pruning_table::PruningTable<CubieOrientationAndUDSlice, CoordCube, G1SymGenList, QuarterTurn> = group_h_pruning_table(max_turns + 1);
+                let gh_pt: pruning_table::PruningTable<CubieOrientationAndUDSlice, CoordCube, G1SymGenList, FaceTurn> = group_h_pruning_table(max_turns + 1);
 
                 let mut scramble = CoordCube::identity();
                 for turn in turns {
