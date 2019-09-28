@@ -172,16 +172,22 @@ fn two_by_two_by_two_pruning_table<Stored: Hash + Eq + Ord + Send + Sync + Copy 
 
     let turns: Vec<FaceTurn> = vec![
         FaceTurn::U,
+        FaceTurn::U2,
         FaceTurn::UPrime,
         FaceTurn::F,
+        FaceTurn::F2,
         FaceTurn::FPrime,
         FaceTurn::R,
+        FaceTurn::R2,
         FaceTurn::RPrime,
         FaceTurn::B,
+        FaceTurn::B2,
         FaceTurn::BPrime,
         FaceTurn::L,
+        FaceTurn::L2,
         FaceTurn::LPrime,
         FaceTurn::D,
+        FaceTurn::D2,
         FaceTurn::DPrime,
     ];
 
@@ -304,16 +310,22 @@ mod tests {
         fn arbitrary<G: Gen>(g: &mut G) -> FaceTurn {
             *g.choose(&[
               FaceTurn::U,
+              FaceTurn::U2,
               FaceTurn::UPrime,
               FaceTurn::F,
+              FaceTurn::F2,
               FaceTurn::FPrime,
               FaceTurn::R,
+              FaceTurn::R2,
               FaceTurn::RPrime,
               FaceTurn::B,
+              FaceTurn::B2,
               FaceTurn::BPrime,
               FaceTurn::L,
+              FaceTurn::L2,
               FaceTurn::LPrime,
               FaceTurn::D,
+              FaceTurn::D2,
               FaceTurn::DPrime,
             ]).unwrap()
         }
