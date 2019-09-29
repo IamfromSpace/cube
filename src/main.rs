@@ -37,6 +37,53 @@ use move_sets::g1_turns::G1Turn;
 use move_sets::symmetry_generators::{SymmetryGenerator, SymGenList};
 use move_sets::g1_symmetry_generators::{G1SymmetryGenerator, G1SymGenList};
 
+/* This function tries solving a cube via a pruning table in numerous ways
+ * where the cube is rotated differently in each approach.  This is useful for
+ * coordinates (such as a 2x2x2) where there are multiple ways to accomplish
+ * a solve (there are eight different 2x2x2 blocks we could construct).
+ */
+// TODO: This can be broken down further into  find-all/select-best
+// TODO: Further parameterize types
+fn multi_approach_solve<Stored: Hash + Eq + Ord + From<CoordCube>>(
+    pt: &pruning_table::PruningTable<Stored, CoordCube, SymGenList, FaceTurn>,
+    syms: &Vec<SymGenList>,
+    scramble: &CoordCube,
+) -> Option<(Vec<FaceTurn>, SymGenList)> {
+    let mut best = None;
+    for sym in syms {
+        let sym = sym.clone();
+        let uncorrected_solution: Option<Vec<FaceTurn>> = pt.solve(&scramble.get_equivalent(&sym));
+        let solution = match uncorrected_solution {
+            None => None,
+            Some(moves) => {
+                let mut s = Vec::with_capacity(moves.len());
+                for m in moves {
+                    s.push(m.get_equivalent(&sym.invert()));
+                }
+                Some((s, sym))
+            },
+        };
+
+        match best {
+            None => best = solution,
+            Some(b) => {
+                match solution {
+                    None => best = Some(b),
+                    Some(s) => {
+                        if s.0.len() < b.0.len() {
+                            best = Some(s);
+                        } else {
+                            best = Some(b);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    best
+}
+
+
 fn g1_move_table<Stored: Hash + Eq + Send + Sync + Copy + From<Used>, Used: PG + Ord + Send + Sync + Copy + EquivalenceClass<G1SymGenList> + From<Stored> + From<G1Turn>>(n: usize) -> move_table::MoveTable<Stored, Used, G1SymGenList, G1Turn> {
     let mut syms = Vec::with_capacity(16);
     for i in 0..16 {
@@ -197,8 +244,8 @@ fn two_by_two_by_two_pruning_table<Stored: Hash + Eq + Ord + Send + Sync + Copy 
 fn solve_two_by_two_by_two(
     pt: &pruning_table::PruningTable<two_by_two_by_two::TwoByTwoByTwo, CoordCube, SymGenList, FaceTurn>,
     scramble: &CoordCube,
-) -> Option<Vec<FaceTurn>> {
-    let mut best = None;
+) -> Option<(Vec<FaceTurn>, SymGenList)> {
+    let mut syms = Vec::with_capacity(8);
     for i in 0..8 {
         let fs = i % 2;
         let us = i / 2 % 4;
@@ -210,36 +257,10 @@ fn solve_two_by_two_by_two(
         for _ in 0..us {
             c = c.permute(SymmetryGenerator::SU.into());
         }
-
-        let uncorrected_solution: Option<Vec<FaceTurn>> = pt.solve(&scramble.get_equivalent(&c));
-        let solution = match uncorrected_solution {
-            None => None,
-            Some(moves) => {
-                let mut s = Vec::with_capacity(moves.len());
-                for m in moves {
-                    s.push(m.get_equivalent(&c.invert()));
-                }
-                Some(s)
-            },
-        };
-
-        match best {
-            None => best = solution,
-            Some(b) => {
-                match solution {
-                    None => best = Some(b),
-                    Some(s) => {
-                        if s.len() < b.len() {
-                            best = Some(s);
-                        } else {
-                            best = Some(b);
-                        }
-                    }
-                }
-            }
-        }
+        syms.push(c);
     }
-    best
+
+    multi_approach_solve(&pt, &syms, &scramble)
 }
 
 use std::convert::TryInto;
