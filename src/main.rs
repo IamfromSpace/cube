@@ -326,7 +326,7 @@ fn two_phase_two_by_two_by_three(
     two_pt: &pruning_table::PruningTable<two_by_two_by_two::TwoByTwoByTwo, CoordCube, SymGenList, FaceTurn>,
     three_pt: &pruning_table::PruningTable<two_by_two_by_three::TwoByTwoByThree, CoordCube, SymGenList, FaceTurn>,
     scramble: &CoordCube,
-) -> Option<Vec<FaceTurn>> {
+) -> Option<(Vec<FaceTurn>, SymGenList)> {
     let (two, move_corner_to_urf) = solve_two_by_two_by_two(&two_pt, &scramble)?;
     let mut remaining = *scramble;
     for &t in &two {
@@ -343,12 +343,12 @@ fn two_phase_two_by_two_by_three(
         syms.push(c);
     }
 
-    let three = multi_approach_solve(&three_pt, &syms, &remaining)?;
+    let (three, sym) = multi_approach_solve(&three_pt, &syms, &remaining)?;
     let mut full_solution = two;
-    for t in three.0 {
+    for t in three {
         full_solution.push(t.get_equivalent(&move_corner_to_urf.invert()));
     }
-    Some(full_solution)
+    Some((full_solution, sym))
 }
 
 use std::convert::TryInto;
