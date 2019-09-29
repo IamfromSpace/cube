@@ -322,6 +322,46 @@ fn solve_two_by_two_by_three(
     multi_approach_solve(&pt, &syms, &scramble)
 }
 
+fn ftl_minus_keyhole_pruning_table<Stored: Hash + Eq + Ord + Send + Sync + Copy + From<Used>, Used: PG + Send + Sync + Copy + EquivalenceClass<SymGenList> + From<Stored> + From<FaceTurn>>(n: usize) -> pruning_table::PruningTable<Stored, Used, SymGenList, FaceTurn> {
+    // TODO: SymGenList has more syms than we'd like the type system to enforce
+    let mut syms = Vec::with_capacity(2);
+    for i in 0..2 {
+        let mut c: SymGenList = PG::identity();
+        for _ in 0..i {
+            // The FTL-Keyhole has exactly one symmetry where the cube
+            // is rotated and then reflected to move the keyhold back to
+            // its original position, which is reflection along the diagonal
+            // from the URF corner to the UBL corner.
+            c = c.permute(SymmetryGenerator::SU.into());
+            c = c.permute(SymmetryGenerator::SMrl.into());
+        }
+        syms.push(c);
+    }
+
+    let turns: Vec<FaceTurn> = vec![
+        FaceTurn::U,
+        FaceTurn::U2,
+        FaceTurn::UPrime,
+        FaceTurn::F,
+        FaceTurn::F2,
+        FaceTurn::FPrime,
+        FaceTurn::R,
+        FaceTurn::R2,
+        FaceTurn::RPrime,
+        FaceTurn::B,
+        FaceTurn::B2,
+        FaceTurn::BPrime,
+        FaceTurn::L,
+        FaceTurn::L2,
+        FaceTurn::LPrime,
+        FaceTurn::D,
+        FaceTurn::D2,
+        FaceTurn::DPrime,
+    ];
+
+    pruning_table::new(turns, syms, n)
+}
+
 fn two_phase_two_by_two_by_three(
     two_pt: &pruning_table::PruningTable<two_by_two_by_two::TwoByTwoByTwo, CoordCube, SymGenList, FaceTurn>,
     three_pt: &pruning_table::PruningTable<two_by_two_by_three::TwoByTwoByThree, CoordCube, SymGenList, FaceTurn>,
@@ -347,6 +387,46 @@ fn two_phase_two_by_two_by_three(
     let mut full_solution = two;
     for t in three {
         full_solution.push(t.get_equivalent(&move_corner_to_urf.invert()));
+    }
+    Some((full_solution, sym))
+}
+
+fn three_phase_ftl_minus_keyhole(
+    two_pt: &pruning_table::PruningTable<two_by_two_by_two::TwoByTwoByTwo, CoordCube, SymGenList, FaceTurn>,
+    three_pt: &pruning_table::PruningTable<two_by_two_by_three::TwoByTwoByThree, CoordCube, SymGenList, FaceTurn>,
+    key_pt: &pruning_table::PruningTable<ftl_minus_keyhole::FtlMinusKeyhole, CoordCube, SymGenList, FaceTurn>,
+    scramble: &CoordCube,
+) -> Option<(Vec<FaceTurn>, SymGenList)> {
+    let (three, move_to_uf) = two_phase_two_by_two_by_three(&two_pt, &three_pt, &scramble)?;
+    let mut remaining = *scramble;
+    for &t in &three {
+        remaining = remaining.permute(t.into());
+    }
+    remaining = remaining.get_equivalent(&move_to_uf);
+
+    // There are four ways to create the keyhole while utilizing
+    // and existing 2x2x3 along the UF, and none are immediately obvious
+    let syms = vec!(
+        SymGenList::identity()
+            .permute(SymmetryGenerator::SU.into()),
+        SymGenList::identity()
+            .permute(SymmetryGenerator::SU.into())
+            .permute(SymmetryGenerator::SU.into()),
+        SymGenList::identity()
+            .permute(SymmetryGenerator::SUrf.into())
+            .permute(SymmetryGenerator::SU.into())
+            .permute(SymmetryGenerator::SU.into()),
+        SymGenList::identity()
+            .permute(SymmetryGenerator::SUrf.into())
+            .permute(SymmetryGenerator::SU.into())
+            .permute(SymmetryGenerator::SU.into())
+            .permute(SymmetryGenerator::SU.into()),
+    );
+
+    let (key, sym) = multi_approach_solve(&key_pt, &syms, &remaining)?;
+    let mut full_solution = three;
+    for t in key {
+        full_solution.push(t.get_equivalent(&move_to_uf.invert()));
     }
     Some((full_solution, sym))
 }
