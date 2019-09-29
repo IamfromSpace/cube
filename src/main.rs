@@ -15,6 +15,7 @@ mod g1_coord_cube;
 mod g1_coord_cube_compact;
 mod cubie_orientations_and_ud_slice;
 mod two_by_two_by_two;
+mod two_by_two_by_three;
 mod move_sets;
 mod move_table;
 mod coord_move_table;
@@ -261,6 +262,92 @@ fn solve_two_by_two_by_two(
     }
 
     multi_approach_solve(&pt, &syms, &scramble)
+}
+
+fn two_by_two_by_three_pruning_table<Stored: Hash + Eq + Ord + Send + Sync + Copy + From<Used>, Used: PG + Send + Sync + Copy + EquivalenceClass<SymGenList> + From<Stored> + From<FaceTurn>>(n: usize) -> pruning_table::PruningTable<Stored, Used, SymGenList, FaceTurn> {
+    // TODO: SymGenList has more syms than we'd like the type system to enforce
+    let mut syms = Vec::with_capacity(2);
+    for i in 0..2 {
+        let mut c: SymGenList = PG::identity();
+        for _ in 0..i {
+            c = c.permute(SymmetryGenerator::SMrl.into());
+        }
+        syms.push(c);
+    }
+
+    let turns: Vec<FaceTurn> = vec![
+        FaceTurn::U,
+        FaceTurn::U2,
+        FaceTurn::UPrime,
+        FaceTurn::F,
+        FaceTurn::F2,
+        FaceTurn::FPrime,
+        FaceTurn::R,
+        FaceTurn::R2,
+        FaceTurn::RPrime,
+        FaceTurn::B,
+        FaceTurn::B2,
+        FaceTurn::BPrime,
+        FaceTurn::L,
+        FaceTurn::L2,
+        FaceTurn::LPrime,
+        FaceTurn::D,
+        FaceTurn::D2,
+        FaceTurn::DPrime,
+    ];
+
+    pruning_table::new(turns, syms, n)
+}
+
+fn solve_two_by_two_by_three(
+    pt: &pruning_table::PruningTable<two_by_two_by_three::TwoByTwoByThree, CoordCube, SymGenList, FaceTurn>,
+    scramble: &CoordCube,
+) -> Option<(Vec<FaceTurn>, SymGenList)> {
+    let mut syms = Vec::with_capacity(8);
+    for i in 0..8 {
+        let fs = i % 2;
+        let us = i / 2 % 4;
+
+        let mut c: SymGenList = PG::identity();
+        for _ in 0..fs {
+            c = c.permute(SymmetryGenerator::SF.into());
+        }
+        for _ in 0..us {
+            c = c.permute(SymmetryGenerator::SU.into());
+        }
+        syms.push(c);
+    }
+
+    multi_approach_solve(&pt, &syms, &scramble)
+}
+
+fn two_phase_two_by_two_by_three(
+    two_pt: &pruning_table::PruningTable<two_by_two_by_two::TwoByTwoByTwo, CoordCube, SymGenList, FaceTurn>,
+    three_pt: &pruning_table::PruningTable<two_by_two_by_three::TwoByTwoByThree, CoordCube, SymGenList, FaceTurn>,
+    scramble: &CoordCube,
+) -> Option<Vec<FaceTurn>> {
+    let (two, move_corner_to_urf) = solve_two_by_two_by_two(&two_pt, &scramble)?;
+    let mut remaining = *scramble;
+    for &t in &two {
+        remaining = remaining.permute(t.into());
+    }
+    remaining = remaining.get_equivalent(&move_corner_to_urf);
+
+    let mut syms = Vec::with_capacity(3);
+    for i in 0..3 {
+        let mut c: SymGenList = PG::identity();
+        for _ in 0..i {
+            c = c.permute(SymmetryGenerator::SUrf.into());
+        }
+        syms.push(c);
+    }
+
+    let three = multi_approach_solve(&three_pt, &syms, &remaining)?;
+    let mut full_solution = two;
+    for t in three.0 {
+        full_solution.push(t.get_equivalent(&move_corner_to_urf.invert()));
+    }
+    Some(full_solution)
 }
 
 use std::convert::TryInto;
