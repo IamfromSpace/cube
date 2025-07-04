@@ -124,7 +124,34 @@ impl PermutationGroup for FaceletWingEdges {}
 
 const U: FaceletWingEdges = FaceletWingEdges([2, 3, 4, 5, 6, 7, 0, 1, 8, 17, 18, 11, 12, 13, 14, 15, 16, 25, 26, 19, 20, 21, 22, 23, 24, 33, 34, 27, 28, 29, 30, 31, 32, 9, 10, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47]);
 
-const Uw: FaceletWingEdges = FaceletWingEdges([2, 3, 4, 5, 6, 7, 0, 1, 16, 17, 18, 19, 12, 13, 14, 15, 24, 25, 26, 27, 20, 21, 22, 23, 32, 33, 34, 35, 28, 29, 30, 31, 8, 9, 10, 11, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47]);
+const U2: FaceletWingEdges = FaceletWingEdges(permute_arr(&U.0, &U.0));
+
+const U_PRIME: FaceletWingEdges = FaceletWingEdges(arr_inv(&U.0));
+
+const u: FaceletWingEdges = FaceletWingEdges([0, 1, 2, 3, 4, 5, 6, 7, 16, 9, 10, 19, 12, 13, 14, 15, 24, 17, 18, 27, 20, 21, 22, 23, 32, 25, 26, 35, 28, 29, 30, 31, 8, 33, 34, 11, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47]);
+
+const u_PRIME: FaceletWingEdges = FaceletWingEdges(arr_inv(&u.0));
+
+const Uw: FaceletWingEdges = FaceletWingEdges(permute_arr(&U.0, &u.0));
+
+const Uw2: FaceletWingEdges = FaceletWingEdges(permute_arr(&Uw.0, &Uw.0));
+
+const Uw_PRIME: FaceletWingEdges = FaceletWingEdges(arr_inv(&Uw.0));
+
+use super::move_sets::wide_turns::WideTurn;
+impl From<WideTurn> for FaceletWingEdges {
+    fn from(wt: WideTurn) -> FaceletWingEdges {
+        match wt {
+            WideTurn::U => U,
+            WideTurn::U2 => U2,
+            WideTurn::UPrime => U_PRIME,
+            WideTurn::Uw => Uw,
+            WideTurn::Uw2 => Uw2,
+            WideTurn::UwPrime => Uw_PRIME,
+            _ => todo!(),
+        }
+    }
+}
 
 fn arr_identity() -> [u8; 48] {
     let mut r = [0; 48];
@@ -180,7 +207,7 @@ fn arr_identity() -> [u8; 48] {
     r
 }
 
-fn arr_inv(a: &[u8; 48]) -> [u8; 48] {
+const fn arr_inv(a: &[u8; 48]) -> [u8; 48] {
     let mut r = [0; 48];
     //silly looking, but twice as fast ;)
     r[a[0] as usize] = 0;
@@ -234,7 +261,7 @@ fn arr_inv(a: &[u8; 48]) -> [u8; 48] {
     r
 }
 
-fn permute_arr(a: &[u8; 48], b: &[u8; 48]) -> [u8; 48] {
+const fn permute_arr(a: &[u8; 48], b: &[u8; 48]) -> [u8; 48] {
     [
         a[b[0] as usize],
         a[b[1] as usize],
