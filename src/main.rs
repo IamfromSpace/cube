@@ -10,6 +10,7 @@ mod invertable;
 mod permutation_group;
 mod equivalence_class;
 mod facelet_cube;
+mod facelet_wing_edges;
 mod coord_cube;
 mod g1_coord_cube;
 mod g1_coord_cube_compact;
