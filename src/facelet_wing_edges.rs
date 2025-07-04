@@ -6,6 +6,34 @@ use super::invertable::Invertable;
 
 use std::fmt;
 
+/* The wing edge representation of a cube is for a 4x4+, which defines a single
+ * orbit of wing edges.  The 4x4 and 5x5 cube have one, a 6x6 and 7x7 have two,
+ * and so on.  Wing edges don't truly have orientation just position, because
+ * they cannot be in the correct position and flipped.  Each color pairing has
+ * two wing edges, but they cannot be exchanged without flipping.
+ *
+ * If edges are truly solved in isolation, then we really only have 46
+ * facelets, as we can just arbitrarily pick one to be correct, in the same way
+ * we can just arbitrarily pick a correct corner on a 2x2 cube.  However, we
+ * model all 48 facelets, because on odd cubes, wing edges must match centers,
+ * and on even cubes, wing edges must match other facelets--it's possible there
+ * are none that can be considered arbitrarily correct.
+ *
+ * Even though we can't reduce the state space by imagining one piece as
+ * arbitrarily correct, we can still use our full 24 types of symmetry we get
+ * on a 3x3.  If we consider one wing edge correct there is only one symmetric
+ * position (mirrored through the fixed edge).  So we lose little by imagining
+ * that centers are fixed.
+ *
+ * At the moment, the real intention of this module is to help generate truly
+ * random scrambles for big cubes.  The idea is to generate a random position
+ * for each orbit, solve each indepdently, and then concattenate each solve to
+ * scramble all wing edges.  Even though each scramble affects the other, since
+ * each is affected by a truly random permutation, we still get a truly random
+ * scramble for each orbit.  This is akin to how OTP can mask a structured
+ * message by XORing a random mask (I think).
+ */
+
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)] //, Serialize, Deserialize)] 48 elements not derivable
 pub struct FaceletWingEdges([u8; 48]);
 
