@@ -532,6 +532,593 @@ pub mod face_turns {
     }
 }
 
+pub mod wide_turns {
+    #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash, Serialize, Deserialize)]
+    pub enum WideTurn {
+        U,
+        U2,
+        UPrime,
+        Uw,
+        Uw2,
+        UwPrime,
+        F,
+        F2,
+        FPrime,
+        Fw,
+        Fw2,
+        FwPrime,
+        R,
+        R2,
+        RPrime,
+        Rw,
+        Rw2,
+        RwPrime,
+        B,
+        B2,
+        BPrime,
+        Bw,
+        Bw2,
+        BwPrime,
+        L,
+        L2,
+        LPrime,
+        Lw,
+        Lw2,
+        LwPrime,
+        D,
+        D2,
+        DPrime,
+        Dw,
+        Dw2,
+        DwPrime,
+    }
+
+    use super::super::equivalence_class::EquivalenceClass;
+    use super::symmetry_generators::SymmetryGenerator;
+    impl EquivalenceClass<SymmetryGenerator> for WideTurn {
+        fn get_equivalent(self, sym: &SymmetryGenerator) -> WideTurn {
+            match self {
+                WideTurn::U => match sym {
+                    SymmetryGenerator::SUrf => WideTurn::R,
+                    SymmetryGenerator::SF => WideTurn::D,
+                    SymmetryGenerator::SU => WideTurn::U,
+                    SymmetryGenerator::SMrl => WideTurn::UPrime,
+                },
+                WideTurn::U2 => match sym {
+                    SymmetryGenerator::SUrf => WideTurn::R2,
+                    SymmetryGenerator::SF => WideTurn::D2,
+                    SymmetryGenerator::SU => WideTurn::U2,
+                    SymmetryGenerator::SMrl => WideTurn::U2,
+                },
+                WideTurn::UPrime => match sym {
+                    SymmetryGenerator::SUrf => WideTurn::RPrime,
+                    SymmetryGenerator::SF => WideTurn::DPrime,
+                    SymmetryGenerator::SU => WideTurn::UPrime,
+                    SymmetryGenerator::SMrl => WideTurn::U,
+                },
+                WideTurn::Uw => match sym {
+                    SymmetryGenerator::SUrf => WideTurn::Rw,
+                    SymmetryGenerator::SF => WideTurn::Dw,
+                    SymmetryGenerator::SU => WideTurn::Uw,
+                    SymmetryGenerator::SMrl => WideTurn::UwPrime,
+                },
+                WideTurn::Uw2 => match sym {
+                    SymmetryGenerator::SUrf => WideTurn::Rw2,
+                    SymmetryGenerator::SF => WideTurn::Dw2,
+                    SymmetryGenerator::SU => WideTurn::Uw2,
+                    SymmetryGenerator::SMrl => WideTurn::Uw2,
+                },
+                WideTurn::UwPrime => match sym {
+                    SymmetryGenerator::SUrf => WideTurn::RwPrime,
+                    SymmetryGenerator::SF => WideTurn::DwPrime,
+                    SymmetryGenerator::SU => WideTurn::UwPrime,
+                    SymmetryGenerator::SMrl => WideTurn::Uw,
+                },
+                WideTurn::F => match sym {
+                    SymmetryGenerator::SUrf => WideTurn::U,
+                    SymmetryGenerator::SF => WideTurn::F,
+                    SymmetryGenerator::SU => WideTurn::L,
+                    SymmetryGenerator::SMrl => WideTurn::FPrime,
+                },
+                WideTurn::F2 => match sym {
+                    SymmetryGenerator::SUrf => WideTurn::U2,
+                    SymmetryGenerator::SF => WideTurn::F2,
+                    SymmetryGenerator::SU => WideTurn::L2,
+                    SymmetryGenerator::SMrl => WideTurn::F2,
+                },
+                WideTurn::FPrime => match sym {
+                    SymmetryGenerator::SUrf => WideTurn::UPrime,
+                    SymmetryGenerator::SF => WideTurn::FPrime,
+                    SymmetryGenerator::SU => WideTurn::LPrime,
+                    SymmetryGenerator::SMrl => WideTurn::F,
+                },
+                WideTurn::Fw => match sym {
+                    SymmetryGenerator::SUrf => WideTurn::Uw,
+                    SymmetryGenerator::SF => WideTurn::Fw,
+                    SymmetryGenerator::SU => WideTurn::Lw,
+                    SymmetryGenerator::SMrl => WideTurn::FwPrime,
+                },
+                WideTurn::Fw2 => match sym {
+                    SymmetryGenerator::SUrf => WideTurn::Uw2,
+                    SymmetryGenerator::SF => WideTurn::Fw2,
+                    SymmetryGenerator::SU => WideTurn::Lw2,
+                    SymmetryGenerator::SMrl => WideTurn::Fw2,
+                },
+                WideTurn::FwPrime => match sym {
+                    SymmetryGenerator::SUrf => WideTurn::UwPrime,
+                    SymmetryGenerator::SF => WideTurn::FwPrime,
+                    SymmetryGenerator::SU => WideTurn::LwPrime,
+                    SymmetryGenerator::SMrl => WideTurn::Fw,
+                },
+                WideTurn::R => match sym {
+                    SymmetryGenerator::SUrf => WideTurn::F,
+                    SymmetryGenerator::SF => WideTurn::L,
+                    SymmetryGenerator::SU => WideTurn::F,
+                    SymmetryGenerator::SMrl => WideTurn::LPrime,
+                },
+                WideTurn::R2 => match sym {
+                    SymmetryGenerator::SUrf => WideTurn::F2,
+                    SymmetryGenerator::SF => WideTurn::L2,
+                    SymmetryGenerator::SU => WideTurn::F2,
+                    SymmetryGenerator::SMrl => WideTurn::L2,
+                },
+                WideTurn::RPrime => match sym {
+                    SymmetryGenerator::SUrf => WideTurn::FPrime,
+                    SymmetryGenerator::SF => WideTurn::LPrime,
+                    SymmetryGenerator::SU => WideTurn::FPrime,
+                    SymmetryGenerator::SMrl => WideTurn::L,
+                },
+                WideTurn::Rw => match sym {
+                    SymmetryGenerator::SUrf => WideTurn::Fw,
+                    SymmetryGenerator::SF => WideTurn::Lw,
+                    SymmetryGenerator::SU => WideTurn::Fw,
+                    SymmetryGenerator::SMrl => WideTurn::LwPrime,
+                },
+                WideTurn::Rw2 => match sym {
+                    SymmetryGenerator::SUrf => WideTurn::Fw2,
+                    SymmetryGenerator::SF => WideTurn::Lw2,
+                    SymmetryGenerator::SU => WideTurn::Fw2,
+                    SymmetryGenerator::SMrl => WideTurn::Lw2,
+                },
+                WideTurn::RwPrime => match sym {
+                    SymmetryGenerator::SUrf => WideTurn::FwPrime,
+                    SymmetryGenerator::SF => WideTurn::LwPrime,
+                    SymmetryGenerator::SU => WideTurn::FwPrime,
+                    SymmetryGenerator::SMrl => WideTurn::Lw,
+                },
+                WideTurn::B => match sym {
+                    SymmetryGenerator::SUrf => WideTurn::D,
+                    SymmetryGenerator::SF => WideTurn::B,
+                    SymmetryGenerator::SU => WideTurn::R,
+                    SymmetryGenerator::SMrl => WideTurn::BPrime,
+                },
+                WideTurn::B2 => match sym {
+                    SymmetryGenerator::SUrf => WideTurn::D2,
+                    SymmetryGenerator::SF => WideTurn::B2,
+                    SymmetryGenerator::SU => WideTurn::R2,
+                    SymmetryGenerator::SMrl => WideTurn::B2,
+                },
+                WideTurn::BPrime => match sym {
+                    SymmetryGenerator::SUrf => WideTurn::DPrime,
+                    SymmetryGenerator::SF => WideTurn::BPrime,
+                    SymmetryGenerator::SU => WideTurn::RPrime,
+                    SymmetryGenerator::SMrl => WideTurn::B,
+                },
+                WideTurn::Bw => match sym {
+                    SymmetryGenerator::SUrf => WideTurn::Dw,
+                    SymmetryGenerator::SF => WideTurn::Bw,
+                    SymmetryGenerator::SU => WideTurn::Rw,
+                    SymmetryGenerator::SMrl => WideTurn::BwPrime,
+                },
+                WideTurn::Bw2 => match sym {
+                    SymmetryGenerator::SUrf => WideTurn::Dw2,
+                    SymmetryGenerator::SF => WideTurn::Bw2,
+                    SymmetryGenerator::SU => WideTurn::Rw2,
+                    SymmetryGenerator::SMrl => WideTurn::Bw2,
+                },
+                WideTurn::BwPrime => match sym {
+                    SymmetryGenerator::SUrf => WideTurn::DwPrime,
+                    SymmetryGenerator::SF => WideTurn::BwPrime,
+                    SymmetryGenerator::SU => WideTurn::RwPrime,
+                    SymmetryGenerator::SMrl => WideTurn::Bw,
+                },
+                WideTurn::L => match sym {
+                    SymmetryGenerator::SUrf => WideTurn::B,
+                    SymmetryGenerator::SF => WideTurn::R,
+                    SymmetryGenerator::SU => WideTurn::B,
+                    SymmetryGenerator::SMrl => WideTurn::RPrime,
+                },
+                WideTurn::L2 => match sym {
+                    SymmetryGenerator::SUrf => WideTurn::B2,
+                    SymmetryGenerator::SF => WideTurn::R2,
+                    SymmetryGenerator::SU => WideTurn::B2,
+                    SymmetryGenerator::SMrl => WideTurn::R2,
+                },
+                WideTurn::LPrime => match sym {
+                    SymmetryGenerator::SUrf => WideTurn::BPrime,
+                    SymmetryGenerator::SF => WideTurn::RPrime,
+                    SymmetryGenerator::SU => WideTurn::BPrime,
+                    SymmetryGenerator::SMrl => WideTurn::R,
+                },
+                WideTurn::Lw => match sym {
+                    SymmetryGenerator::SUrf => WideTurn::Bw,
+                    SymmetryGenerator::SF => WideTurn::Rw,
+                    SymmetryGenerator::SU => WideTurn::Bw,
+                    SymmetryGenerator::SMrl => WideTurn::RwPrime,
+                },
+                WideTurn::Lw2 => match sym {
+                    SymmetryGenerator::SUrf => WideTurn::Bw2,
+                    SymmetryGenerator::SF => WideTurn::Rw2,
+                    SymmetryGenerator::SU => WideTurn::Bw2,
+                    SymmetryGenerator::SMrl => WideTurn::Rw2,
+                },
+                WideTurn::LwPrime => match sym {
+                    SymmetryGenerator::SUrf => WideTurn::BwPrime,
+                    SymmetryGenerator::SF => WideTurn::RwPrime,
+                    SymmetryGenerator::SU => WideTurn::BwPrime,
+                    SymmetryGenerator::SMrl => WideTurn::Rw,
+                },
+                WideTurn::D => match sym {
+                    SymmetryGenerator::SUrf => WideTurn::L,
+                    SymmetryGenerator::SF => WideTurn::U,
+                    SymmetryGenerator::SU => WideTurn::D,
+                    SymmetryGenerator::SMrl => WideTurn::DPrime,
+                },
+                WideTurn::D2 => match sym {
+                    SymmetryGenerator::SUrf => WideTurn::L2,
+                    SymmetryGenerator::SF => WideTurn::U2,
+                    SymmetryGenerator::SU => WideTurn::D2,
+                    SymmetryGenerator::SMrl => WideTurn::D2,
+                },
+                WideTurn::DPrime => match sym {
+                    SymmetryGenerator::SUrf => WideTurn::LPrime,
+                    SymmetryGenerator::SF => WideTurn::UPrime,
+                    SymmetryGenerator::SU => WideTurn::DPrime,
+                    SymmetryGenerator::SMrl => WideTurn::D,
+                },
+                WideTurn::Dw => match sym {
+                    SymmetryGenerator::SUrf => WideTurn::Lw,
+                    SymmetryGenerator::SF => WideTurn::Uw,
+                    SymmetryGenerator::SU => WideTurn::Dw,
+                    SymmetryGenerator::SMrl => WideTurn::DwPrime,
+                },
+                WideTurn::Dw2 => match sym {
+                    SymmetryGenerator::SUrf => WideTurn::Lw2,
+                    SymmetryGenerator::SF => WideTurn::Uw2,
+                    SymmetryGenerator::SU => WideTurn::Dw2,
+                    SymmetryGenerator::SMrl => WideTurn::Dw2,
+                },
+                WideTurn::DwPrime => match sym {
+                    SymmetryGenerator::SUrf => WideTurn::LwPrime,
+                    SymmetryGenerator::SF => WideTurn::UwPrime,
+                    SymmetryGenerator::SU => WideTurn::DwPrime,
+                    SymmetryGenerator::SMrl => WideTurn::Dw,
+                },
+            }
+        }
+    }
+
+    use super::g1_symmetry_generators::G1SymmetryGenerator;
+    impl EquivalenceClass<G1SymmetryGenerator> for WideTurn {
+        fn get_equivalent(self, sym: &G1SymmetryGenerator) -> WideTurn {
+            match self {
+                WideTurn::U => match sym {
+                    G1SymmetryGenerator::SF => WideTurn::D,
+                    G1SymmetryGenerator::SU => WideTurn::U,
+                    G1SymmetryGenerator::SMrl => WideTurn::UPrime,
+                },
+                WideTurn::U2 => match sym {
+                    G1SymmetryGenerator::SF => WideTurn::D2,
+                    G1SymmetryGenerator::SU => WideTurn::U2,
+                    G1SymmetryGenerator::SMrl => WideTurn::U2,
+                },
+                WideTurn::UPrime => match sym {
+                    G1SymmetryGenerator::SF => WideTurn::DPrime,
+                    G1SymmetryGenerator::SU => WideTurn::UPrime,
+                    G1SymmetryGenerator::SMrl => WideTurn::U,
+                },
+                WideTurn::Uw => match sym {
+                    G1SymmetryGenerator::SF => WideTurn::Dw,
+                    G1SymmetryGenerator::SU => WideTurn::Uw,
+                    G1SymmetryGenerator::SMrl => WideTurn::UwPrime,
+                },
+                WideTurn::Uw2 => match sym {
+                    G1SymmetryGenerator::SF => WideTurn::Dw2,
+                    G1SymmetryGenerator::SU => WideTurn::Uw2,
+                    G1SymmetryGenerator::SMrl => WideTurn::Uw2,
+                },
+                WideTurn::UwPrime => match sym {
+                    G1SymmetryGenerator::SF => WideTurn::DwPrime,
+                    G1SymmetryGenerator::SU => WideTurn::UwPrime,
+                    G1SymmetryGenerator::SMrl => WideTurn::Uw,
+                },
+                WideTurn::F => match sym {
+                    G1SymmetryGenerator::SF => WideTurn::F,
+                    G1SymmetryGenerator::SU => WideTurn::L,
+                    G1SymmetryGenerator::SMrl => WideTurn::FPrime,
+                },
+                WideTurn::F2 => match sym {
+                    G1SymmetryGenerator::SF => WideTurn::F2,
+                    G1SymmetryGenerator::SU => WideTurn::L2,
+                    G1SymmetryGenerator::SMrl => WideTurn::F2,
+                },
+                WideTurn::FPrime => match sym {
+                    G1SymmetryGenerator::SF => WideTurn::FPrime,
+                    G1SymmetryGenerator::SU => WideTurn::LPrime,
+                    G1SymmetryGenerator::SMrl => WideTurn::F,
+                },
+                WideTurn::Fw => match sym {
+                    G1SymmetryGenerator::SF => WideTurn::Fw,
+                    G1SymmetryGenerator::SU => WideTurn::Lw,
+                    G1SymmetryGenerator::SMrl => WideTurn::FwPrime,
+                },
+                WideTurn::Fw2 => match sym {
+                    G1SymmetryGenerator::SF => WideTurn::Fw2,
+                    G1SymmetryGenerator::SU => WideTurn::Lw2,
+                    G1SymmetryGenerator::SMrl => WideTurn::Fw2,
+                },
+                WideTurn::FwPrime => match sym {
+                    G1SymmetryGenerator::SF => WideTurn::FwPrime,
+                    G1SymmetryGenerator::SU => WideTurn::LwPrime,
+                    G1SymmetryGenerator::SMrl => WideTurn::Fw,
+                },
+                WideTurn::R => match sym {
+                    G1SymmetryGenerator::SF => WideTurn::L,
+                    G1SymmetryGenerator::SU => WideTurn::F,
+                    G1SymmetryGenerator::SMrl => WideTurn::LPrime,
+                },
+                WideTurn::R2 => match sym {
+                    G1SymmetryGenerator::SF => WideTurn::L2,
+                    G1SymmetryGenerator::SU => WideTurn::F2,
+                    G1SymmetryGenerator::SMrl => WideTurn::L2,
+                },
+                WideTurn::RPrime => match sym {
+                    G1SymmetryGenerator::SF => WideTurn::LPrime,
+                    G1SymmetryGenerator::SU => WideTurn::FPrime,
+                    G1SymmetryGenerator::SMrl => WideTurn::L,
+                },
+                WideTurn::Rw => match sym {
+                    G1SymmetryGenerator::SF => WideTurn::Lw,
+                    G1SymmetryGenerator::SU => WideTurn::Fw,
+                    G1SymmetryGenerator::SMrl => WideTurn::LwPrime,
+                },
+                WideTurn::Rw2 => match sym {
+                    G1SymmetryGenerator::SF => WideTurn::Lw2,
+                    G1SymmetryGenerator::SU => WideTurn::Fw2,
+                    G1SymmetryGenerator::SMrl => WideTurn::Lw2,
+                },
+                WideTurn::RwPrime => match sym {
+                    G1SymmetryGenerator::SF => WideTurn::LwPrime,
+                    G1SymmetryGenerator::SU => WideTurn::FwPrime,
+                    G1SymmetryGenerator::SMrl => WideTurn::Lw,
+                },
+                WideTurn::B => match sym {
+                    G1SymmetryGenerator::SF => WideTurn::B,
+                    G1SymmetryGenerator::SU => WideTurn::R,
+                    G1SymmetryGenerator::SMrl => WideTurn::BPrime,
+                },
+                WideTurn::B2 => match sym {
+                    G1SymmetryGenerator::SF => WideTurn::B2,
+                    G1SymmetryGenerator::SU => WideTurn::R2,
+                    G1SymmetryGenerator::SMrl => WideTurn::B2,
+                },
+                WideTurn::BPrime => match sym {
+                    G1SymmetryGenerator::SF => WideTurn::BPrime,
+                    G1SymmetryGenerator::SU => WideTurn::RPrime,
+                    G1SymmetryGenerator::SMrl => WideTurn::B,
+                },
+                WideTurn::Bw => match sym {
+                    G1SymmetryGenerator::SF => WideTurn::Bw,
+                    G1SymmetryGenerator::SU => WideTurn::Rw,
+                    G1SymmetryGenerator::SMrl => WideTurn::BwPrime,
+                },
+                WideTurn::Bw2 => match sym {
+                    G1SymmetryGenerator::SF => WideTurn::Bw2,
+                    G1SymmetryGenerator::SU => WideTurn::Rw2,
+                    G1SymmetryGenerator::SMrl => WideTurn::Bw2,
+                },
+                WideTurn::BwPrime => match sym {
+                    G1SymmetryGenerator::SF => WideTurn::BwPrime,
+                    G1SymmetryGenerator::SU => WideTurn::RwPrime,
+                    G1SymmetryGenerator::SMrl => WideTurn::Bw,
+                },
+                WideTurn::L => match sym {
+                    G1SymmetryGenerator::SF => WideTurn::R,
+                    G1SymmetryGenerator::SU => WideTurn::B,
+                    G1SymmetryGenerator::SMrl => WideTurn::RPrime,
+                },
+                WideTurn::L2 => match sym {
+                    G1SymmetryGenerator::SF => WideTurn::R2,
+                    G1SymmetryGenerator::SU => WideTurn::B2,
+                    G1SymmetryGenerator::SMrl => WideTurn::R2,
+                },
+                WideTurn::LPrime => match sym {
+                    G1SymmetryGenerator::SF => WideTurn::RPrime,
+                    G1SymmetryGenerator::SU => WideTurn::BPrime,
+                    G1SymmetryGenerator::SMrl => WideTurn::R,
+                },
+                WideTurn::Lw => match sym {
+                    G1SymmetryGenerator::SF => WideTurn::Rw,
+                    G1SymmetryGenerator::SU => WideTurn::Bw,
+                    G1SymmetryGenerator::SMrl => WideTurn::RwPrime,
+                },
+                WideTurn::Lw2 => match sym {
+                    G1SymmetryGenerator::SF => WideTurn::Rw2,
+                    G1SymmetryGenerator::SU => WideTurn::Bw2,
+                    G1SymmetryGenerator::SMrl => WideTurn::Rw2,
+                },
+                WideTurn::LwPrime => match sym {
+                    G1SymmetryGenerator::SF => WideTurn::RwPrime,
+                    G1SymmetryGenerator::SU => WideTurn::BwPrime,
+                    G1SymmetryGenerator::SMrl => WideTurn::Rw,
+                },
+                WideTurn::D => match sym {
+                    G1SymmetryGenerator::SF => WideTurn::U,
+                    G1SymmetryGenerator::SU => WideTurn::D,
+                    G1SymmetryGenerator::SMrl => WideTurn::DPrime,
+                },
+                WideTurn::D2 => match sym {
+                    G1SymmetryGenerator::SF => WideTurn::U2,
+                    G1SymmetryGenerator::SU => WideTurn::D2,
+                    G1SymmetryGenerator::SMrl => WideTurn::D2,
+                },
+                WideTurn::DPrime => match sym {
+                    G1SymmetryGenerator::SF => WideTurn::UPrime,
+                    G1SymmetryGenerator::SU => WideTurn::DPrime,
+                    G1SymmetryGenerator::SMrl => WideTurn::D,
+                },
+                WideTurn::Dw => match sym {
+                    G1SymmetryGenerator::SF => WideTurn::Uw,
+                    G1SymmetryGenerator::SU => WideTurn::Dw,
+                    G1SymmetryGenerator::SMrl => WideTurn::DwPrime,
+                },
+                WideTurn::Dw2 => match sym {
+                    G1SymmetryGenerator::SF => WideTurn::Uw2,
+                    G1SymmetryGenerator::SU => WideTurn::Dw2,
+                    G1SymmetryGenerator::SMrl => WideTurn::Dw2,
+                },
+                WideTurn::DwPrime => match sym {
+                    G1SymmetryGenerator::SF => WideTurn::UwPrime,
+                    G1SymmetryGenerator::SU => WideTurn::DwPrime,
+                    G1SymmetryGenerator::SMrl => WideTurn::Dw,
+                },
+            }
+        }
+    }
+
+    use super::super::invertable::Invertable;
+    impl Invertable for WideTurn {
+        fn invert(&self) -> WideTurn {
+            match self {
+                WideTurn::U => WideTurn::UPrime,
+                WideTurn::U2 => WideTurn::U2,
+                WideTurn::UPrime => WideTurn::U,
+                WideTurn::Uw => WideTurn::UwPrime,
+                WideTurn::Uw2 => WideTurn::Uw2,
+                WideTurn::UwPrime => WideTurn::Uw,
+                WideTurn::F => WideTurn::FPrime,
+                WideTurn::F2 => WideTurn::F2,
+                WideTurn::FPrime => WideTurn::F,
+                WideTurn::Fw => WideTurn::FwPrime,
+                WideTurn::Fw2 => WideTurn::Fw2,
+                WideTurn::FwPrime => WideTurn::Fw,
+                WideTurn::R => WideTurn::RPrime,
+                WideTurn::R2 => WideTurn::R2,
+                WideTurn::RPrime => WideTurn::R,
+                WideTurn::Rw => WideTurn::RwPrime,
+                WideTurn::Rw2 => WideTurn::Rw2,
+                WideTurn::RwPrime => WideTurn::Rw,
+                WideTurn::B => WideTurn::BPrime,
+                WideTurn::B2 => WideTurn::B2,
+                WideTurn::BPrime => WideTurn::B,
+                WideTurn::Bw => WideTurn::BwPrime,
+                WideTurn::Bw2 => WideTurn::Bw2,
+                WideTurn::BwPrime => WideTurn::Bw,
+                WideTurn::L => WideTurn::LPrime,
+                WideTurn::L2 => WideTurn::L2,
+                WideTurn::LPrime => WideTurn::L,
+                WideTurn::Lw => WideTurn::LwPrime,
+                WideTurn::Lw2 => WideTurn::Lw2,
+                WideTurn::LwPrime => WideTurn::Lw,
+                WideTurn::D => WideTurn::DPrime,
+                WideTurn::D2 => WideTurn::D2,
+                WideTurn::DPrime => WideTurn::D,
+                WideTurn::Dw => WideTurn::DwPrime,
+                WideTurn::Dw2 => WideTurn::Dw2,
+                WideTurn::DwPrime => WideTurn::Dw,
+            }
+        }
+    }
+
+    use super::g1_wide_turns::G1WideTurn;
+    impl From<G1WideTurn> for WideTurn {
+        fn from(t: G1WideTurn) -> WideTurn {
+            match t {
+                G1WideTurn::U => WideTurn::U,
+                G1WideTurn::U2 => WideTurn::U2,
+                G1WideTurn::UPrime => WideTurn::UPrime,
+                G1WideTurn::Uw => WideTurn::Uw,
+                G1WideTurn::Uw2 => WideTurn::Uw2,
+                G1WideTurn::UwPrime => WideTurn::UwPrime,
+                G1WideTurn::F2 => WideTurn::F2,
+                G1WideTurn::Fw2 => WideTurn::Fw2,
+                G1WideTurn::R2 => WideTurn::R2,
+                G1WideTurn::Rw2 => WideTurn::Rw2,
+                G1WideTurn::B2 => WideTurn::B2,
+                G1WideTurn::Bw2 => WideTurn::Bw2,
+                G1WideTurn::L2 => WideTurn::L2,
+                G1WideTurn::Lw2 => WideTurn::Lw2,
+                G1WideTurn::D => WideTurn::D,
+                G1WideTurn::D2 => WideTurn::D2,
+                G1WideTurn::DPrime => WideTurn::DPrime,
+                G1WideTurn::Dw => WideTurn::Dw,
+                G1WideTurn::Dw2 => WideTurn::Dw2,
+                G1WideTurn::DwPrime => WideTurn::DwPrime,
+            }
+        }
+    }
+
+    use super::g1_turns::G1Turn;
+    impl From<G1Turn> for WideTurn {
+        fn from(t: G1Turn) -> WideTurn {
+            match t {
+                G1Turn::U => WideTurn::U,
+                G1Turn::U2 => WideTurn::U2,
+                G1Turn::UPrime => WideTurn::UPrime,
+                G1Turn::F2 => WideTurn::F2,
+                G1Turn::R2 => WideTurn::R2,
+                G1Turn::B2 => WideTurn::B2,
+                G1Turn::L2 => WideTurn::L2,
+                G1Turn::D => WideTurn::D,
+                G1Turn::D2 => WideTurn::D2,
+                G1Turn::DPrime => WideTurn::DPrime,
+            }
+        }
+    }
+
+    use super::quarter_turns::QuarterTurn;
+    impl From<QuarterTurn> for WideTurn {
+        fn from(t: QuarterTurn) -> WideTurn {
+            match t {
+                QuarterTurn::U => WideTurn::U,
+                QuarterTurn::UPrime => WideTurn::UPrime,
+                QuarterTurn::F => WideTurn::F,
+                QuarterTurn::FPrime => WideTurn::FPrime,
+                QuarterTurn::R => WideTurn::R,
+                QuarterTurn::RPrime => WideTurn::RPrime,
+                QuarterTurn::B => WideTurn::B,
+                QuarterTurn::BPrime => WideTurn::BPrime,
+                QuarterTurn::L => WideTurn::L,
+                QuarterTurn::LPrime => WideTurn::LPrime,
+                QuarterTurn::D => WideTurn::D,
+                QuarterTurn::DPrime => WideTurn::DPrime,
+            }
+        }
+    }
+
+    use super::symmetry_generators::SymGenList;
+    impl EquivalenceClass<SymGenList> for WideTurn {
+        fn get_equivalent(self, sym_gen_list: &SymGenList) -> WideTurn {
+            let mut t = self;
+            for x in &sym_gen_list.0 {
+                t = t.get_equivalent(x);
+            }
+            t
+        }
+    }
+
+    use super::g1_symmetry_generators::G1SymGenList;
+    impl EquivalenceClass<G1SymGenList> for WideTurn {
+        fn get_equivalent(self, sym_gen_list: &G1SymGenList) -> WideTurn {
+            let mut t = self;
+            for x in &sym_gen_list.0 {
+                t = t.get_equivalent(x);
+            }
+            t
+        }
+    }
+}
+
 pub mod g1_turns {
     #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash, Serialize, Deserialize)]
     pub enum G1Turn {
@@ -627,6 +1214,198 @@ pub mod g1_turns {
     use super::g1_symmetry_generators::G1SymGenList;
     impl EquivalenceClass<G1SymGenList> for G1Turn {
         fn get_equivalent(self, g1_sym_gen_list: &G1SymGenList) -> G1Turn {
+            let mut t = self;
+            for x in &g1_sym_gen_list.0 {
+                t = t.get_equivalent(x);
+            }
+            t
+        }
+    }
+}
+
+pub mod g1_wide_turns {
+    #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash, Serialize, Deserialize)]
+    pub enum G1WideTurn {
+        U,
+        U2,
+        UPrime,
+        Uw,
+        Uw2,
+        UwPrime,
+        F2,
+        Fw2,
+        R2,
+        Rw2,
+        B2,
+        Bw2,
+        L2,
+        Lw2,
+        D,
+        D2,
+        DPrime,
+        Dw,
+        Dw2,
+        DwPrime,
+    }
+
+    use super::super::equivalence_class::EquivalenceClass;
+    use super::g1_symmetry_generators::G1SymmetryGenerator;
+    impl EquivalenceClass<G1SymmetryGenerator> for G1WideTurn {
+        fn get_equivalent(self, sym: &G1SymmetryGenerator) -> G1WideTurn {
+            match self {
+                G1WideTurn::U => match sym {
+                    G1SymmetryGenerator::SF => G1WideTurn::D,
+                    G1SymmetryGenerator::SU => G1WideTurn::U,
+                    G1SymmetryGenerator::SMrl => G1WideTurn::UPrime,
+                },
+                G1WideTurn::U2 => match sym {
+                    G1SymmetryGenerator::SF => G1WideTurn::D2,
+                    G1SymmetryGenerator::SU => G1WideTurn::U2,
+                    G1SymmetryGenerator::SMrl => G1WideTurn::U2,
+                },
+                G1WideTurn::UPrime => match sym {
+                    G1SymmetryGenerator::SF => G1WideTurn::DPrime,
+                    G1SymmetryGenerator::SU => G1WideTurn::UPrime,
+                    G1SymmetryGenerator::SMrl => G1WideTurn::U,
+                },
+                G1WideTurn::Uw => match sym {
+                    G1SymmetryGenerator::SF => G1WideTurn::Dw,
+                    G1SymmetryGenerator::SU => G1WideTurn::Uw,
+                    G1SymmetryGenerator::SMrl => G1WideTurn::UwPrime,
+                },
+                G1WideTurn::Uw2 => match sym {
+                    G1SymmetryGenerator::SF => G1WideTurn::Dw2,
+                    G1SymmetryGenerator::SU => G1WideTurn::Uw2,
+                    G1SymmetryGenerator::SMrl => G1WideTurn::Uw2,
+                },
+                G1WideTurn::UwPrime => match sym {
+                    G1SymmetryGenerator::SF => G1WideTurn::DwPrime,
+                    G1SymmetryGenerator::SU => G1WideTurn::UwPrime,
+                    G1SymmetryGenerator::SMrl => G1WideTurn::Uw,
+                },
+                G1WideTurn::F2 => match sym {
+                    G1SymmetryGenerator::SF => G1WideTurn::F2,
+                    G1SymmetryGenerator::SU => G1WideTurn::L2,
+                    G1SymmetryGenerator::SMrl => G1WideTurn::F2,
+                },
+                G1WideTurn::Fw2 => match sym {
+                    G1SymmetryGenerator::SF => G1WideTurn::Fw2,
+                    G1SymmetryGenerator::SU => G1WideTurn::Lw2,
+                    G1SymmetryGenerator::SMrl => G1WideTurn::Fw2,
+                },
+                G1WideTurn::R2 => match sym {
+                    G1SymmetryGenerator::SF => G1WideTurn::L2,
+                    G1SymmetryGenerator::SU => G1WideTurn::F2,
+                    G1SymmetryGenerator::SMrl => G1WideTurn::L2,
+                },
+                G1WideTurn::Rw2 => match sym {
+                    G1SymmetryGenerator::SF => G1WideTurn::Lw2,
+                    G1SymmetryGenerator::SU => G1WideTurn::Fw2,
+                    G1SymmetryGenerator::SMrl => G1WideTurn::Lw2,
+                },
+                G1WideTurn::B2 => match sym {
+                    G1SymmetryGenerator::SF => G1WideTurn::B2,
+                    G1SymmetryGenerator::SU => G1WideTurn::R2,
+                    G1SymmetryGenerator::SMrl => G1WideTurn::B2,
+                },
+                G1WideTurn::Bw2 => match sym {
+                    G1SymmetryGenerator::SF => G1WideTurn::Bw2,
+                    G1SymmetryGenerator::SU => G1WideTurn::Rw2,
+                    G1SymmetryGenerator::SMrl => G1WideTurn::Bw2,
+                },
+                G1WideTurn::L2 => match sym {
+                    G1SymmetryGenerator::SF => G1WideTurn::R2,
+                    G1SymmetryGenerator::SU => G1WideTurn::B2,
+                    G1SymmetryGenerator::SMrl => G1WideTurn::R2,
+                },
+                G1WideTurn::Lw2 => match sym {
+                    G1SymmetryGenerator::SF => G1WideTurn::Rw2,
+                    G1SymmetryGenerator::SU => G1WideTurn::Bw2,
+                    G1SymmetryGenerator::SMrl => G1WideTurn::Rw2,
+                },
+                G1WideTurn::D => match sym {
+                    G1SymmetryGenerator::SF => G1WideTurn::U,
+                    G1SymmetryGenerator::SU => G1WideTurn::D,
+                    G1SymmetryGenerator::SMrl => G1WideTurn::DPrime,
+                },
+                G1WideTurn::D2 => match sym {
+                    G1SymmetryGenerator::SF => G1WideTurn::U2,
+                    G1SymmetryGenerator::SU => G1WideTurn::D2,
+                    G1SymmetryGenerator::SMrl => G1WideTurn::D2,
+                },
+                G1WideTurn::DPrime => match sym {
+                    G1SymmetryGenerator::SF => G1WideTurn::UPrime,
+                    G1SymmetryGenerator::SU => G1WideTurn::DPrime,
+                    G1SymmetryGenerator::SMrl => G1WideTurn::D,
+                },
+                G1WideTurn::Dw => match sym {
+                    G1SymmetryGenerator::SF => G1WideTurn::Uw,
+                    G1SymmetryGenerator::SU => G1WideTurn::Dw,
+                    G1SymmetryGenerator::SMrl => G1WideTurn::DwPrime,
+                },
+                G1WideTurn::Dw2 => match sym {
+                    G1SymmetryGenerator::SF => G1WideTurn::Uw2,
+                    G1SymmetryGenerator::SU => G1WideTurn::Dw2,
+                    G1SymmetryGenerator::SMrl => G1WideTurn::Dw2,
+                },
+                G1WideTurn::DwPrime => match sym {
+                    G1SymmetryGenerator::SF => G1WideTurn::UwPrime,
+                    G1SymmetryGenerator::SU => G1WideTurn::DwPrime,
+                    G1SymmetryGenerator::SMrl => G1WideTurn::Dw,
+                },
+            }
+        }
+    }
+
+    use super::super::invertable::Invertable;
+    impl Invertable for G1WideTurn {
+        fn invert(&self) -> G1WideTurn {
+            match self {
+                G1WideTurn::U => G1WideTurn::UPrime,
+                G1WideTurn::U2 => G1WideTurn::U2,
+                G1WideTurn::UPrime => G1WideTurn::U,
+                G1WideTurn::Uw => G1WideTurn::UwPrime,
+                G1WideTurn::Uw2 => G1WideTurn::Uw2,
+                G1WideTurn::UwPrime => G1WideTurn::Uw,
+                G1WideTurn::F2 => G1WideTurn::F2,
+                G1WideTurn::Fw2 => G1WideTurn::Fw2,
+                G1WideTurn::R2 => G1WideTurn::R2,
+                G1WideTurn::Rw2 => G1WideTurn::Rw2,
+                G1WideTurn::B2 => G1WideTurn::B2,
+                G1WideTurn::Bw2 => G1WideTurn::Bw2,
+                G1WideTurn::L2 => G1WideTurn::L2,
+                G1WideTurn::Lw2 => G1WideTurn::Lw2,
+                G1WideTurn::D => G1WideTurn::DPrime,
+                G1WideTurn::D2 => G1WideTurn::D2,
+                G1WideTurn::DPrime => G1WideTurn::D,
+                G1WideTurn::Dw => G1WideTurn::DwPrime,
+                G1WideTurn::Dw2 => G1WideTurn::Dw2,
+                G1WideTurn::DwPrime => G1WideTurn::Dw,
+            }
+        }
+    }
+
+    use super::g1_turns::G1Turn;
+    impl From<G1Turn> for G1WideTurn {
+        fn from(t: G1Turn) -> G1WideTurn {
+            match t {
+                G1Turn::U => G1WideTurn::U,
+                G1Turn::U2 => G1WideTurn::U2,
+                G1Turn::UPrime => G1WideTurn::UPrime,
+                G1Turn::F2 => G1WideTurn::F2,
+                G1Turn::R2 => G1WideTurn::R2,
+                G1Turn::B2 => G1WideTurn::B2,
+                G1Turn::L2 => G1WideTurn::L2,
+                G1Turn::D => G1WideTurn::D,
+                G1Turn::D2 => G1WideTurn::D2,
+                G1Turn::DPrime => G1WideTurn::DPrime,
+            }
+        }
+    }
+
+    use super::g1_symmetry_generators::G1SymGenList;
+    impl EquivalenceClass<G1SymGenList> for G1WideTurn {
+        fn get_equivalent(self, g1_sym_gen_list: &G1SymGenList) -> G1WideTurn {
             let mut t = self;
             for x in &g1_sym_gen_list.0 {
                 t = t.get_equivalent(x);
