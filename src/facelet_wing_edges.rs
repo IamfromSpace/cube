@@ -128,14 +128,19 @@ const U2: FaceletWingEdges = FaceletWingEdges(permute_arr(&U.0, &U.0));
 
 const U_PRIME: FaceletWingEdges = FaceletWingEdges(arr_inv(&U.0));
 
+#[allow(non_upper_case_globals)]
 const u: FaceletWingEdges = FaceletWingEdges([0, 1, 2, 3, 4, 5, 6, 7, 16, 9, 10, 19, 12, 13, 14, 15, 24, 17, 18, 27, 20, 21, 22, 23, 32, 25, 26, 35, 28, 29, 30, 31, 8, 33, 34, 11, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47]);
 
+#[allow(non_upper_case_globals)]
 const u_PRIME: FaceletWingEdges = FaceletWingEdges(arr_inv(&u.0));
 
+#[allow(non_upper_case_globals)]
 const Uw: FaceletWingEdges = FaceletWingEdges(permute_arr(&U.0, &u.0));
 
+#[allow(non_upper_case_globals)]
 const Uw2: FaceletWingEdges = FaceletWingEdges(permute_arr(&Uw.0, &Uw.0));
 
+#[allow(non_upper_case_globals)]
 const Uw_PRIME: FaceletWingEdges = FaceletWingEdges(arr_inv(&Uw.0));
 
 use super::move_sets::wide_turns::WideTurn;
