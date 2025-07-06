@@ -59,6 +59,19 @@ const U2: CoordWingEdges = CoordWingEdges(permute_arr(&U.0, &U.0));
 
 const U_PRIME: CoordWingEdges = CoordWingEdges(arr_inv(&U.0));
 
+// 8 -> 9 -> 10 -> 11
+#[allow(non_upper_case_globals)]
+const u_SLICE: CoordWingEdges = CoordWingEdges([0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 8, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]);
+
+#[allow(non_upper_case_globals)]
+const Uw: CoordWingEdges = CoordWingEdges(permute_arr(&U.0, &u_SLICE.0));
+
+#[allow(non_upper_case_globals)]
+const Uw2: CoordWingEdges = CoordWingEdges(permute_arr(&Uw.0, &Uw.0));
+
+#[allow(non_upper_case_globals)]
+const Uw_PRIME: CoordWingEdges = CoordWingEdges(arr_inv(&Uw.0));
+
 // 11 -> 5 -> 13 -> 17
 // 12 -> 6 -> 10 -> 18
 const F: CoordWingEdges = CoordWingEdges([0, 1, 2, 3, 4, 13, 10, 7, 8, 9, 18, 5, 6, 17, 14, 15, 16, 11, 12, 19, 20, 21, 22, 23]);
@@ -66,6 +79,19 @@ const F: CoordWingEdges = CoordWingEdges([0, 1, 2, 3, 4, 13, 10, 7, 8, 9, 18, 5,
 const F2: CoordWingEdges = CoordWingEdges(permute_arr(&F.0, &F.0));
 
 const F_PRIME: CoordWingEdges = CoordWingEdges(arr_inv(&F.0));
+
+// 7 -> 4 -> 19 -> 16
+#[allow(non_upper_case_globals)]
+const f_SLICE: CoordWingEdges = CoordWingEdges([0, 1, 2, 3, 19, 5, 6, 4, 8, 9, 10, 11, 12, 13, 14, 15, 7, 17, 18, 16, 20, 21, 22, 23]);
+
+#[allow(non_upper_case_globals)]
+const Fw: CoordWingEdges = CoordWingEdges(permute_arr(&F.0, &f_SLICE.0));
+
+#[allow(non_upper_case_globals)]
+const Fw2: CoordWingEdges = CoordWingEdges(permute_arr(&Fw.0, &Fw.0));
+
+#[allow(non_upper_case_globals)]
+const Fw_PRIME: CoordWingEdges = CoordWingEdges(arr_inv(&Fw.0));
 
 // 8 -> 7 -> 12 -> 23
 // 15 -> 0 -> 11 -> 16
@@ -75,6 +101,19 @@ const R2: CoordWingEdges = CoordWingEdges(permute_arr(&R.0, &R.0));
 
 const R_PRIME: CoordWingEdges = CoordWingEdges(arr_inv(&R.0));
 
+ // 1 -> 6 -> 17 -> 22
+#[allow(non_upper_case_globals)]
+const r_SLICE: CoordWingEdges = CoordWingEdges([0, 6, 2, 3, 4, 5, 17, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 22, 18, 19, 20, 21, 1, 23]);
+
+#[allow(non_upper_case_globals)]
+const Rw: CoordWingEdges = CoordWingEdges(permute_arr(&R.0, &r_SLICE.0));
+
+#[allow(non_upper_case_globals)]
+const Rw2: CoordWingEdges = CoordWingEdges(permute_arr(&Rw.0, &Rw.0));
+
+#[allow(non_upper_case_globals)]
+const Rw_PRIME: CoordWingEdges = CoordWingEdges(arr_inv(&Rw.0));
+
 // 1 -> 15 -> 21 -> 9
 // 2 -> 8 -> 22 -> 14
 const B: CoordWingEdges = CoordWingEdges([0, 15, 8, 3, 4, 5, 6, 7, 22, 1, 10, 11, 12, 13, 2, 21, 16, 17, 18, 19, 20, 9, 14, 23]);
@@ -82,6 +121,19 @@ const B: CoordWingEdges = CoordWingEdges([0, 15, 8, 3, 4, 5, 6, 7, 22, 1, 10, 11
 const B2: CoordWingEdges = CoordWingEdges(permute_arr(&B.0, &B.0));
 
 const B_PRIME: CoordWingEdges = CoordWingEdges(arr_inv(&B.0));
+
+//  3 -> 0 -> 23 -> 20
+#[allow(non_upper_case_globals)]
+const b_SLICE: CoordWingEdges = CoordWingEdges([23, 1, 2, 0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 3, 21, 22, 20]);
+
+#[allow(non_upper_case_globals)]
+const Bw: CoordWingEdges = CoordWingEdges(permute_arr(&B.0, &b_SLICE.0));
+
+#[allow(non_upper_case_globals)]
+const Bw2: CoordWingEdges = CoordWingEdges(permute_arr(&Bw.0, &Bw.0));
+
+#[allow(non_upper_case_globals)]
+const Bw_PRIME: CoordWingEdges = CoordWingEdges(arr_inv(&Bw.0));
 
 // 3 -> 14 -> 19 -> 10
 // 4 -> 9 -> 20 -> 13
@@ -91,6 +143,19 @@ const L2: CoordWingEdges = CoordWingEdges(permute_arr(&L.0, &L.0));
 
 const L_PRIME: CoordWingEdges = CoordWingEdges(arr_inv(&L.0));
 
+ // 2 -> 21 -> 18 -> 5
+#[allow(non_upper_case_globals)]
+const l_SLICE: CoordWingEdges = CoordWingEdges([0, 1, 21, 3, 4, 2, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 5, 19, 20, 18, 22, 23]);
+
+#[allow(non_upper_case_globals)]
+const Lw: CoordWingEdges = CoordWingEdges(permute_arr(&L.0, &l_SLICE.0));
+
+#[allow(non_upper_case_globals)]
+const Lw2: CoordWingEdges = CoordWingEdges(permute_arr(&Lw.0, &Lw.0));
+
+#[allow(non_upper_case_globals)]
+const Lw_PRIME: CoordWingEdges = CoordWingEdges(arr_inv(&Lw.0));
+
 // 16 -> 18 -> 20 -> 22
 // 17 -> 19 -> 21 -> 23
 const D: CoordWingEdges = CoordWingEdges([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 18, 19, 20, 21, 22, 23, 16, 17]);
@@ -99,6 +164,19 @@ const D2: CoordWingEdges = CoordWingEdges(permute_arr(&D.0, &D.0));
 
 const D_PRIME: CoordWingEdges = CoordWingEdges(arr_inv(&D.0));
 
+// 12 -> 13 -> 14 -> 15
+#[allow(non_upper_case_globals)]
+const d_SLICE: CoordWingEdges = CoordWingEdges([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 12, 16, 17, 18, 19, 20, 21, 22, 23]);
+
+#[allow(non_upper_case_globals)]
+const Dw: CoordWingEdges = CoordWingEdges(permute_arr(&D.0, &d_SLICE.0));
+
+#[allow(non_upper_case_globals)]
+const Dw2: CoordWingEdges = CoordWingEdges(permute_arr(&Dw.0, &Dw.0));
+
+#[allow(non_upper_case_globals)]
+const Dw_PRIME: CoordWingEdges = CoordWingEdges(arr_inv(&Dw.0));
+
 use super::move_sets::wide_turns::WideTurn;
 impl From<WideTurn> for CoordWingEdges {
     fn from(wt: WideTurn) -> CoordWingEdges {
@@ -106,22 +184,39 @@ impl From<WideTurn> for CoordWingEdges {
             WideTurn::U => U,
             WideTurn::U2 => U2,
             WideTurn::UPrime => U_PRIME,
+            WideTurn::Uw => Uw,
+            WideTurn::Uw2 => Uw2,
+            WideTurn::UwPrime => Uw_PRIME,
             WideTurn::F => F,
             WideTurn::F2 => F2,
             WideTurn::FPrime => F_PRIME,
+            WideTurn::Fw => Fw,
+            WideTurn::Fw2 => Fw2,
+            WideTurn::FwPrime => Fw_PRIME,
             WideTurn::R => R,
             WideTurn::R2 => R2,
             WideTurn::RPrime => R_PRIME,
+            WideTurn::Rw => Rw,
+            WideTurn::Rw2 => Rw2,
+            WideTurn::RwPrime => Rw_PRIME,
             WideTurn::B => B,
             WideTurn::B2 => B2,
             WideTurn::BPrime => B_PRIME,
+            WideTurn::Bw => Bw,
+            WideTurn::Bw2 => Bw2,
+            WideTurn::BwPrime => Bw_PRIME,
             WideTurn::L => L,
             WideTurn::L2 => L2,
             WideTurn::LPrime => L_PRIME,
+            WideTurn::Lw => Lw,
+            WideTurn::Lw2 => Lw2,
+            WideTurn::LwPrime => Lw_PRIME,
             WideTurn::D => D,
             WideTurn::D2 => D2,
             WideTurn::DPrime => D_PRIME,
-            _ => todo!(),
+            WideTurn::Dw => Dw,
+            WideTurn::Dw2 => Dw2,
+            WideTurn::DwPrime => Dw_PRIME,
         }
     }
 }
