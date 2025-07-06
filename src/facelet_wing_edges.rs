@@ -185,6 +185,7 @@ const B2: FaceletWingEdges = FaceletWingEdges(permute_arr(&B.0, &B.0));
 
 const B_PRIME: FaceletWingEdges = FaceletWingEdges(arr_inv(&B.0));
 
+#[allow(non_upper_case_globals)]
 const b_SLICE: FaceletWingEdges = FaceletWingEdges([22, 1, 2, 17, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 47, 18, 19, 20, 21, 44, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 0, 35, 36, 3, 38, 39, 40, 41, 42, 43, 34, 45, 46, 37]);
 
 #[allow(non_upper_case_globals)]
@@ -202,6 +203,7 @@ const L2: FaceletWingEdges = FaceletWingEdges(permute_arr(&L.0, &L.0));
 
 const L_PRIME: FaceletWingEdges = FaceletWingEdges(arr_inv(&L.0));
 
+#[allow(non_upper_case_globals)]
 const l_SLICE: FaceletWingEdges = FaceletWingEdges([0, 1, 30, 3, 4, 25, 6, 7, 8, 9, 2, 11, 12, 5, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 45, 26, 27, 28, 29, 42, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 10, 43, 44, 13, 46, 47]);
 
 #[allow(non_upper_case_globals)]
