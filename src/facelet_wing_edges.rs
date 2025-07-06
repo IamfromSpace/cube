@@ -179,6 +179,23 @@ const Rw2: FaceletWingEdges = FaceletWingEdges(permute_arr(&Rw.0, &Rw.0));
 #[allow(non_upper_case_globals)]
 const Rw_PRIME: FaceletWingEdges = FaceletWingEdges(arr_inv(&Rw.0));
 
+const B: FaceletWingEdges = FaceletWingEdges([0, 23, 16, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 46, 17, 18, 19, 20, 21, 22, 45, 26, 27, 28, 29, 30, 31, 24, 25, 32, 33, 34, 1, 2, 37, 38, 39, 40, 41, 42, 43, 44, 35, 36, 47]);
+
+const B2: FaceletWingEdges = FaceletWingEdges(permute_arr(&B.0, &B.0));
+
+const B_PRIME: FaceletWingEdges = FaceletWingEdges(arr_inv(&B.0));
+
+const b_SLICE: FaceletWingEdges = FaceletWingEdges([22, 1, 2, 17, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 47, 18, 19, 20, 21, 44, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 0, 35, 36, 3, 38, 39, 40, 41, 42, 43, 34, 45, 46, 37]);
+
+#[allow(non_upper_case_globals)]
+const Bw: FaceletWingEdges = FaceletWingEdges(permute_arr(&B.0, &b_SLICE.0));
+
+#[allow(non_upper_case_globals)]
+const Bw2: FaceletWingEdges = FaceletWingEdges(permute_arr(&Bw.0, &Bw.0));
+
+#[allow(non_upper_case_globals)]
+const Bw_PRIME: FaceletWingEdges = FaceletWingEdges(arr_inv(&Bw.0));
+
 use super::move_sets::wide_turns::WideTurn;
 impl From<WideTurn> for FaceletWingEdges {
     fn from(wt: WideTurn) -> FaceletWingEdges {
@@ -201,6 +218,12 @@ impl From<WideTurn> for FaceletWingEdges {
             WideTurn::Rw => Rw,
             WideTurn::Rw2 => Rw2,
             WideTurn::RwPrime => Rw_PRIME,
+            WideTurn::B => B,
+            WideTurn::B2 => B2,
+            WideTurn::BPrime => B_PRIME,
+            WideTurn::Bw => Bw,
+            WideTurn::Bw2 => Bw2,
+            WideTurn::BwPrime => Bw_PRIME,
             _ => I,
         }
     }
