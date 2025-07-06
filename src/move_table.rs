@@ -102,11 +102,11 @@ fn greatest_equivalence<Perm: Ord + PG + Copy + EquivalenceClass<Sym>, Sym: Clon
  * Yr is the symmetry reduced case
  * so:
  * Y = X * T
- * Yr = Sr' * Y * Sr'
- * Yr = Sr' * X * T * Sr'
+ * Yr = Sr' * Y * Sr
+ * Yr = Sr' * X * T * Sr
  *
  * Now we can find the turn that returns us to X
- * Yr * Sr' = Sr' * X * T * Sr' * Sr
+ * Yr * Sr' = Sr' * X * T * Sr * Sr'
  * Yr * Sr' = Sr' * X * T
  * Yr * Sr' * T' = Sr' * X
  * Yr * Sr' * T' * Sr = Sr' * X * Sr
