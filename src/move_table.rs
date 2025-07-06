@@ -165,21 +165,21 @@ fn greatest_equivalence<Perm: Ord + PG + Copy + EquivalenceClass<Sym>, Sym: Clon
  * 0000
  * 0001
  * 0010
- * 0100 -> 0010
- * 1000 -> 0001
+ * 0100 -> 0010 (just reverse)
+ * 1000 -> 0001 (just reverse)
  * 0011
  * 0101
- * 1001 -> 0110
+ * 1001 -> 0110 (just flip)
  * 0110
- * 1010 -> 0101
- * 1100 -> 0011
- * 0111 -> 0001
- * 1011 -> 0010
- * 1101 -> 0010
- * 1110 -> 0001
- * 1111 -> 0000
+ * 1010 -> 0101 (just reverse)
+ * 1100 -> 0011 (just reverse)
+ * 0111 -> 0001 (flip then reverse)
+ * 1011 -> 0010 (flip then reverse)
+ * 1101 -> 0010 (just flip)
+ * 1110 -> 0001 (just flip)
+ * 1111 -> 0000 (just flip)
  *
- * this leaves us with six cases that we want to discover:
+ * this leaves us with six unique cases that we want to discover:
  * 0000
  * 0001
  * 0010
