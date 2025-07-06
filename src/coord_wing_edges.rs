@@ -55,36 +55,72 @@ impl PermutationGroup for CoordWingEdges {}
 // 2 -> 4 -> 6 -> 0
 const U: CoordWingEdges = CoordWingEdges([2, 3, 4, 5, 6, 7, 0, 1, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]);
 
+const U2: CoordWingEdges = CoordWingEdges(permute_arr(&U.0, &U.0));
+
+const U_PRIME: CoordWingEdges = CoordWingEdges(arr_inv(&U.0));
+
 // 11 -> 5 -> 13 -> 17
 // 12 -> 6 -> 10 -> 18
 const F: CoordWingEdges = CoordWingEdges([0, 1, 2, 3, 4, 13, 10, 7, 8, 9, 18, 5, 6, 17, 14, 15, 16, 11, 12, 19, 20, 21, 22, 23]);
+
+const F2: CoordWingEdges = CoordWingEdges(permute_arr(&F.0, &F.0));
+
+const F_PRIME: CoordWingEdges = CoordWingEdges(arr_inv(&F.0));
 
 // 8 -> 7 -> 12 -> 23
 // 15 -> 0 -> 11 -> 16
 const R: CoordWingEdges = CoordWingEdges([11, 1, 2, 3, 4, 5, 6, 12, 7, 9, 10, 16, 23, 13, 14, 0, 15, 17, 18, 19, 20, 21, 22, 8]);
 
+const R2: CoordWingEdges = CoordWingEdges(permute_arr(&R.0, &R.0));
+
+const R_PRIME: CoordWingEdges = CoordWingEdges(arr_inv(&R.0));
+
 // 1 -> 15 -> 21 -> 9
 // 2 -> 8 -> 22 -> 14
 const B: CoordWingEdges = CoordWingEdges([0, 15, 8, 3, 4, 5, 6, 7, 22, 1, 10, 11, 12, 13, 2, 21, 16, 17, 18, 19, 20, 9, 14, 23]);
+
+const B2: CoordWingEdges = CoordWingEdges(permute_arr(&B.0, &B.0));
+
+const B_PRIME: CoordWingEdges = CoordWingEdges(arr_inv(&B.0));
 
 // 3 -> 14 -> 19 -> 10
 // 4 -> 9 -> 20 -> 13
 const L: CoordWingEdges = CoordWingEdges([0, 1, 2, 14, 9, 5, 6, 7, 8, 20, 3, 11, 12, 4, 19, 15, 16, 17, 18, 10, 13, 21, 22, 23]);
 
+const L2: CoordWingEdges = CoordWingEdges(permute_arr(&L.0, &L.0));
+
+const L_PRIME: CoordWingEdges = CoordWingEdges(arr_inv(&L.0));
+
 // 16 -> 18 -> 20 -> 22
 // 17 -> 19 -> 21 -> 23
 const D: CoordWingEdges = CoordWingEdges([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 18, 19, 20, 21, 22, 23, 16, 17]);
+
+const D2: CoordWingEdges = CoordWingEdges(permute_arr(&D.0, &D.0));
+
+const D_PRIME: CoordWingEdges = CoordWingEdges(arr_inv(&D.0));
 
 use super::move_sets::wide_turns::WideTurn;
 impl From<WideTurn> for CoordWingEdges {
     fn from(wt: WideTurn) -> CoordWingEdges {
         match wt {
             WideTurn::U => U,
+            WideTurn::U2 => U2,
+            WideTurn::UPrime => U_PRIME,
             WideTurn::F => F,
+            WideTurn::F2 => F2,
+            WideTurn::FPrime => F_PRIME,
             WideTurn::R => R,
+            WideTurn::R2 => R2,
+            WideTurn::RPrime => R_PRIME,
             WideTurn::B => B,
+            WideTurn::B2 => B2,
+            WideTurn::BPrime => B_PRIME,
             WideTurn::L => L,
+            WideTurn::L2 => L2,
+            WideTurn::LPrime => L_PRIME,
             WideTurn::D => D,
+            WideTurn::D2 => D2,
+            WideTurn::DPrime => D_PRIME,
             _ => todo!(),
         }
     }
