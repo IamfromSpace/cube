@@ -12,6 +12,7 @@ mod equivalence_class;
 mod facelet_cube;
 mod facelet_wing_edges;
 mod coord_cube;
+mod coord_wing_edges;
 mod g1_coord_cube;
 mod g1_coord_cube_compact;
 mod cubie_orientations_and_ud_slice;

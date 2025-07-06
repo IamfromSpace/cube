@@ -35,7 +35,7 @@ use std::fmt;
  */
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)] //, Serialize, Deserialize)] 48 elements not derivable
-pub struct FaceletWingEdges([u8; 48]);
+pub struct FaceletWingEdges(pub [u8; 48]);
 
 impl fmt::Display for FaceletWingEdges {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
