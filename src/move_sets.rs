@@ -1037,9 +1037,7 @@ pub mod wide_turns {
                 G1WideTurn::U => WideTurn::U,
                 G1WideTurn::U2 => WideTurn::U2,
                 G1WideTurn::UPrime => WideTurn::UPrime,
-                G1WideTurn::Uw => WideTurn::Uw,
                 G1WideTurn::Uw2 => WideTurn::Uw2,
-                G1WideTurn::UwPrime => WideTurn::UwPrime,
                 G1WideTurn::F2 => WideTurn::F2,
                 G1WideTurn::Fw2 => WideTurn::Fw2,
                 G1WideTurn::R2 => WideTurn::R2,
@@ -1051,9 +1049,7 @@ pub mod wide_turns {
                 G1WideTurn::D => WideTurn::D,
                 G1WideTurn::D2 => WideTurn::D2,
                 G1WideTurn::DPrime => WideTurn::DPrime,
-                G1WideTurn::Dw => WideTurn::Dw,
                 G1WideTurn::Dw2 => WideTurn::Dw2,
-                G1WideTurn::DwPrime => WideTurn::DwPrime,
             }
         }
     }
@@ -1229,9 +1225,7 @@ pub mod g1_wide_turns {
         U,
         U2,
         UPrime,
-        Uw,
         Uw2,
-        UwPrime,
         F2,
         Fw2,
         R2,
@@ -1243,9 +1237,7 @@ pub mod g1_wide_turns {
         D,
         D2,
         DPrime,
-        Dw,
         Dw2,
-        DwPrime,
     }
 
     use super::super::equivalence_class::EquivalenceClass;
@@ -1268,20 +1260,10 @@ pub mod g1_wide_turns {
                     G1SymmetryGenerator::SU => G1WideTurn::UPrime,
                     G1SymmetryGenerator::SMrl => G1WideTurn::U,
                 },
-                G1WideTurn::Uw => match sym {
-                    G1SymmetryGenerator::SF => G1WideTurn::Dw,
-                    G1SymmetryGenerator::SU => G1WideTurn::Uw,
-                    G1SymmetryGenerator::SMrl => G1WideTurn::UwPrime,
-                },
                 G1WideTurn::Uw2 => match sym {
                     G1SymmetryGenerator::SF => G1WideTurn::Dw2,
                     G1SymmetryGenerator::SU => G1WideTurn::Uw2,
                     G1SymmetryGenerator::SMrl => G1WideTurn::Uw2,
-                },
-                G1WideTurn::UwPrime => match sym {
-                    G1SymmetryGenerator::SF => G1WideTurn::DwPrime,
-                    G1SymmetryGenerator::SU => G1WideTurn::UwPrime,
-                    G1SymmetryGenerator::SMrl => G1WideTurn::Uw,
                 },
                 G1WideTurn::F2 => match sym {
                     G1SymmetryGenerator::SF => G1WideTurn::F2,
@@ -1338,20 +1320,10 @@ pub mod g1_wide_turns {
                     G1SymmetryGenerator::SU => G1WideTurn::DPrime,
                     G1SymmetryGenerator::SMrl => G1WideTurn::D,
                 },
-                G1WideTurn::Dw => match sym {
-                    G1SymmetryGenerator::SF => G1WideTurn::Uw,
-                    G1SymmetryGenerator::SU => G1WideTurn::Dw,
-                    G1SymmetryGenerator::SMrl => G1WideTurn::DwPrime,
-                },
                 G1WideTurn::Dw2 => match sym {
                     G1SymmetryGenerator::SF => G1WideTurn::Uw2,
                     G1SymmetryGenerator::SU => G1WideTurn::Dw2,
                     G1SymmetryGenerator::SMrl => G1WideTurn::Dw2,
-                },
-                G1WideTurn::DwPrime => match sym {
-                    G1SymmetryGenerator::SF => G1WideTurn::UwPrime,
-                    G1SymmetryGenerator::SU => G1WideTurn::DwPrime,
-                    G1SymmetryGenerator::SMrl => G1WideTurn::Dw,
                 },
             }
         }
@@ -1364,9 +1336,7 @@ pub mod g1_wide_turns {
                 G1WideTurn::U => G1WideTurn::UPrime,
                 G1WideTurn::U2 => G1WideTurn::U2,
                 G1WideTurn::UPrime => G1WideTurn::U,
-                G1WideTurn::Uw => G1WideTurn::UwPrime,
                 G1WideTurn::Uw2 => G1WideTurn::Uw2,
-                G1WideTurn::UwPrime => G1WideTurn::Uw,
                 G1WideTurn::F2 => G1WideTurn::F2,
                 G1WideTurn::Fw2 => G1WideTurn::Fw2,
                 G1WideTurn::R2 => G1WideTurn::R2,
@@ -1378,9 +1348,7 @@ pub mod g1_wide_turns {
                 G1WideTurn::D => G1WideTurn::DPrime,
                 G1WideTurn::D2 => G1WideTurn::D2,
                 G1WideTurn::DPrime => G1WideTurn::D,
-                G1WideTurn::Dw => G1WideTurn::DwPrime,
                 G1WideTurn::Dw2 => G1WideTurn::Dw2,
-                G1WideTurn::DwPrime => G1WideTurn::Dw,
             }
         }
     }
