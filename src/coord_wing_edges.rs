@@ -221,6 +221,87 @@ impl From<WideTurn> for CoordWingEdges {
     }
 }
 
+// 6 -> 11 -> 7
+// 5 -> 12 -> 0
+// 1 -> 10 -> 16
+// 2 -> 13 -> 23
+// 8 -> 4 -> 17
+// 15 -> 3 -> 18
+// 9 -> 19 -> 22
+// 14 -> 20 -> 21
+const S_URF: CoordWingEdges = CoordWingEdges([5, 10, 13, 18, 17, 12, 11, 6, 4, 19, 16, 7, 0, 23, 20, 3, 1, 8, 15, 22, 21, 14, 9, 2]);
+
+const S_F: CoordWingEdges = CoordWingEdges(permute_arr(&Fw2.0, &Bw2.0));
+
+const S_U: CoordWingEdges =  CoordWingEdges(permute_arr(&Uw.0, &Dw_PRIME.0));
+
+// TODO:  Notably, this does NOT render correctly if done only once, it must be
+// applied as a symmetry (S * X * S^-1), because it would also need to flip all
+// edges too, and we don't track that.  This shouldn't cause a practical
+// problem, but we couldtrack if we should flip all edges for the purpose of
+// converting into a FaceletWingEdges representation.
+const S_MRL: CoordWingEdges = CoordWingEdges([3, 2, 1, 0, 7, 6, 5, 4, 9, 8, 11, 10, 13, 12, 15, 14, 19, 18, 17, 16, 23, 22, 21, 20]);
+
+use super::move_sets::g1_symmetry_generators::G1SymmetryGenerator;
+impl From<G1SymmetryGenerator> for CoordWingEdges {
+    fn from(g1sg: G1SymmetryGenerator) -> CoordWingEdges {
+        match g1sg {
+            G1SymmetryGenerator::SF => S_F,
+            G1SymmetryGenerator::SU => S_U,
+            G1SymmetryGenerator::SMrl => S_MRL,
+        }
+    }
+}
+
+use super::move_sets::g1_symmetry_generators::G1SymGenList;
+impl From<G1SymGenList> for CoordWingEdges {
+    fn from(sgl: G1SymGenList) -> CoordWingEdges {
+        let mut perm = CoordWingEdges::identity();
+        for x in sgl.0 {
+            perm = perm.permute(x.into());
+        }
+        perm
+    }
+}
+
+use super::equivalence_class::EquivalenceClass;
+impl EquivalenceClass<G1SymGenList> for CoordWingEdges {
+    fn get_equivalent(self, sgl: &G1SymGenList) -> CoordWingEdges {
+        let x = CoordWingEdges::from(sgl.clone());
+        x.invert().permute(self).permute(x)
+    }
+}
+
+use super::move_sets::symmetry_generators::SymmetryGenerator;
+impl From<SymmetryGenerator> for CoordWingEdges {
+    fn from(g1sg: SymmetryGenerator) -> CoordWingEdges {
+        match g1sg {
+            SymmetryGenerator::SUrf => S_URF,
+            SymmetryGenerator::SF => S_F,
+            SymmetryGenerator::SU => S_U,
+            SymmetryGenerator::SMrl => S_MRL,
+        }
+    }
+}
+
+use super::move_sets::symmetry_generators::SymGenList;
+impl From<SymGenList> for CoordWingEdges {
+    fn from(sgl: SymGenList) -> CoordWingEdges {
+        let mut perm = CoordWingEdges::identity();
+        for x in sgl.0 {
+            perm = perm.permute(x.into());
+        }
+        perm
+    }
+}
+
+impl EquivalenceClass<SymGenList> for CoordWingEdges {
+    fn get_equivalent(self, sgl: &SymGenList) -> CoordWingEdges {
+        let x = CoordWingEdges::from(sgl.clone());
+        x.invert().permute(self).permute(x)
+    }
+}
+
 use super::facelet_wing_edges::FaceletWingEdges;
 impl From<CoordWingEdges> for FaceletWingEdges {
     fn from(coord_wing_edges: CoordWingEdges) -> FaceletWingEdges {
