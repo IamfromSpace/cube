@@ -221,6 +221,30 @@ impl From<WideTurn> for CoordWingEdges {
     }
 }
 
+use super::move_sets::g1_wide_turns::G1WideTurn;
+impl From<G1WideTurn> for CoordWingEdges {
+    fn from(wt: G1WideTurn) -> CoordWingEdges {
+        match wt {
+            G1WideTurn::U => U,
+            G1WideTurn::U2 => U2,
+            G1WideTurn::UPrime => U_PRIME,
+            G1WideTurn::Uw2 => Uw2,
+            G1WideTurn::F2 => F2,
+            G1WideTurn::Fw2 => Fw2,
+            G1WideTurn::R2 => R2,
+            G1WideTurn::Rw2 => Rw2,
+            G1WideTurn::B2 => B2,
+            G1WideTurn::Bw2 => Bw2,
+            G1WideTurn::L2 => L2,
+            G1WideTurn::Lw2 => Lw2,
+            G1WideTurn::D => D,
+            G1WideTurn::D2 => D2,
+            G1WideTurn::DPrime => D_PRIME,
+            G1WideTurn::Dw2 => Dw2,
+        }
+    }
+}
+
 // 6 -> 11 -> 7
 // 5 -> 12 -> 0
 // 1 -> 10 -> 16
