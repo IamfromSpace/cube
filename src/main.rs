@@ -21,6 +21,7 @@ mod two_by_two_by_three;
 mod ftl_minus_keyhole;
 mod move_sets;
 mod move_table;
+mod flat_move_table;
 mod coord_move_table;
 mod pruning_table;
 mod util;
