@@ -466,3 +466,118 @@ const fn permute_arr(a: &[u8; 24], b: &[u8; 24]) -> [u8; 24] {
         a[b[23] as usize],
     ]
 }
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use quickcheck::Gen;
+    use rand::Rng;
+
+    impl quickcheck::Arbitrary for WideTurn {
+        fn arbitrary<G: Gen>(g: &mut G) -> WideTurn {
+            *g.choose(&[
+              WideTurn::U,
+              WideTurn::U2,
+              WideTurn::UPrime,
+              WideTurn::Uw,
+              WideTurn::Uw2,
+              WideTurn::UwPrime,
+              WideTurn::F,
+              WideTurn::F2,
+              WideTurn::FPrime,
+              WideTurn::Fw,
+              WideTurn::Fw2,
+              WideTurn::FwPrime,
+              WideTurn::R,
+              WideTurn::R2,
+              WideTurn::RPrime,
+              WideTurn::Rw,
+              WideTurn::Rw2,
+              WideTurn::RwPrime,
+              WideTurn::B,
+              WideTurn::B2,
+              WideTurn::BPrime,
+              WideTurn::Bw,
+              WideTurn::Bw2,
+              WideTurn::BwPrime,
+              WideTurn::L,
+              WideTurn::L2,
+              WideTurn::LPrime,
+              WideTurn::Lw,
+              WideTurn::Lw2,
+              WideTurn::LwPrime,
+              WideTurn::D,
+              WideTurn::D2,
+              WideTurn::DPrime,
+              WideTurn::Dw,
+              WideTurn::Dw2,
+              WideTurn::DwPrime,
+            ]).unwrap()
+        }
+    }
+
+    impl quickcheck::Arbitrary for SymmetryGenerator {
+        fn arbitrary<G: Gen>(g: &mut G) -> SymmetryGenerator {
+            *g.choose(&[
+                SymmetryGenerator::SUrf,
+                SymmetryGenerator::SF,
+                SymmetryGenerator::SU,
+                SymmetryGenerator::SMrl,
+            ]).unwrap()
+        }
+    }
+
+    impl quickcheck::Arbitrary for SymGenList {
+        fn arbitrary<G: Gen>(g: &mut G) -> SymGenList {
+            SymGenList(quickcheck::Arbitrary::arbitrary(g))
+        }
+    }
+
+    use quickcheck::TestResult;
+    quickcheck! {
+        fn applying_turns_creates_the_equivalent_of_applying_equivalent_turns(turns: Vec<WideTurn>, sym: SymGenList) -> TestResult {
+            // TODO: This test doesn't seem to work if I mess with stuff
+            if turns.len() == 0 || sym.0.len() == 0 {
+                TestResult::discard()
+            } else {
+                let mut scramble = CoordWingEdges::identity();
+                for turn in &turns {
+                    scramble = scramble.permute((*turn).into());
+                }
+                let final_state_equivalent = scramble.get_equivalent(&sym);
+
+                let mut scramble = CoordWingEdges::identity();
+                for turn in &turns {
+                    scramble = scramble.permute(turn.get_equivalent(&sym).into());
+                }
+                let turn_equivalent = scramble;
+
+                TestResult::from_bool(turn_equivalent == final_state_equivalent)
+                // TestResult::from_bool(turns.len() == 0)
+            }
+        }
+    }
+
+    quickcheck! {
+        fn facelet_result_with_the_same_turn_matches(turns: Vec<WideTurn>) -> TestResult {
+            if turns.len() == 0 {
+                TestResult::discard()
+            } else {
+                let mut scramble = CoordWingEdges::identity();
+                for turn in &turns {
+                    scramble = scramble.permute((*turn).into());
+                }
+                let coord = scramble;
+
+                let mut scramble = FaceletWingEdges::identity();
+                for turn in &turns {
+                    scramble = scramble.permute((*turn).into());
+                }
+                let facelet = scramble;
+
+                TestResult::from_bool(facelet == coord.into())
+            }
+        }
+    }
+}
