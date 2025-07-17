@@ -143,11 +143,15 @@ const Uw2: FaceletWingEdges = FaceletWingEdges(permute_arr(&Uw.0, &Uw.0));
 #[allow(non_upper_case_globals)]
 const Uw_PRIME: FaceletWingEdges = FaceletWingEdges(arr_inv(&Uw.0));
 
-const F: FaceletWingEdges = FaceletWingEdges(arr_inv(&F_PRIME.0));
+// 8 -> 10 -> 12 -> 14
+// 9 -> 11 -> 13 -> 15
+// 19 -> 5 -> 39 -> 41
+// 6 -> 32 -> 42 -> 20
+const F: FaceletWingEdges = FaceletWingEdges([0, 1, 2, 3, 4, 39, 32, 7, 10, 11, 12, 13, 14, 15, 8, 9, 16, 17, 18, 5, 6, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 42, 33, 34, 35, 36, 37, 38, 41, 40, 19, 20, 43, 44, 45, 46, 47]);
 
 const F2: FaceletWingEdges = FaceletWingEdges(permute_arr(&F.0, &F.0));
 
-const F_PRIME: FaceletWingEdges = FaceletWingEdges([0, 1, 2, 3, 4, 19, 20, 7, 10, 11, 12, 13, 14, 15, 8, 9, 16, 17, 18, 41, 42, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 6, 33, 34, 35, 36, 37, 38, 5, 40, 39, 32, 43, 44, 45, 46, 47]);
+const F_PRIME: FaceletWingEdges = FaceletWingEdges(arr_inv(&F.0));
 
 #[allow(non_upper_case_globals)]
 const f_SLICE: FaceletWingEdges = FaceletWingEdges([0, 1, 2, 3, 38, 5, 6, 33, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 4, 19, 20, 7, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 43, 34, 35, 36, 37, 40, 39, 18, 41, 42, 21, 44, 45, 46, 47]);
