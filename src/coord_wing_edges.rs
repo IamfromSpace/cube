@@ -326,6 +326,44 @@ impl EquivalenceClass<SymGenList> for CoordWingEdges {
     }
 }
 
+
+// TODO: How do we make this abstract....?
+// If we only allow <U, Uw2, F, Fw2, R2, Rw2, B, Bw2, L2, Lw2, D, Dw2>
+// then pieces are locked in even and odd orbits.
+// This gives U2, F2, and M_RL symmetries
+// 0 2 4 6 8 10 12 14 16 18 20 22
+pub fn sort_odds_and_evens(x: &CoordWingEdges) -> CoordWingEdges {
+    let mut odds = [0; 12];
+    let mut odd_count = 0;
+    let mut evens = [0; 12];
+    let mut even_count = 0;
+    for i in 0..24 {
+        if x.0[i] % 2 == 0 {
+            evens[even_count] = i;
+            even_count += 1;
+        } else {
+            odds[odd_count] = i;
+            odd_count += 1;
+        }
+    }
+    let mut y = [0u8; 24];
+    for i in 0..12 {
+        y[evens[i]] = i as u8 * 2;
+        y[odds[i]] = i as u8 * 2 + 1;
+    }
+    CoordWingEdges(y)
+}
+
+// Orientation only sort of means orientation here.  It really means in the
+// correct orbit, but it is quite a lot like normal orientation, because there
+// are two edges of each color pairing, and if the two are swapped, they will
+// appear flipped.
+pub fn edges_are_oriented(x: &CoordWingEdges) -> bool {
+    // If the index is odd, the value must be, and if the index is even, the
+    // value must be
+    (0..24).all(|i| (i % 2 == 0) == (x.0[i] % 2 == 0))
+}
+
 use super::facelet_wing_edges::FaceletWingEdges;
 impl From<CoordWingEdges> for FaceletWingEdges {
     fn from(coord_wing_edges: CoordWingEdges) -> FaceletWingEdges {
@@ -578,6 +616,58 @@ mod tests {
 
                 TestResult::from_bool(facelet == coord.into())
             }
+        }
+    }
+
+    fn no_effect_on_orientation(turn: &WideTurn) -> bool {
+        turn == &WideTurn::U ||
+        turn == &WideTurn::U2 ||
+        turn == &WideTurn::UPrime ||
+        turn == &WideTurn::Uw2 ||
+        turn == &WideTurn::F ||
+        turn == &WideTurn::F2 ||
+        turn == &WideTurn::FPrime ||
+        turn == &WideTurn::Fw2 ||
+        turn == &WideTurn::R2 ||
+        turn == &WideTurn::Rw2 ||
+        turn == &WideTurn::B ||
+        turn == &WideTurn::B2 ||
+        turn == &WideTurn::BPrime ||
+        turn == &WideTurn::Bw2 ||
+        turn == &WideTurn::L2 ||
+        turn == &WideTurn::Lw2 ||
+        turn == &WideTurn::D ||
+        turn == &WideTurn::D2 ||
+        turn == &WideTurn::DPrime ||
+        turn == &WideTurn::Dw2
+    }
+
+    quickcheck! {
+        fn the_identity_is_not_affected_by_some_turns_after_sorted_odds_and_evens(turns: Vec<WideTurn>) -> TestResult {
+            // Note that this _only_ applies to the identity, this doesn't hold
+            // for an arbitrary scramble.  For example, sorting [Bw] is not the
+            // same as sorting [Bw, U], even though [] and [U] are.
+            let mut scramble = CoordWingEdges::identity();
+            for turn in &turns {
+                if no_effect_on_orientation(turn) {
+                    scramble = scramble.permute((*turn).into());
+                }
+            }
+            let scramble = sort_odds_and_evens(&scramble);
+
+            TestResult::from_bool(&scramble == &CoordWingEdges::identity() && edges_are_oriented(&scramble))
+        }
+    }
+
+    quickcheck! {
+        fn some_turns_alter_orientation(turn: WideTurn) -> TestResult {
+            if no_effect_on_orientation(&turn) {
+                TestResult::discard()
+            } else {
+                let scramble: CoordWingEdges = turn.into();
+                TestResult::from_bool(!edges_are_oriented(&scramble))
+            }
+
         }
     }
 }
