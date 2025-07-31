@@ -118,3 +118,57 @@ impl EquivalenceClass<Sym> for TwoTriangles {
         x.invert().permute(self).permute(x)
     }
 }
+
+// TODO: There are faster algorithms than this
+impl Into<u8> for TwoTriangles {
+    fn into(self) -> u8 {
+        let mut x = self.0.clone();
+        for i in 0..5 {
+            for j in (i+1)..5 {
+                if x[j] > x[i] {
+                    x[j] -= 1;
+                }
+            }
+        }
+        x[0] + 5 * (x[1] + 4 * (x[2] + 3 * (x[3] + 2 * x[4])))
+    }
+}
+
+// TODO: There are faster algorithms than this
+impl From<u8> for TwoTriangles {
+    fn from(i: u8) -> Self {
+        let mut i = i;
+        let mut x = [0; 5];
+        for j in 0..5 {
+            x[j as usize] = i % (5 - j);
+            i = i / (5 - j);
+        }
+        for i in (0..5).rev() {
+            for j in (i+1)..5 {
+                if x[j as usize] >= x[i] {
+                    x[j as usize] += 1;
+                }
+            }
+        }
+        TwoTriangles(x)
+    }
+}
+
+impl From<usize> for TwoTriangles {
+    fn from(x: usize) -> Self {
+        (x as u8).into()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn all_lehmer_codes_round_trip() {
+        for i in 0..120u8 {
+            let t: TwoTriangles = i.into();
+            assert_eq!(i, t.into());
+        }
+    }
+}
