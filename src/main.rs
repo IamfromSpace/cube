@@ -26,6 +26,9 @@ mod coord_move_table;
 mod pruning_table;
 mod util;
 
+#[cfg(test)]
+mod two_triangles;
+
 use std::fs::File;
 use std::io::Write;
 use invertable::Invertable;
