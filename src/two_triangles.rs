@@ -24,6 +24,35 @@ use equivalence_class::EquivalenceClass;
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
 pub struct TwoTriangles([u8; 5]);
 
+impl TwoTriangles {
+    // TODO: this can be generalized, also, isn't this a property of being a permutation group?
+    pub fn is_even_parity(&self) -> bool {
+        let mut visited_in_look_ahead = [false; 5];
+        let mut even_cycle_count = 0;
+        for i in 0..5 {
+            if visited_in_look_ahead[i] == false {
+                let mut j = self.0[i];
+                if j != i as u8 {
+                    let mut piece_count = 2; // i & j
+                    loop {
+                        visited_in_look_ahead[j as usize] = true;
+                        j = self.0[j as usize];
+                        if j == i as u8 {
+                            if piece_count % 2 == 0 {
+                                even_cycle_count += 1;
+                            }
+                            break;
+                        } else {
+                            piece_count += 1;
+                        }
+                    }
+                }
+            }
+        }
+        even_cycle_count % 2 == 0
+    }
+}
+
 const fn permute_arr(a: &[u8; 5], b: &[u8; 5]) -> [u8; 5] {
     [
         a[b[0] as usize],
@@ -170,5 +199,47 @@ mod tests {
             let t: TwoTriangles = i.into();
             assert_eq!(i, t.into());
         }
+    }
+
+    #[test]
+    fn half_of_parities_are_even() {
+        let mut even_count = 0;
+        for i in 0..120u8 {
+            let t: TwoTriangles = i.into();
+            if t.is_even_parity() {
+                even_count += 1;
+            }
+        }
+        assert_eq!(even_count, 60);
+    }
+
+    #[test]
+    fn one_swap_is_odd() {
+        let t = TwoTriangles([1, 0, 2, 3, 4]);
+        assert_eq!(t.is_even_parity(), false);
+    }
+
+    #[test]
+    fn two_independent_swaps_are_even() {
+        let t = TwoTriangles([1, 0, 3, 2, 4]);
+        assert_eq!(t.is_even_parity(), true);
+    }
+
+    #[test]
+    fn two_cycle_and_three_cycle_is_odd() {
+        let t = TwoTriangles([1, 0, 4, 2, 3]);
+        assert_eq!(t.is_even_parity(), false);
+    }
+
+    #[test]
+    fn four_cycle_is_odd() {
+        let t = TwoTriangles([0, 4, 1, 2, 3]);
+        assert_eq!(t.is_even_parity(), false);
+    }
+
+    #[test]
+    fn five_cycle_is_even() {
+        let t = TwoTriangles([4, 0, 1, 2, 3]);
+        assert_eq!(t.is_even_parity(), true);
     }
 }
