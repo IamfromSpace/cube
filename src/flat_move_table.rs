@@ -91,7 +91,7 @@ mod tests {
 
     #[test]
     fn move_table_is_correct_for_two_triangles_with_rotational_symmetry() {
-        let turns = vec![Turns::Left, Turns::Right];
+        let turns = vec![Turns::Left, Turns::RightPrime];
         let syms = vec![Sym::MirrorBoth];
         let all_perms = (0..120u8).map(|i| i.into());
 
@@ -175,7 +175,7 @@ mod tests {
 
     #[test]
     fn move_table_is_correct_for_two_triangles_even_parity_with_rotational_symmetry() {
-        let turns = vec![Turns::Left, Turns::Right];
+        let turns = vec![Turns::Left, Turns::RightPrime];
         let syms = vec![Sym::MirrorBoth];
         let all_perms = (0..120u8).map(|i| i.into()).filter(|t: &TwoTriangles| t.is_even_parity());
 
