@@ -2,6 +2,9 @@ use permutation_group::PermutationGroup as PG;
 use invertable::Invertable;
 use equivalence_class::EquivalenceClass;
 
+use std::collections::BTreeMap;
+use std::collections::VecDeque;
+
 // We have a simple little puzzle with two "faces" that share a middle.
 // we can rotate either clockwise or counter-clockwise.  Even though
 // just clockwise turns generate all reachable states, we get more
@@ -187,6 +190,33 @@ impl From<usize> for TwoTriangles {
     fn from(x: usize) -> Self {
         (x as u8).into()
     }
+}
+
+pub fn moves_to_solve(turns: &Vec<Turns>) -> BTreeMap<TwoTriangles, usize> {
+    let mut queue = VecDeque::new();
+    let mut map = BTreeMap::new();
+
+    map.insert(TwoTriangles::identity(), 0);
+    queue.push_back((TwoTriangles::identity(), 1));
+
+    loop {
+        match queue.pop_front() {
+            None => break,
+            Some((p, count)) => {
+                for t in turns {
+                    let turned = p.clone().permute((*t).into());
+                    match map.get(&turned) {
+                        None => {
+                            map.insert(turned, count);
+                            queue.push_back((turned, count + 1))
+                        },
+                        Some(_) => (),
+                    }
+                }
+            },
+        }
+    }
+    map
 }
 
 #[cfg(test)]
