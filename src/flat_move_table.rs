@@ -59,6 +59,16 @@ impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Turn: Copy + In
         self.table[i]
     }
 
+    pub fn apply_turns(&self, ri: RepIndex<PermIndex>) -> impl Iterator<Item = (RepIndex<PermIndex>, SymIndex)> + '_ {
+        let start = <RepIndex<PermIndex> as Into<usize>>::into(ri) * self.turns.len();
+        (start..(start + self.turns.len())).map(move |i| self.table[i])
+    }
+
+    // Count of Reps
+    pub fn len(&self) -> usize {
+        self.rep_table.len()
+    }
+
     pub fn perm_to_indexes(&self, perm: &Perm) -> (RepIndex<PermIndex>, SymIndex) {
         self.rep_table.perm_to_indexes(perm)
     }

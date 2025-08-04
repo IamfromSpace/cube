@@ -6,11 +6,11 @@ use std::collections::BTreeSet;
 use std::convert::{TryInto, TryFrom};
 
 // Opaque type to prevent accidental misuse
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct SymIndex(u8);
 
 // Opaque type to prevent accidental misuse
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct RepIndex<PermIndex>(PermIndex);
 
 impl<PermIndex: Into<usize>> Into<usize> for RepIndex<PermIndex> {

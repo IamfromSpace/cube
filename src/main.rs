@@ -23,6 +23,7 @@ mod move_sets;
 mod representative_table;
 mod move_table;
 mod flat_move_table;
+mod flat_pruning_table;
 mod coord_move_table;
 mod pruning_table;
 mod util;
