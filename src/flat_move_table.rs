@@ -50,9 +50,17 @@ impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Turn: Copy + In
         TurnIndex(self.turns.iter().position(|x| *x == t).unwrap() as u8)
     }
 
+    pub fn turn_index_to_turn(&self, ti: TurnIndex) -> Turn {
+        self.turns[ti.0 as usize]
+    }
+
     pub fn turn(&self, ri: RepIndex<PermIndex>, ti: TurnIndex) -> (RepIndex<PermIndex>, SymIndex) {
         let i = <RepIndex<PermIndex> as Into<usize>>::into(ri) * self.turns.len() + ti.0 as usize;
         self.table[i]
+    }
+
+    pub fn perm_to_indexes(&self, perm: &Perm) -> (RepIndex<PermIndex>, SymIndex) {
+        self.rep_table.perm_to_indexes(perm)
     }
 }
 
@@ -90,6 +98,25 @@ mod tests {
                 assert_eq!(by_perm, by_table);
             }
         }
+
+        // All entries are bi-directional (this holds because all turns in the
+        // turn set also have an inverse in the turn set).  If there's a move
+        // that can put you in state b from a, then there must exist an inverse
+        // turn that puts you from state a to state b.
+        for p in all_perms {
+            for t in &turns {
+                let ti = move_table.turn_to_turn_index(*t);
+                let (ri_a, _) = move_table.perm_to_indexes(&p);
+                let (ri_b, _) = move_table.turn(ri_a, ti);
+                let mut found = false;
+                for t in &turns {
+                    let ti_inv = move_table.turn_to_turn_index(*t);
+                    let (ri_rt, _ ) = move_table.turn(ri_b, ti_inv);
+                    found |= ri_a == ri_rt;
+                }
+                assert_eq!(found, true);
+            }
+        }
     }
 
     #[test]
@@ -121,6 +148,25 @@ mod tests {
                 assert_eq!(by_perm, by_table);
             }
         }
+
+        // All entries are bi-directional (this holds because all turns in the
+        // turn set also have an inverse in the turn set).  If there's a move
+        // that can put you in state b from a, then there must exist an inverse
+        // turn that puts you from state a to state b.
+        for p in all_perms {
+            for t in &turns {
+                let ti = move_table.turn_to_turn_index(*t);
+                let (ri_a, _) = move_table.perm_to_indexes(&p);
+                let (ri_b, _) = move_table.turn(ri_a, ti);
+                let mut found = false;
+                for t in &turns {
+                    let ti_inv = move_table.turn_to_turn_index(*t);
+                    let (ri_rt, _ ) = move_table.turn(ri_b, ti_inv);
+                    found |= ri_a == ri_rt;
+                }
+                assert_eq!(found, true);
+            }
+        }
     }
 
     #[test]
@@ -147,6 +193,25 @@ mod tests {
                     Some(sym) => before_sym.get_equivalent(&sym),
                 };
                 assert_eq!(by_perm, by_table);
+            }
+        }
+
+        // All entries are bi-directional (this holds because all turns in the
+        // turn set also have an inverse in the turn set).  If there's a move
+        // that can put you in state b from a, then there must exist an inverse
+        // turn that puts you from state a to state b.
+        for p in all_perms {
+            for t in &turns {
+                let ti = move_table.turn_to_turn_index(*t);
+                let (ri_a, _) = move_table.perm_to_indexes(&p);
+                let (ri_b, _) = move_table.turn(ri_a, ti);
+                let mut found = false;
+                for t in &turns {
+                    let ti_inv = move_table.turn_to_turn_index(*t);
+                    let (ri_rt, _ ) = move_table.turn(ri_b, ti_inv);
+                    found |= ri_a == ri_rt;
+                }
+                assert_eq!(found, true);
             }
         }
     }
@@ -180,6 +245,25 @@ mod tests {
                 assert_eq!(by_perm, by_table);
             }
         }
+
+        // All entries are bi-directional (this holds because all turns in the
+        // turn set also have an inverse in the turn set).  If there's a move
+        // that can put you in state b from a, then there must exist an inverse
+        // turn that puts you from state a to state b.
+        for p in all_perms {
+            for t in &turns {
+                let ti = move_table.turn_to_turn_index(*t);
+                let (ri_a, _) = move_table.perm_to_indexes(&p);
+                let (ri_b, _) = move_table.turn(ri_a, ti);
+                let mut found = false;
+                for t in &turns {
+                    let ti_inv = move_table.turn_to_turn_index(*t);
+                    let (ri_rt, _ ) = move_table.turn(ri_b, ti_inv);
+                    found |= ri_a == ri_rt;
+                }
+                assert_eq!(found, true);
+            }
+        }
     }
 
     #[test]
@@ -211,6 +295,25 @@ mod tests {
                 assert_eq!(by_perm, by_table);
             }
         }
+
+        // All entries are bi-directional (this holds because all turns in the
+        // turn set also have an inverse in the turn set).  If there's a move
+        // that can put you in state b from a, then there must exist an inverse
+        // turn that puts you from state a to state b.
+        for p in all_perms {
+            for t in &turns {
+                let ti = move_table.turn_to_turn_index(*t);
+                let (ri_a, _) = move_table.perm_to_indexes(&p);
+                let (ri_b, _) = move_table.turn(ri_a, ti);
+                let mut found = false;
+                for t in &turns {
+                    let ti_inv = move_table.turn_to_turn_index(*t);
+                    let (ri_rt, _ ) = move_table.turn(ri_b, ti_inv);
+                    found |= ri_a == ri_rt;
+                }
+                assert_eq!(found, true);
+            }
+        }
     }
 
     #[test]
@@ -237,6 +340,25 @@ mod tests {
                     Some(sym) => before_sym.get_equivalent(&sym),
                 };
                 assert_eq!(by_perm, by_table);
+            }
+        }
+
+        // All entries are bi-directional (this holds because all turns in the
+        // turn set also have an inverse in the turn set).  If there's a move
+        // that can put you in state b from a, then there must exist an inverse
+        // turn that puts you from state a to state b.
+        for p in all_perms {
+            for t in &turns {
+                let ti = move_table.turn_to_turn_index(*t);
+                let (ri_a, _) = move_table.perm_to_indexes(&p);
+                let (ri_b, _) = move_table.turn(ri_a, ti);
+                let mut found = false;
+                for t in &turns {
+                    let ti_inv = move_table.turn_to_turn_index(*t);
+                    let (ri_rt, _ ) = move_table.turn(ri_b, ti_inv);
+                    found |= ri_a == ri_rt;
+                }
+                assert_eq!(found, true);
             }
         }
     }
