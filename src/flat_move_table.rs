@@ -69,6 +69,7 @@ mod tests {
     use super::*;
     use two_triangles::*;
 
+    // TODO: Time to parameterize these tests
     #[test]
     fn move_table_is_correct_for_two_triangles_without_symmetry() {
         // Even though either Left + Right generates all states, MoveTables
@@ -119,6 +120,8 @@ mod tests {
         }
     }
 
+    // TODO: There are many more valid combinations of turns and symmetries if
+    // we only use one symmetry.
     #[test]
     fn move_table_is_correct_for_two_triangles_with_rotational_symmetry() {
         // Even though just Left + Right is sufficient and symmetric,
