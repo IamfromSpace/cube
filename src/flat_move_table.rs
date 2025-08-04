@@ -63,7 +63,10 @@ mod tests {
 
     #[test]
     fn move_table_is_correct_for_two_triangles_without_symmetry() {
-        let turns = vec![Turns::Left, Turns::Right];
+        // Even though either Left + Right generates all states, MoveTables
+        // should basically always include turn inverses, so that they can go
+        // forward or backwards.
+        let turns = vec![Turns::Left, Turns::LeftPrime, Turns::Right, Turns::RightPrime];
         let syms = vec![];
         let all_perms = (0..120u8).map(|i| i.into());
 
@@ -91,7 +94,10 @@ mod tests {
 
     #[test]
     fn move_table_is_correct_for_two_triangles_with_rotational_symmetry() {
-        let turns = vec![Turns::Left, Turns::RightPrime];
+        // Even though just Left + Right is sufficient and symmetric,
+        // MoveTables should basically always include turn inverses, so that
+        // they can go forward or backwards.
+        let turns = vec![Turns::Left, Turns::LeftPrime, Turns::Right, Turns::RightPrime];
         let syms = vec![Sym::MirrorBoth];
         let all_perms = (0..120u8).map(|i| i.into());
 
@@ -147,7 +153,10 @@ mod tests {
 
     #[test]
     fn move_table_is_correct_for_two_triangles_even_parity_without_symmetry() {
-        let turns = vec![Turns::Left, Turns::Right];
+        // Even though either Left + Right generates all states, MoveTables
+        // should basically always include turn inverses, so that they can go
+        // forward or backwards.
+        let turns = vec![Turns::Left, Turns::LeftPrime, Turns::Right, Turns::RightPrime];
         let syms = vec![];
         let all_perms = (0..120u8).map(|i| i.into()).filter(|t: &TwoTriangles| t.is_even_parity());
 
@@ -175,7 +184,10 @@ mod tests {
 
     #[test]
     fn move_table_is_correct_for_two_triangles_even_parity_with_rotational_symmetry() {
-        let turns = vec![Turns::Left, Turns::RightPrime];
+        // Even though just Left + Right is sufficient and symmetric,
+        // MoveTables should basically always include turn inverses, so that
+        // they can go forward or backwards.
+        let turns = vec![Turns::Left, Turns::LeftPrime, Turns::Right, Turns::RightPrime];
         let syms = vec![Sym::MirrorBoth];
         let all_perms = (0..120u8).map(|i| i.into()).filter(|t: &TwoTriangles| t.is_even_parity());
 
