@@ -23,7 +23,7 @@ use std::collections::VecDeque;
 // in combination is the same as a 180 degree rotation.
 //
 // With 60 reachable states and 4 symmetries (counting the identity), we
-// expect that there at most unique 15 representants.
+// expect that there at least unique 15 representants.
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
 pub struct TwoTriangles([u8; 5]);
 
