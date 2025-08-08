@@ -4,6 +4,7 @@ use equivalence_class::EquivalenceClass;
 
 use std::collections::BTreeSet;
 use std::convert::{TryInto, TryFrom};
+use enum_iterator::{Sequence, all};
 
 // Opaque type to prevent accidental misuse
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -149,8 +150,8 @@ mod tests {
     #[test]
     fn representative_table_is_correct_for_two_triangles_without_symmetry() {
         let syms = vec![];
-        let all_perms = (0..120u8).map(|i| i.into());
-        let rep_table: RepresentativeTable<TwoTriangles, Sym, u8> = RepresentativeTable::new(syms, all_perms.clone());
+        let all_perms = all::<TwoTrianglesIndex>().map(|i| i.into());
+        let rep_table: RepresentativeTable<TwoTriangles, FullSymmetry, TwoTrianglesIndex> = RepresentativeTable::new(syms, all_perms.clone());
 
         // Finds the expected number
         assert_eq!(rep_table.table.len(), 120);
@@ -173,9 +174,9 @@ mod tests {
 
     #[test]
     fn representative_table_is_correct_for_two_triangles_with_rotational_symmetry() {
-        let syms = vec![Sym::MirrorBoth];
-        let all_perms = (0..120u8).map(|i| i.into());
-        let rep_table: RepresentativeTable<TwoTriangles, Sym, u8> = RepresentativeTable::new(syms, all_perms.clone());
+        let syms = vec![FullSymmetry::MirrorBoth];
+        let all_perms = all::<TwoTrianglesIndex>().map(|i| i.into());
+        let rep_table: RepresentativeTable<TwoTriangles, FullSymmetry, TwoTrianglesIndex> = RepresentativeTable::new(syms, all_perms.clone());
 
         // Finds the expected number
         assert_eq!(rep_table.table.len(), 64);
@@ -198,9 +199,9 @@ mod tests {
 
     #[test]
     fn representative_table_is_correct_for_two_triangles_with_full_symmetry() {
-        let syms = vec![Sym::MirrorLR, Sym::MirrorTD, Sym::MirrorBoth];
-        let all_perms = (0..120u8).map(|i| i.into());
-        let rep_table: RepresentativeTable<TwoTriangles, Sym, u8> = RepresentativeTable::new(syms, all_perms.clone());
+        let syms = vec![FullSymmetry::MirrorLR, FullSymmetry::MirrorTD, FullSymmetry::MirrorBoth];
+        let all_perms = all::<TwoTrianglesIndex>().map(|i| i.into());
+        let rep_table: RepresentativeTable<TwoTriangles, FullSymmetry, TwoTrianglesIndex> = RepresentativeTable::new(syms, all_perms.clone());
 
         // Finds the expected number
         assert_eq!(rep_table.table.len(), 36);
@@ -224,8 +225,8 @@ mod tests {
     #[test]
     fn representative_table_is_correct_for_two_triangles_even_perms_without_symmetry() {
         let syms = vec![];
-        let all_perms = (0..120u8).map(|i| i.into()).filter(|t: &TwoTriangles| t.is_even_parity());
-        let rep_table: RepresentativeTable<TwoTriangles, Sym, u8> = RepresentativeTable::new(syms, all_perms.clone());
+        let all_perms = all::<TwoTrianglesIndex>().map(|i| i.into()).filter(|t: &TwoTriangles| t.is_even_parity());
+        let rep_table: RepresentativeTable<TwoTriangles, FullSymmetry, TwoTrianglesIndex> = RepresentativeTable::new(syms, all_perms.clone());
 
         // Finds the expected number
         assert_eq!(rep_table.table.len(), 60);
@@ -248,9 +249,9 @@ mod tests {
 
     #[test]
     fn representative_table_is_correct_for_two_triangles_even_perms_with_rotational_symmetry() {
-        let syms = vec![Sym::MirrorBoth];
-        let all_perms = (0..120u8).map(|i| i.into()).filter(|t: &TwoTriangles| t.is_even_parity());
-        let rep_table: RepresentativeTable<TwoTriangles, Sym, u8> = RepresentativeTable::new(syms, all_perms.clone());
+        let syms = vec![FullSymmetry::MirrorBoth];
+        let all_perms = all::<TwoTrianglesIndex>().map(|i| i.into()).filter(|t: &TwoTriangles| t.is_even_parity());
+        let rep_table: RepresentativeTable<TwoTriangles, FullSymmetry, TwoTrianglesIndex> = RepresentativeTable::new(syms, all_perms.clone());
 
         // Finds the expected number
         assert_eq!(rep_table.table.len(), 32);
@@ -273,9 +274,9 @@ mod tests {
 
     #[test]
     fn representative_table_is_correct_for_two_triangles_even_perms_with_full_symmetry() {
-        let syms = vec![Sym::MirrorLR, Sym::MirrorTD, Sym::MirrorBoth];
-        let all_perms = (0..120u8).map(|i| i.into()).filter(|t: &TwoTriangles| t.is_even_parity());
-        let rep_table: RepresentativeTable<TwoTriangles, Sym, u8> = RepresentativeTable::new(syms, all_perms.clone());
+        let syms = vec![FullSymmetry::MirrorLR, FullSymmetry::MirrorTD, FullSymmetry::MirrorBoth];
+        let all_perms = all::<TwoTrianglesIndex>().map(|i| i.into()).filter(|t: &TwoTriangles| t.is_even_parity());
+        let rep_table: RepresentativeTable<TwoTriangles, FullSymmetry, TwoTrianglesIndex> = RepresentativeTable::new(syms, all_perms.clone());
 
         // Finds the expected number
         assert_eq!(rep_table.table.len(), 18);

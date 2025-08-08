@@ -4,6 +4,8 @@ use equivalence_class::EquivalenceClass;
 
 use std::collections::BTreeMap;
 use std::collections::VecDeque;
+use std::convert::{TryInto, TryFrom};
+use enum_iterator::Sequence;
 
 // We have a simple little puzzle with two "faces" that share a middle.
 // we can rotate either clockwise or counter-clockwise.  Even though
@@ -27,32 +29,10 @@ use std::collections::VecDeque;
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
 pub struct TwoTriangles([u8; 5]);
 
+// TODO: No need to be public once we fully flip to using Sequence
 impl TwoTriangles {
-    // TODO: this can be generalized, also, isn't this a property of being a permutation group?
     pub fn is_even_parity(&self) -> bool {
-        let mut visited_in_look_ahead = [false; 5];
-        let mut even_cycle_count = 0;
-        for i in 0..5 {
-            if visited_in_look_ahead[i] == false {
-                let mut j = self.0[i];
-                if j != i as u8 {
-                    let mut piece_count = 2; // i & j
-                    loop {
-                        visited_in_look_ahead[j as usize] = true;
-                        j = self.0[j as usize];
-                        if j == i as u8 {
-                            if piece_count % 2 == 0 {
-                                even_cycle_count += 1;
-                            }
-                            break;
-                        } else {
-                            piece_count += 1;
-                        }
-                    }
-                }
-            }
-        }
-        even_cycle_count % 2 == 0
+        is_even_parity(self.0)
     }
 }
 
@@ -82,6 +62,33 @@ impl functional::BinaryOperation<TwoTriangles> for TwoTriangles {
     }
 }
 
+// TODO: this can be generalized, also, isn't this a property of being a permutation group?
+fn is_even_parity(x: [u8; 5]) -> bool {
+    let mut visited_in_look_ahead = [false; 5];
+    let mut even_cycle_count = 0;
+    for i in 0..5 {
+        if visited_in_look_ahead[i] == false {
+            let mut j = x[i];
+            if j != i as u8 {
+                let mut piece_count = 2; // i & j
+                loop {
+                    visited_in_look_ahead[j as usize] = true;
+                    j = x[j as usize];
+                    if j == i as u8 {
+                        if piece_count % 2 == 0 {
+                            even_cycle_count += 1;
+                        }
+                        break;
+                    } else {
+                        piece_count += 1;
+                    }
+                }
+            }
+        }
+    }
+    even_cycle_count % 2 == 0
+}
+
 impl functional::AssociativeOperation<TwoTriangles> for TwoTriangles { }
 
 impl functional::Monoid<TwoTriangles> for TwoTriangles {
@@ -98,12 +105,19 @@ impl Invertable for TwoTriangles {
 
 impl PG for TwoTriangles {}
 
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash, Sequence)]
+#[repr(u8)]
 pub enum Turns {
     Left,
     LeftPrime,
     Right,
     RightPrime,
+}
+
+impl Into<usize> for Turns {
+    fn into(self) -> usize {
+        self as usize
+    }
 }
 
 impl Into<TwoTriangles> for Turns {
@@ -121,74 +135,264 @@ impl Into<TwoTriangles> for Turns {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
-pub enum Sym {
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash, Sequence)]
+#[repr(u8)]
+pub enum FullSymmetry {
+    Identity,
     MirrorLR,
     MirrorTD,
     MirrorBoth,
 }
 
-impl Into<TwoTriangles> for Sym {
+impl Into<TwoTriangles> for FullSymmetry {
     fn into(self) -> TwoTriangles {
         match self {
+            FullSymmetry::Identity => TwoTriangles([0, 1, 2, 3, 4]),
             // 0 -> 3
             // 1 -> 4
-            Sym::MirrorLR => TwoTriangles([3, 4, 2, 0, 1]),
+            FullSymmetry::MirrorLR => TwoTriangles([3, 4, 2, 0, 1]),
             // 0 -> 1
             // 3 -> 4
-            Sym::MirrorTD => TwoTriangles([1, 0, 2, 4, 3]),
+            FullSymmetry::MirrorTD => TwoTriangles([1, 0, 2, 4, 3]),
             // 0 -> 4
             // 1 -> 3
-            Sym::MirrorBoth => TwoTriangles([4, 3, 2, 1, 0]),
+            FullSymmetry::MirrorBoth => TwoTriangles([4, 3, 2, 1, 0]),
         }
     }
 }
 
-impl EquivalenceClass<Sym> for TwoTriangles {
-    fn get_equivalent(self, sym: &Sym) -> TwoTriangles {
+impl EquivalenceClass<FullSymmetry> for TwoTriangles {
+    fn get_equivalent(self, sym: &FullSymmetry) -> TwoTriangles {
+        let x: TwoTriangles = sym.clone().into();
+        x.invert().permute(self).permute(x)
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash, Sequence)]
+#[repr(u8)]
+pub enum NoSymmetry {
+    Identity,
+}
+
+impl Into<TwoTriangles> for NoSymmetry {
+    fn into(self) -> TwoTriangles {
+        match self {
+            NoSymmetry::Identity => TwoTriangles([0, 1, 2, 3, 4]),
+        }
+    }
+}
+
+impl EquivalenceClass<NoSymmetry> for TwoTriangles {
+    fn get_equivalent(self, sym: &NoSymmetry) -> TwoTriangles {
+        let x: TwoTriangles = sym.clone().into();
+        x.invert().permute(self).permute(x)
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash, Sequence)]
+#[repr(u8)]
+pub enum RotationalSymmetry {
+    Identity,
+    Rotate180,
+}
+
+impl Into<TwoTriangles> for RotationalSymmetry {
+    fn into(self) -> TwoTriangles {
+        match self {
+            RotationalSymmetry::Identity => TwoTriangles([0, 1, 2, 3, 4]),
+            // Equivalent to MirrorBoth
+            RotationalSymmetry::Rotate180 => TwoTriangles([4, 3, 2, 1, 0]),
+        }
+    }
+}
+
+impl EquivalenceClass<RotationalSymmetry> for TwoTriangles {
+    fn get_equivalent(self, sym: &RotationalSymmetry) -> TwoTriangles {
         let x: TwoTriangles = sym.clone().into();
         x.invert().permute(self).permute(x)
     }
 }
 
 // TODO: There are faster algorithms than this
-impl Into<u8> for TwoTriangles {
-    fn into(self) -> u8 {
-        let mut x = self.0.clone();
-        for i in 0..5 {
-            for j in (i+1)..5 {
-                if x[j] > x[i] {
-                    x[j] -= 1;
-                }
+fn to_lehmer(p: TwoTriangles) -> u8 {
+    let mut x = p.0.clone();
+    for i in 0..5 {
+        for j in (i+1)..5 {
+            if x[j] > x[i] {
+                x[j] -= 1;
             }
         }
-        x[0] + 5 * (x[1] + 4 * (x[2] + 3 * (x[3] + 2 * x[4])))
+    }
+    x[0] + 5 * (x[1] + 4 * (x[2] + 3 * (x[3] + 2 * x[4])))
+}
+
+// TODO: There are faster algorithms than this
+fn from_lehmer(i: u8) -> TwoTriangles {
+    let mut i = i;
+    let mut x = [0; 5];
+    for j in 0..5 {
+        x[j as usize] = i % (5 - j);
+        i = i / (5 - j);
+    }
+    for i in (0..5).rev() {
+        for j in (i+1)..5 {
+            if x[j as usize] >= x[i] {
+                x[j as usize] += 1;
+            }
+        }
+    }
+    TwoTriangles(x)
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord)]
+pub struct TwoTrianglesIndex(u8);
+
+impl Sequence for TwoTrianglesIndex {
+    const CARDINALITY: usize = 120;
+
+    fn next(&self) -> Option<Self> {
+        if self.0 == (Self::CARDINALITY - 1) as u8 {
+            None
+        } else {
+            Some(TwoTrianglesIndex(self.0 + 1))
+        }
+    }
+
+    fn previous(&self) -> Option<Self> {
+        if self.0 == 0 {
+            None
+        } else {
+            Some(TwoTrianglesIndex(self.0 - 1))
+        }
+    }
+
+    fn first() -> Option<Self> {
+        Some(TwoTrianglesIndex(0))
+    }
+
+    fn last() -> Option<Self> {
+        Some(TwoTrianglesIndex((Self::CARDINALITY - 1) as u8))
+    }
+}
+
+impl Into<TwoTriangles> for TwoTrianglesIndex {
+    fn into(self) -> TwoTriangles {
+        from_lehmer(self.0)
+    }
+}
+
+impl Into<usize> for TwoTrianglesIndex {
+    fn into(self) -> usize {
+        self.0 as usize
+    }
+}
+
+impl TryFrom<usize> for TwoTrianglesIndex {
+    type Error = std::num::TryFromIntError;
+
+    fn try_from(i: usize) -> Result<Self, Self::Error> {
+        let j = i.try_into()?;
+        Ok(TwoTrianglesIndex(j))
+    }
+}
+
+impl Into<TwoTrianglesIndex> for TwoTriangles {
+    fn into(self) -> TwoTrianglesIndex {
+        TwoTrianglesIndex(to_lehmer(self))
     }
 }
 
 // TODO: There are faster algorithms than this
-impl From<u8> for TwoTriangles {
-    fn from(i: u8) -> Self {
-        let mut i = i;
-        let mut x = [0; 5];
-        for j in 0..5 {
-            x[j as usize] = i % (5 - j);
-            i = i / (5 - j);
-        }
-        for i in (0..5).rev() {
-            for j in (i+1)..5 {
-                if x[j as usize] >= x[i] {
-                    x[j as usize] += 1;
-                }
+fn to_lehmer_even(p: TwoTriangles) -> u8 {
+    let mut x = p.0.clone();
+    for i in 0..5 {
+        for j in (i+1)..5 {
+            if x[j] > x[i] {
+                x[j] -= 1;
             }
         }
-        TwoTriangles(x)
+    }
+    x[0] + 5 * (x[1] + 4 * x[2])
+}
+
+// TODO: There are faster algorithms than this
+fn from_lehmer_even(i: u8) -> TwoTriangles {
+    let mut i = i;
+    let mut x = [0; 5];
+    for j in 0..3 {
+        x[j as usize] = i % (5 - j);
+        i = i / (5 - j);
+    }
+    for i in (0..5).rev() {
+        for j in (i+1)..5 {
+            if x[j as usize] >= x[i] {
+                x[j as usize] += 1;
+            }
+        }
+    }
+    if !is_even_parity(x) {
+        let tmp = x[3];
+        x[3] = x[4];
+        x[4] = tmp;
+    }
+    TwoTriangles(x)
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord)]
+pub struct TwoTrianglesEvenIndex(u8);
+
+impl Sequence for TwoTrianglesEvenIndex {
+    const CARDINALITY: usize = 60;
+
+    fn next(&self) -> Option<Self> {
+        if self.0 == (Self::CARDINALITY - 1) as u8 {
+            None
+        } else {
+            Some(TwoTrianglesEvenIndex(self.0 + 1))
+        }
+    }
+
+    fn previous(&self) -> Option<Self> {
+        if self.0 == 0 {
+            None
+        } else {
+            Some(TwoTrianglesEvenIndex(self.0 - 1))
+        }
+    }
+
+    fn first() -> Option<Self> {
+        Some(TwoTrianglesEvenIndex(0))
+    }
+
+    fn last() -> Option<Self> {
+        Some(TwoTrianglesEvenIndex((Self::CARDINALITY - 1) as u8))
     }
 }
 
-impl From<usize> for TwoTriangles {
-    fn from(x: usize) -> Self {
-        (x as u8).into()
+impl Into<TwoTriangles> for TwoTrianglesEvenIndex {
+    fn into(self) -> TwoTriangles {
+        from_lehmer_even(self.0)
+    }
+}
+
+impl Into<usize> for TwoTrianglesEvenIndex {
+    fn into(self) -> usize {
+        self.0 as usize
+    }
+}
+
+impl TryFrom<usize> for TwoTrianglesEvenIndex {
+    type Error = std::num::TryFromIntError;
+
+    fn try_from(i: usize) -> Result<Self, Self::Error> {
+        let j = i.try_into()?;
+        Ok(TwoTrianglesEvenIndex(j))
+    }
+}
+
+impl Into<TwoTrianglesEvenIndex> for TwoTriangles {
+    fn into(self) -> TwoTrianglesEvenIndex {
+        TwoTrianglesEvenIndex(to_lehmer_even(self))
     }
 }
 
@@ -222,25 +426,52 @@ pub fn moves_to_solve(turns: &Vec<Turns>) -> BTreeMap<TwoTriangles, usize> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use enum_iterator::all;
 
     #[test]
-    fn all_lehmer_codes_round_trip() {
+    fn all_odd_lehmer_codes_round_trip() {
         for i in 0..120u8 {
-            let t: TwoTriangles = i.into();
-            assert_eq!(i, t.into());
+            let t: TwoTriangles = from_lehmer(i);
+            assert_eq!(i, to_lehmer(t));
+        }
+    }
+
+    #[test]
+    fn all_even_lehmer_codes_round_trip() {
+        for i in 0..60u8 {
+            let t: TwoTriangles = from_lehmer_even(i);
+            assert_eq!(i, to_lehmer_even(t));
         }
     }
 
     #[test]
     fn half_of_parities_are_even() {
         let mut even_count = 0;
-        for i in 0..120u8 {
+        let mut count = 0;
+        for i in all::<TwoTrianglesIndex>() {
             let t: TwoTriangles = i.into();
             if t.is_even_parity() {
                 even_count += 1;
             }
+            count += 1;
+        }
+        assert_eq!(count, 120);
+        assert_eq!(even_count, 60);
+    }
+
+    #[test]
+    fn all_even_parities_are_even() {
+        let mut even_count = 0;
+        let mut count = 0;
+        for i in all::<TwoTrianglesEvenIndex>() {
+            let t: TwoTriangles = i.into();
+            if t.is_even_parity() {
+                even_count += 1;
+            }
+            count += 1;
         }
         assert_eq!(even_count, 60);
+        assert_eq!(count, 60);
     }
 
     #[test]

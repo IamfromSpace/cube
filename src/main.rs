@@ -3,6 +3,8 @@ extern crate test;
 extern crate bincode;
 #[macro_use]
 extern crate serde;
+#[macro_use]
+extern crate enum_iterator;
 
 use std::hash::Hash;
 

@@ -78,6 +78,7 @@ impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Turn: Copy + In
 mod tests {
     use super::*;
     use two_triangles::*;
+    use enum_iterator::all;
 
     // TODO: Time to parameterize these tests
     #[test]
@@ -87,11 +88,11 @@ mod tests {
         // forward or backwards.
         let turns = vec![Turns::Left, Turns::LeftPrime, Turns::Right, Turns::RightPrime];
         let syms = vec![];
-        let all_perms = (0..120u8).map(|i| i.into());
+        let all_perms = all::<TwoTrianglesIndex>().map(|i| i.into());
 
-        let rep_table: RepresentativeTable<TwoTriangles, Sym, u8> = RepresentativeTable::new(syms, all_perms.clone());
+        let rep_table: RepresentativeTable<TwoTriangles, FullSymmetry, TwoTrianglesIndex> = RepresentativeTable::new(syms, all_perms.clone());
         let rep_table = Arc::new(rep_table);
-        let move_table: MoveTable<TwoTriangles, Sym, u8, Turns> = MoveTable::new(turns.clone(), rep_table.clone());
+        let move_table: MoveTable<TwoTriangles, FullSymmetry, TwoTrianglesIndex, Turns> = MoveTable::new(turns.clone(), rep_table.clone());
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
@@ -138,12 +139,12 @@ mod tests {
         // MoveTables should basically always include turn inverses, so that
         // they can go forward or backwards.
         let turns = vec![Turns::Left, Turns::LeftPrime, Turns::Right, Turns::RightPrime];
-        let syms = vec![Sym::MirrorBoth];
-        let all_perms = (0..120u8).map(|i| i.into());
+        let syms = vec![FullSymmetry::MirrorBoth];
+        let all_perms = all::<TwoTrianglesIndex>().map(|i| i.into());
 
-        let rep_table: RepresentativeTable<TwoTriangles, Sym, u8> = RepresentativeTable::new(syms, all_perms.clone());
+        let rep_table: RepresentativeTable<TwoTriangles, FullSymmetry, TwoTrianglesIndex> = RepresentativeTable::new(syms, all_perms.clone());
         let rep_table = Arc::new(rep_table);
-        let move_table: MoveTable<TwoTriangles, Sym, u8, Turns> = MoveTable::new(turns.clone(), rep_table.clone());
+        let move_table: MoveTable<TwoTriangles, FullSymmetry, TwoTrianglesIndex, Turns> = MoveTable::new(turns.clone(), rep_table.clone());
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
@@ -185,12 +186,12 @@ mod tests {
     #[test]
     fn move_table_is_correct_for_two_triangles_with_full_symmetry() {
         let turns = vec![Turns::Left, Turns::LeftPrime, Turns::Right, Turns::RightPrime];
-        let syms = vec![Sym::MirrorLR, Sym::MirrorTD, Sym::MirrorBoth];
-        let all_perms = (0..120u8).map(|i| i.into());
+        let syms = vec![FullSymmetry::MirrorLR, FullSymmetry::MirrorTD, FullSymmetry::MirrorBoth];
+        let all_perms = all::<TwoTrianglesIndex>().map(|i| i.into());
 
-        let rep_table: RepresentativeTable<TwoTriangles, Sym, u8> = RepresentativeTable::new(syms, all_perms.clone());
+        let rep_table: RepresentativeTable<TwoTriangles, FullSymmetry, TwoTrianglesIndex> = RepresentativeTable::new(syms, all_perms.clone());
         let rep_table = Arc::new(rep_table);
-        let move_table: MoveTable<TwoTriangles, Sym, u8, Turns> = MoveTable::new(turns.clone(), rep_table.clone());
+        let move_table: MoveTable<TwoTriangles, FullSymmetry, TwoTrianglesIndex, Turns> = MoveTable::new(turns.clone(), rep_table.clone());
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
@@ -236,11 +237,11 @@ mod tests {
         // forward or backwards.
         let turns = vec![Turns::Left, Turns::LeftPrime, Turns::Right, Turns::RightPrime];
         let syms = vec![];
-        let all_perms = (0..120u8).map(|i| i.into()).filter(|t: &TwoTriangles| t.is_even_parity());
+        let all_perms = all::<TwoTrianglesIndex>().map(|i| i.into()).filter(|t: &TwoTriangles| t.is_even_parity());
 
-        let rep_table: RepresentativeTable<TwoTriangles, Sym, u8> = RepresentativeTable::new(syms, all_perms.clone());
+        let rep_table: RepresentativeTable<TwoTriangles, FullSymmetry, TwoTrianglesIndex> = RepresentativeTable::new(syms, all_perms.clone());
         let rep_table = Arc::new(rep_table);
-        let move_table: MoveTable<TwoTriangles, Sym, u8, Turns> = MoveTable::new(turns.clone(), rep_table.clone());
+        let move_table: MoveTable<TwoTriangles, FullSymmetry, TwoTrianglesIndex, Turns> = MoveTable::new(turns.clone(), rep_table.clone());
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
@@ -285,12 +286,12 @@ mod tests {
         // MoveTables should basically always include turn inverses, so that
         // they can go forward or backwards.
         let turns = vec![Turns::Left, Turns::LeftPrime, Turns::Right, Turns::RightPrime];
-        let syms = vec![Sym::MirrorBoth];
-        let all_perms = (0..120u8).map(|i| i.into()).filter(|t: &TwoTriangles| t.is_even_parity());
+        let syms = vec![FullSymmetry::MirrorBoth];
+        let all_perms = all::<TwoTrianglesIndex>().map(|i| i.into()).filter(|t: &TwoTriangles| t.is_even_parity());
 
-        let rep_table: RepresentativeTable<TwoTriangles, Sym, u8> = RepresentativeTable::new(syms, all_perms.clone());
+        let rep_table: RepresentativeTable<TwoTriangles, FullSymmetry, TwoTrianglesIndex> = RepresentativeTable::new(syms, all_perms.clone());
         let rep_table = Arc::new(rep_table);
-        let move_table: MoveTable<TwoTriangles, Sym, u8, Turns> = MoveTable::new(turns.clone(), rep_table.clone());
+        let move_table: MoveTable<TwoTriangles, FullSymmetry, TwoTrianglesIndex, Turns> = MoveTable::new(turns.clone(), rep_table.clone());
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
@@ -332,12 +333,12 @@ mod tests {
     #[test]
     fn move_table_is_correct_for_two_triangles_even_parity_with_full_symmetry() {
         let turns = vec![Turns::Left, Turns::LeftPrime, Turns::Right, Turns::RightPrime];
-        let syms = vec![Sym::MirrorLR, Sym::MirrorTD, Sym::MirrorBoth];
-        let all_perms = (0..120u8).map(|i| i.into()).filter(|t: &TwoTriangles| t.is_even_parity());
+        let syms = vec![FullSymmetry::MirrorLR, FullSymmetry::MirrorTD, FullSymmetry::MirrorBoth];
+        let all_perms = all::<TwoTrianglesIndex>().map(|i| i.into()).filter(|t: &TwoTriangles| t.is_even_parity());
 
-        let rep_table: RepresentativeTable<TwoTriangles, Sym, u8> = RepresentativeTable::new(syms, all_perms.clone());
+        let rep_table: RepresentativeTable<TwoTriangles, FullSymmetry, TwoTrianglesIndex> = RepresentativeTable::new(syms, all_perms.clone());
         let rep_table = Arc::new(rep_table);
-        let move_table: MoveTable<TwoTriangles, Sym, u8, Turns> = MoveTable::new(turns.clone(), rep_table.clone());
+        let move_table: MoveTable<TwoTriangles, FullSymmetry, TwoTrianglesIndex, Turns> = MoveTable::new(turns.clone(), rep_table.clone());
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {

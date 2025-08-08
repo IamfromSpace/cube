@@ -6,6 +6,7 @@ authors = ["Nathan Fairhurst. <nathan.p3pictures@gmail.com>"]
 [dependencies]
 ansi_term = "0.9"
 crossbeam = "0.7.1"
+enum-iterator = "2.1.0"
 functional = "0.0.5"
 quickcheck = "0.8"
 rand = "0.6"
