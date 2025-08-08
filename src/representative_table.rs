@@ -8,10 +8,6 @@ use enum_iterator::{Sequence, all};
 
 // Opaque type to prevent accidental misuse
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub struct SymIndex(u8);
-
-// Opaque type to prevent accidental misuse
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct RepIndex<PermIndex>(PermIndex);
 
 impl<PermIndex: Into<usize>> Into<usize> for RepIndex<PermIndex> {
@@ -21,20 +17,20 @@ impl<PermIndex: Into<usize>> Into<usize> for RepIndex<PermIndex> {
 }
 
 // PermIndex should be small to make the final array compact, like a u8 or u16 if possible.
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct RepresentativeTable<Perm, Sym, PermIndex> {
     table: Vec<PermIndex>,
-    syms: Vec<Sym>,
+    syms: std::marker::PhantomData<Sym>,
     perm: std::marker::PhantomData<Perm>,
 }
 
-impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Sym: Clone, PermIndex: Copy + Ord + TryFrom<usize> + Into<usize> + Into<Perm>> RepresentativeTable<Perm, Sym, PermIndex> where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
-    pub fn new<I: Iterator<Item=Perm>>(syms: Vec<Sym>, it: I) -> Self {
-        // TODO: With capacity hint?  Could be an Option<usize> argument?
+impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Sym: Sequence + Clone, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize> + Into<Perm>> RepresentativeTable<Perm, Sym, PermIndex> where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
+    pub fn new() -> Self {
         let mut discovered = BTreeSet::new();
 
-        for perm in it {
-            let (ri, _) = smallest_equivalence(&syms, &perm);
+        for pi in all::<PermIndex>() {
+            let perm: Perm = pi.into();
+            let (ri, _): (PermIndex, Sym) = smallest_equivalence(&perm);
             discovered.insert(ri);
         }
 
@@ -46,7 +42,7 @@ impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Sym: Clone, Per
 
         RepresentativeTable {
             table,
-            syms,
+            syms: std::marker::PhantomData,
             perm: std::marker::PhantomData,
         }
     }
@@ -84,13 +80,12 @@ impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Sym: Clone, Per
     // bits here, it's going to be quite fiddly to enable that degree of
     // genericness, and packing cannot every be perfectly efficient without
     // potentially compromising speed by adding multiplication and modulos.
-    pub fn perm_to_indexes(&self, perm: &Perm) -> (RepIndex<PermIndex>, SymIndex) {
-        let (pi, si) = smallest_equivalence(&self.syms, perm);
+    pub fn perm_to_indexes(&self, perm: &Perm) -> (RepIndex<PermIndex>, Sym) {
+        let (pi, si): (PermIndex, Sym) = smallest_equivalence(perm);
         let ri =
             self.table
                 .binary_search(&pi)
-                // TODO: Make it invariant that all permutations have representatives, by requiring that Perm be enumerable.  If you need an even perm only, then you should need a different type for all perms and even only perms.
-                .expect("Permutation does not have a representative in the RepresentativeTable.  This is nearly invariant, but since one passes their own iterator to construct the RepresentativeTable, it's possible to create an incomplete representative table for a Permutation type, but then look up one of the missing members later.  This appears to have happened.");
+                .expect("Invariant violation: Permutation does not have a representative in the RepresentativeTable.");
         (RepIndex(ri.try_into().expect("Invariant violated: the size of the rep table exceeded PermIndexes maximum bound.")), si)
     }
 
@@ -99,28 +94,24 @@ impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Sym: Clone, Per
         <PermIndex as Into<Perm>>::into(pi)
     }
 
-    pub fn sym_index_to_sym(&self, i: SymIndex) -> Option<Sym> {
-        if i.0 == 255 {
-            None
-        } else {
-            Some(self.syms[i.0 as usize].clone())
-        }
-    }
-
+    // TODO: Should MoveTable implement Sequence?
     pub fn len(&self) -> usize {
         self.table.len()
     }
 
+    // TODO: Should MoveTable implement Sequence?
     pub fn rep_indexes(&self) -> impl Iterator<Item = RepIndex<PermIndex>> + '_ {
         (0..self.table.len()).map(|ri| RepIndex(ri.try_into().expect("Invariant violated: the size of the rep table exceeded PermIndexes maximum bound.")))
     }
 }
 
-fn smallest_equivalence<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Sym: Clone, PermIndex: Ord>(syms: &Vec<Sym>, perm: &Perm) -> (PermIndex, SymIndex) {
-    // Identity Sym should not be included in the Sym list (but hypothetically won't hurt anything?)
+fn smallest_equivalence<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Sym: Sequence, PermIndex: Ord>(perm: &Perm) -> (PermIndex, Sym) {
+    // Identity must be included as a symmetry
     let mut smallest = perm.clone().into(); // Not sure why From<&Perm> is such a pain
-    let mut sym_index = 255;
-    for i in 0..syms.len() {
+    let mut sym = Sym::first().expect("Error: The Sym type has no members, but it _must_ have at least the Identity.");
+
+    // TODO: don't replay first
+    for s in all::<Sym>() {
         // TODO: This clone is pretty wasteful, because we really only need a
         // reference, but get_equivalent takes self not &self, because so do
         // permute and apply.  We can't implement apply on &T, because then
@@ -133,13 +124,13 @@ fn smallest_equivalence<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermInde
         // programming we never mutate anything!  We should only ever need a
         // reference to the first two parameters, but then create something new
         // at the end.
-        let ei = perm.clone().get_equivalent(&syms[i]).into();
+        let ei = perm.clone().get_equivalent(&s).into();
         if ei < smallest {
             smallest = ei;
-            sym_index = i as u8;
+            sym = s;
         }
     }
-    (smallest, SymIndex(sym_index))
+    (smallest, sym)
 }
 
 #[cfg(test)]
@@ -149,9 +140,7 @@ mod tests {
 
     #[test]
     fn representative_table_is_correct_for_two_triangles_without_symmetry() {
-        let syms = vec![];
-        let all_perms = all::<TwoTrianglesIndex>().map(|i| i.into());
-        let rep_table: RepresentativeTable<TwoTriangles, FullSymmetry, TwoTrianglesIndex> = RepresentativeTable::new(syms, all_perms.clone());
+        let rep_table: RepresentativeTable<TwoTriangles, NoSymmetry, TwoTrianglesIndex> = RepresentativeTable::new();
 
         // Finds the expected number
         assert_eq!(rep_table.table.len(), 120);
@@ -162,21 +151,17 @@ mod tests {
         }
 
         // perm_to_indexes round trips
-        for p in all_perms {
-            let (ri, si) = rep_table.perm_to_indexes(&p);
-            let rep = match rep_table.sym_index_to_sym(si) {
-                Some(sym) => p.get_equivalent(&sym),
-                None => p,
-            };
+        for pi in all::<TwoTrianglesIndex>() {
+            let p = pi.into();
+            let (ri, sym) = rep_table.perm_to_indexes(&p);
+            let rep = p.get_equivalent(&sym);
             assert_eq!(rep_table.rep_index_to_perm(ri), rep)
         }
     }
 
     #[test]
     fn representative_table_is_correct_for_two_triangles_with_rotational_symmetry() {
-        let syms = vec![FullSymmetry::MirrorBoth];
-        let all_perms = all::<TwoTrianglesIndex>().map(|i| i.into());
-        let rep_table: RepresentativeTable<TwoTriangles, FullSymmetry, TwoTrianglesIndex> = RepresentativeTable::new(syms, all_perms.clone());
+        let rep_table: RepresentativeTable<TwoTriangles, RotationalSymmetry, TwoTrianglesIndex> = RepresentativeTable::new();
 
         // Finds the expected number
         assert_eq!(rep_table.table.len(), 64);
@@ -187,21 +172,18 @@ mod tests {
         }
 
         // perm_to_indexes round trips
-        for p in all_perms {
+        for pi in all::<TwoTrianglesIndex>() {
+            let p = pi.into();
             let (ri, si) = rep_table.perm_to_indexes(&p);
-            let rep = match rep_table.sym_index_to_sym(si) {
-                Some(sym) => p.get_equivalent(&sym),
-                None => p,
-            };
+            let (ri, sym) = rep_table.perm_to_indexes(&p);
+            let rep = p.get_equivalent(&sym);
             assert_eq!(rep_table.rep_index_to_perm(ri), rep)
         }
     }
 
     #[test]
     fn representative_table_is_correct_for_two_triangles_with_full_symmetry() {
-        let syms = vec![FullSymmetry::MirrorLR, FullSymmetry::MirrorTD, FullSymmetry::MirrorBoth];
-        let all_perms = all::<TwoTrianglesIndex>().map(|i| i.into());
-        let rep_table: RepresentativeTable<TwoTriangles, FullSymmetry, TwoTrianglesIndex> = RepresentativeTable::new(syms, all_perms.clone());
+        let rep_table: RepresentativeTable<TwoTriangles, FullSymmetry, TwoTrianglesIndex> = RepresentativeTable::new();
 
         // Finds the expected number
         assert_eq!(rep_table.table.len(), 36);
@@ -212,21 +194,17 @@ mod tests {
         }
 
         // perm_to_indexes round trips
-        for p in all_perms {
-            let (ri, si) = rep_table.perm_to_indexes(&p);
-            let rep = match rep_table.sym_index_to_sym(si) {
-                Some(sym) => p.get_equivalent(&sym),
-                None => p,
-            };
+        for pi in all::<TwoTrianglesIndex>() {
+            let p = pi.into();
+            let (ri, sym) = rep_table.perm_to_indexes(&p);
+            let rep = p.get_equivalent(&sym);
             assert_eq!(rep_table.rep_index_to_perm(ri), rep)
         }
     }
 
     #[test]
     fn representative_table_is_correct_for_two_triangles_even_perms_without_symmetry() {
-        let syms = vec![];
-        let all_perms = all::<TwoTrianglesIndex>().map(|i| i.into()).filter(|t: &TwoTriangles| t.is_even_parity());
-        let rep_table: RepresentativeTable<TwoTriangles, FullSymmetry, TwoTrianglesIndex> = RepresentativeTable::new(syms, all_perms.clone());
+        let rep_table: RepresentativeTable<TwoTriangles, NoSymmetry, TwoTrianglesEvenIndex> = RepresentativeTable::new();
 
         // Finds the expected number
         assert_eq!(rep_table.table.len(), 60);
@@ -237,21 +215,17 @@ mod tests {
         }
 
         // perm_to_indexes round trips
-        for p in all_perms {
-            let (ri, si) = rep_table.perm_to_indexes(&p);
-            let rep = match rep_table.sym_index_to_sym(si) {
-                Some(sym) => p.get_equivalent(&sym),
-                None => p,
-            };
+        for pi in all::<TwoTrianglesEvenIndex>() {
+            let p = pi.into();
+            let (ri, sym) = rep_table.perm_to_indexes(&p);
+            let rep = p.get_equivalent(&sym);
             assert_eq!(rep_table.rep_index_to_perm(ri), rep)
         }
     }
 
     #[test]
     fn representative_table_is_correct_for_two_triangles_even_perms_with_rotational_symmetry() {
-        let syms = vec![FullSymmetry::MirrorBoth];
-        let all_perms = all::<TwoTrianglesIndex>().map(|i| i.into()).filter(|t: &TwoTriangles| t.is_even_parity());
-        let rep_table: RepresentativeTable<TwoTriangles, FullSymmetry, TwoTrianglesIndex> = RepresentativeTable::new(syms, all_perms.clone());
+        let rep_table: RepresentativeTable<TwoTriangles, RotationalSymmetry, TwoTrianglesEvenIndex> = RepresentativeTable::new();
 
         // Finds the expected number
         assert_eq!(rep_table.table.len(), 32);
@@ -262,21 +236,17 @@ mod tests {
         }
 
         // perm_to_indexes round trips
-        for p in all_perms {
-            let (ri, si) = rep_table.perm_to_indexes(&p);
-            let rep = match rep_table.sym_index_to_sym(si) {
-                Some(sym) => p.get_equivalent(&sym),
-                None => p,
-            };
+        for pi in all::<TwoTrianglesEvenIndex>() {
+            let p = pi.into();
+            let (ri, sym) = rep_table.perm_to_indexes(&p);
+            let rep = p.get_equivalent(&sym);
             assert_eq!(rep_table.rep_index_to_perm(ri), rep)
         }
     }
 
     #[test]
     fn representative_table_is_correct_for_two_triangles_even_perms_with_full_symmetry() {
-        let syms = vec![FullSymmetry::MirrorLR, FullSymmetry::MirrorTD, FullSymmetry::MirrorBoth];
-        let all_perms = all::<TwoTrianglesIndex>().map(|i| i.into()).filter(|t: &TwoTriangles| t.is_even_parity());
-        let rep_table: RepresentativeTable<TwoTriangles, FullSymmetry, TwoTrianglesIndex> = RepresentativeTable::new(syms, all_perms.clone());
+        let rep_table: RepresentativeTable<TwoTriangles, FullSymmetry, TwoTrianglesEvenIndex> = RepresentativeTable::new();
 
         // Finds the expected number
         assert_eq!(rep_table.table.len(), 18);
@@ -287,12 +257,10 @@ mod tests {
         }
 
         // perm_to_indexes round trips
-        for p in all_perms {
-            let (ri, si) = rep_table.perm_to_indexes(&p);
-            let rep = match rep_table.sym_index_to_sym(si) {
-                Some(sym) => p.get_equivalent(&sym),
-                None => p,
-            };
+        for pi in all::<TwoTrianglesEvenIndex>() {
+            let p = pi.into();
+            let (ri, sym) = rep_table.perm_to_indexes(&p);
+            let rep = p.get_equivalent(&sym);
             assert_eq!(rep_table.rep_index_to_perm(ri), rep)
         }
     }
