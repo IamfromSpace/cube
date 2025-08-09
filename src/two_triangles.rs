@@ -5,7 +5,7 @@ use equivalence_class::EquivalenceClass;
 use std::collections::BTreeMap;
 use std::collections::VecDeque;
 use std::convert::{TryInto, TryFrom};
-use enum_iterator::Sequence;
+use enum_iterator::{all, Sequence};
 
 // We have a simple little puzzle with two "faces" that share a middle.
 // we can rotate either clockwise or counter-clockwise.  Even though
@@ -396,7 +396,7 @@ impl Into<TwoTrianglesEvenIndex> for TwoTriangles {
     }
 }
 
-pub fn moves_to_solve(turns: &Vec<Turns>) -> BTreeMap<TwoTriangles, usize> {
+pub fn moves_to_solve() -> BTreeMap<TwoTriangles, usize> {
     let mut queue = VecDeque::new();
     let mut map = BTreeMap::new();
 
@@ -407,8 +407,8 @@ pub fn moves_to_solve(turns: &Vec<Turns>) -> BTreeMap<TwoTriangles, usize> {
         match queue.pop_front() {
             None => break,
             Some((p, count)) => {
-                for t in turns {
-                    let turned = p.clone().permute((*t).into());
+                for t in all::<Turns>() {
+                    let turned = p.clone().permute(t.into());
                     match map.get(&turned) {
                         None => {
                             map.insert(turned, count);
