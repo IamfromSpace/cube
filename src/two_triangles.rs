@@ -390,6 +390,9 @@ impl TryFrom<usize> for TwoTrianglesEvenIndex {
     }
 }
 
+// TODO: This technically can fail.  We don't know that an odd permutation
+// wasn't applied.  I have no idea how to handle this though (it should at
+// least panic).
 impl Into<TwoTrianglesEvenIndex> for TwoTriangles {
     fn into(self) -> TwoTrianglesEvenIndex {
         TwoTrianglesEvenIndex(to_lehmer_even(self))
