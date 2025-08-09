@@ -168,17 +168,47 @@ impl EquivalenceClass<FullSymmetry> for TwoTriangles {
     }
 }
 
+impl EquivalenceClass<FullSymmetry> for Turns {
+    fn get_equivalent(self, sym: &FullSymmetry) -> Turns {
+        match (sym, self) {
+            (FullSymmetry::Identity, Turns::Left) => Turns::Left,
+            (FullSymmetry::Identity, Turns::LeftPrime) => Turns::LeftPrime,
+            (FullSymmetry::Identity, Turns::Right) => Turns::Right,
+            (FullSymmetry::Identity, Turns::RightPrime) => Turns::RightPrime,
+            (FullSymmetry::MirrorLR, Turns::Left) => Turns::RightPrime,
+            (FullSymmetry::MirrorLR, Turns::LeftPrime) => Turns::Right,
+            (FullSymmetry::MirrorLR, Turns::Right) => Turns::LeftPrime,
+            (FullSymmetry::MirrorLR, Turns::RightPrime) => Turns::Left,
+            (FullSymmetry::MirrorTD, Turns::Left) => Turns::LeftPrime,
+            (FullSymmetry::MirrorTD, Turns::LeftPrime) => Turns::Left,
+            (FullSymmetry::MirrorTD, Turns::Right) => Turns::RightPrime,
+            (FullSymmetry::MirrorTD, Turns::RightPrime) => Turns::Right,
+            (FullSymmetry::MirrorBoth, Turns::Left) => Turns::Right,
+            (FullSymmetry::MirrorBoth, Turns::LeftPrime) => Turns::RightPrime,
+            (FullSymmetry::MirrorBoth, Turns::Right) => Turns::Left,
+            (FullSymmetry::MirrorBoth, Turns::RightPrime) => Turns::LeftPrime,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash, Sequence)]
 #[repr(u8)]
 pub enum NoSymmetry {
     Identity,
 }
 
+impl Into<FullSymmetry> for NoSymmetry {
+    fn into(self) -> FullSymmetry {
+        match self {
+            NoSymmetry::Identity => FullSymmetry::Identity,
+        }
+    }
+}
+
 impl Into<TwoTriangles> for NoSymmetry {
     fn into(self) -> TwoTriangles {
-        match self {
-            NoSymmetry::Identity => TwoTriangles([0, 1, 2, 3, 4]),
-        }
+        let full: FullSymmetry = self.into();
+        full.into()
     }
 }
 
@@ -189,6 +219,13 @@ impl EquivalenceClass<NoSymmetry> for TwoTriangles {
     }
 }
 
+impl EquivalenceClass<NoSymmetry> for Turns {
+    fn get_equivalent(self, sym: &NoSymmetry) -> Turns {
+        let full: FullSymmetry = (*sym).into();
+        self.get_equivalent(&full)
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash, Sequence)]
 #[repr(u8)]
 pub enum RotationalSymmetry {
@@ -196,13 +233,19 @@ pub enum RotationalSymmetry {
     Rotate180,
 }
 
+impl Into<FullSymmetry> for RotationalSymmetry {
+    fn into(self) -> FullSymmetry {
+        match self {
+            RotationalSymmetry::Identity => FullSymmetry::Identity,
+            RotationalSymmetry::Rotate180 => FullSymmetry::MirrorBoth,
+        }
+    }
+}
+
 impl Into<TwoTriangles> for RotationalSymmetry {
     fn into(self) -> TwoTriangles {
-        match self {
-            RotationalSymmetry::Identity => TwoTriangles([0, 1, 2, 3, 4]),
-            // Equivalent to MirrorBoth
-            RotationalSymmetry::Rotate180 => TwoTriangles([4, 3, 2, 1, 0]),
-        }
+        let full: FullSymmetry = self.into();
+        full.into()
     }
 }
 
@@ -210,6 +253,13 @@ impl EquivalenceClass<RotationalSymmetry> for TwoTriangles {
     fn get_equivalent(self, sym: &RotationalSymmetry) -> TwoTriangles {
         let x: TwoTriangles = sym.clone().into();
         x.invert().permute(self).permute(x)
+    }
+}
+
+impl EquivalenceClass<RotationalSymmetry> for Turns {
+    fn get_equivalent(self, sym: &RotationalSymmetry) -> Turns {
+        let full: FullSymmetry = (*sym).into();
+        self.get_equivalent(&full)
     }
 }
 
@@ -505,5 +555,50 @@ mod tests {
     fn five_cycle_is_even() {
         let t = TwoTriangles([4, 0, 1, 2, 3]);
         assert_eq!(t.is_even_parity(), true);
+    }
+
+    #[test]
+    fn perm_and_turn_no_symmetries_are_equivalent() {
+        // Typically we need to use quickcheck here, but we can be exhaustive for a puzzle this size
+        for s in all::<NoSymmetry>() {
+            for pi in all::<TwoTrianglesIndex>() {
+                let p: TwoTriangles = pi.into();
+                for t in all::<Turns>() {
+                    let after_permute = p.permute(t.into()).get_equivalent(&s);
+                    let before_permute = p.get_equivalent(&s).permute(t.get_equivalent(&s).into());
+                    assert_eq!(after_permute, before_permute)
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn perm_and_turn_rotational_symmetries_are_equivalent() {
+        // Typically we need to use quickcheck here, but we can be exhaustive for a puzzle this size
+        for s in all::<RotationalSymmetry>() {
+            for pi in all::<TwoTrianglesIndex>() {
+                let p: TwoTriangles = pi.into();
+                for t in all::<Turns>() {
+                    let after_permute = p.permute(t.into()).get_equivalent(&s);
+                    let before_permute = p.get_equivalent(&s).permute(t.get_equivalent(&s).into());
+                    assert_eq!(after_permute, before_permute)
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn perm_and_turn_full_symmetries_are_equivalent() {
+        // Typically we need to use quickcheck here, but we can be exhaustive for a puzzle this size
+        for s in all::<FullSymmetry>() {
+            for pi in all::<TwoTrianglesIndex>() {
+                let p: TwoTriangles = pi.into();
+                for t in all::<Turns>() {
+                    let after_permute = p.permute(t.into()).get_equivalent(&s);
+                    let before_permute = p.get_equivalent(&s).permute(t.get_equivalent(&s).into());
+                    assert_eq!(after_permute, before_permute)
+                }
+            }
+        }
     }
 }
