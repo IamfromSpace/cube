@@ -130,13 +130,9 @@ mod tests {
 
     #[test]
     fn pruning_table_is_correct_for_two_triangles_even_parity_without_symmetry() {
-        let all_perms = all::<TwoTrianglesIndex>().map(|i| i.into()).filter(|t: &TwoTriangles| t.is_even_parity());
-
-        let rep_table: RepresentativeTable<TwoTriangles, NoSymmetry, TwoTrianglesEvenIndex> = RepresentativeTable::new();
-        let rep_table = Arc::new(rep_table);
-        let move_table: MoveTable<TwoTriangles, NoSymmetry, TwoTrianglesEvenIndex, Turns> = MoveTable::new(rep_table.clone());
-        let move_table = Arc::new(move_table);
-        let pruning_table: PruningTable<TwoTriangles, NoSymmetry, TwoTrianglesEvenIndex, Turns> = PruningTable::new(move_table.clone(), std::iter::once(TwoTriangles::identity().into()));
+        let rep_table = Arc::new(RepresentativeTable::new());
+        let move_table = Arc::new(MoveTable::new(rep_table));
+        let pruning_table: PruningTable<TwoTriangles, NoSymmetry, TwoTrianglesEvenIndex, Turns> = PruningTable::new(move_table, std::iter::once(TwoTriangles::identity().into()));
 
         // Our simple implementation (TwoTriangles is small enough to solve naively) matches our more complex one
         let tt_table = moves_to_solve();
@@ -147,12 +143,8 @@ mod tests {
 
     #[test]
     fn pruning_table_is_correct_for_two_triangles_even_parity_with_rotational_symmetry() {
-        let all_perms = all::<TwoTrianglesIndex>().map(|i| i.into()).filter(|t: &TwoTriangles| t.is_even_parity());
-
-        let rep_table: RepresentativeTable<TwoTriangles, RotationalSymmetry, TwoTrianglesEvenIndex> = RepresentativeTable::new();
-        let rep_table = Arc::new(rep_table);
-        let move_table: MoveTable<TwoTriangles, RotationalSymmetry, TwoTrianglesEvenIndex, Turns> = MoveTable::new(rep_table.clone());
-        let move_table = Arc::new(move_table);
+        let rep_table = Arc::new(RepresentativeTable::new());
+        let move_table = Arc::new(MoveTable::new(rep_table));
         let pruning_table: PruningTable<TwoTriangles, RotationalSymmetry, TwoTrianglesEvenIndex, Turns> = PruningTable::new(move_table.clone(), std::iter::once(TwoTriangles::identity().into()));
 
         // Our simple implementation (TwoTriangles is small enough to solve naively) matches our more complex one
@@ -164,12 +156,8 @@ mod tests {
 
     #[test]
     fn pruning_table_is_correct_for_two_triangles_even_parity_with_full_symmetry() {
-        let all_perms = all::<TwoTrianglesIndex>().map(|i| i.into()).filter(|t: &TwoTriangles| t.is_even_parity());
-
-        let rep_table: RepresentativeTable<TwoTriangles, FullSymmetry, TwoTrianglesEvenIndex> = RepresentativeTable::new();
-        let rep_table = Arc::new(rep_table);
-        let move_table: MoveTable<TwoTriangles, FullSymmetry, TwoTrianglesEvenIndex, Turns> = MoveTable::new(rep_table.clone());
-        let move_table = Arc::new(move_table);
+        let rep_table = Arc::new(RepresentativeTable::new());
+        let move_table = Arc::new(MoveTable::new(rep_table));
         let pruning_table: PruningTable<TwoTriangles, FullSymmetry, TwoTrianglesEvenIndex, Turns> = PruningTable::new(move_table.clone(), std::iter::once(TwoTriangles::identity().into()));
 
         // Our simple implementation (TwoTriangles is small enough to solve naively) matches our more complex one
