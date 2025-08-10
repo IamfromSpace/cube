@@ -27,13 +27,14 @@ pub struct PruningTable<Perm, Sym, PermIndex, Turn> {
 }
 
 impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Turn: Sequence + Copy + Into<Perm> + PartialEq + Into<usize> + Invertable + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize> + Into<Perm> + std::fmt::Debug> PruningTable<Perm, Sym, PermIndex, Turn> where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
-    // NOTE: For practical reasons this only supports puzzles we can apply the
-    // inverse of any turn as a turn.  But hypothetically, we could have
-    // different turns between our PruningTable and our MoveTable.  However,
-    // the MoveTable would still need to hold inverses so that we could explore
-    // in either direction, but the pruning table would only be generated with
-    // the inverted subset (how to solve it), or with the forward set (how to
-    // get to the scrambled position).
+    // TODO: Hypothetically our pruning table could use a different Turn set
+    // than our MoveTable.  We'd need the MoveTableTurn to be Invertable, but
+    // not the PruningTableTurn.  PruningTableTurn must be From<MoveTableTurn>.
+    // If we separate these out, when doing the discovery we would convert the
+    // PruningTableTurn into a MoveTable turn _and then invert it_ because
+    // we're walking away from the solved state.  Honestly, there still may be
+    // problems with this, and I don't know if non-invertable turn twisty
+    // puzzles even exist.
     pub fn new<I: Iterator<Item=PermIndex>>(move_table: Arc<MoveTable<Perm, Sym, PermIndex, Turn>>, goal_states: I) -> Self {
         let table_size = move_table.len() / 4 + if move_table.len() % 4 == 0 { 0 } else { 1 };
         let mut table = Vec::with_capacity(table_size);
