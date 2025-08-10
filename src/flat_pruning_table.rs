@@ -1,4 +1,5 @@
 use permutation_group::PermutationGroup as PG;
+use invertable::Invertable;
 use equivalence_class::EquivalenceClass;
 use super::util::{n_scoped_workers, while_iter_in_mutex_has_next };
 use flat_move_table::MoveTable;
@@ -25,7 +26,7 @@ pub struct PruningTable<Perm, Sym, PermIndex, Turn> {
     goals: BTreeSet<RepIndex<PermIndex>>,
 }
 
-impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Turn: Sequence + Copy + Into<Perm> + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize> + Into<Perm> + std::fmt::Debug> PruningTable<Perm, Sym, PermIndex, Turn> where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
+impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Turn: Sequence + Copy + Into<Perm> + PartialEq + Into<usize> + Invertable + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize> + Into<Perm> + std::fmt::Debug> PruningTable<Perm, Sym, PermIndex, Turn> where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
     // NOTE: For practical reasons this only supports puzzles we can apply the
     // inverse of any turn as a turn.  But hypothetically, we could have
     // different turns between our PruningTable and our MoveTable.  However,

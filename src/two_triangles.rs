@@ -114,6 +114,17 @@ pub enum Turns {
     RightPrime,
 }
 
+impl Invertable for Turns {
+    fn invert(&self) -> Turns {
+        match self {
+            Turns::Left => Turns::LeftPrime,
+            Turns::LeftPrime => Turns::Left,
+            Turns::Right => Turns::RightPrime,
+            Turns::RightPrime => Turns::Right,
+        }
+    }
+}
+
 impl Into<usize> for Turns {
     fn into(self) -> usize {
         self as usize
