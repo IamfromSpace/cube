@@ -23,6 +23,8 @@ pub struct MoveTable<Perm, Sym, PermIndex, Turn> {
 // satisfied if Perm is a PermutationGroup, and Turn is Into<Perm> (which
 // possibly it can implement too).
 impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Turn: Sequence + Copy + Into<Perm> + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize> + Into<Perm>> MoveTable<Perm, Sym, PermIndex, Turn> where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
+    // TODO: We can have an alterative method that automatically generates the
+    // RepTable to simplify cases where it isn't shared with other MoveTables.
     pub fn new(rep_table: Arc<RepresentativeTable<Perm, Sym, PermIndex>>) -> Self {
         let mut table = Vec::with_capacity(rep_table.len() * cardinality::<Turn>());
 
