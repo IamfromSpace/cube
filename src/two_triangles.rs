@@ -460,11 +460,11 @@ impl Into<TwoTrianglesEvenIndex> for TwoTriangles {
     }
 }
 
-pub fn moves_to_solve() -> BTreeMap<TwoTriangles, usize> {
+pub fn moves_to_solve() -> BTreeMap<TwoTrianglesEvenIndex, usize> {
     let mut queue = VecDeque::new();
     let mut map = BTreeMap::new();
 
-    map.insert(TwoTriangles::identity(), 0);
+    map.insert(TwoTriangles::identity().into(), 0);
     queue.push_back((TwoTriangles::identity(), 1));
 
     loop {
@@ -473,9 +473,9 @@ pub fn moves_to_solve() -> BTreeMap<TwoTriangles, usize> {
             Some((p, count)) => {
                 for t in all::<Turns>() {
                     let turned = p.clone().permute(t.into());
-                    match map.get(&turned) {
+                    match map.get(&turned.into()) {
                         None => {
-                            map.insert(turned, count);
+                            map.insert(turned.into(), count);
                             queue.push_back((turned, count + 1))
                         },
                         Some(_) => (),

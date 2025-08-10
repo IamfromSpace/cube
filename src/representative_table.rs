@@ -59,8 +59,10 @@ impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Sym: Sequence +
     // could only represent 253 states, and we know there are more--therefore
     // more reps _must_ exist.  The sym-coordinate of the 65th representative
     // reduced by symmetry index 3 is 259, which exceeds the u8 bound.
-    // Requiring that PermIndex be big enough for a sym-coordinate could make
-    // some sense, but adds some overhead.
+    // Requiring that PermIndex be big enough doesn't make sense with our
+    // Sequence strategy--we want every member of the PermIndex to represent a
+    // valid Perm.  Though, it doesn't really make a lot of sense the way we're
+    // using it here either as a compact housing.
     //
     // Next, perfectly compacting a sym-coordinate isn't necessarily a good
     // idea.  Splitting a sym-coordinate will actually be a very common
@@ -70,21 +72,16 @@ impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Sym: Sequence +
     // a repeated operation.  Using bitwise operations may also be effective to
     // balance compactness vs speed of splitting and combining.
     //
-    // Then, the sym index should really be generic so it can be fit to just
-    // the right size, but it almost certainly fits in a u8 for practical
-    // cubes.  If the sym index is never more than 8 bits, then PermIndex can
-    // never save a full 8 bits, and so the likelihood of actually being able
-    // to step down the total byte count is diminished.
-    //
     // So it's quite possible that this can be optimized to efficiently pack
     // bits here, it's going to be quite fiddly to enable that degree of
     // genericness, and packing cannot every be perfectly efficient without
     // potentially compromising speed by adding multiplication and modulos.
-    pub fn perm_to_indexes(&self, perm: &Perm) -> (RepIndex<PermIndex>, Sym) {
-        let (pi, si): (PermIndex, Sym) = smallest_equivalence(perm);
+    pub fn raw_index_to_sym_index(&self, pi: PermIndex) -> (RepIndex<PermIndex>, Sym) {
+        let perm: Perm = pi.into();
+        let (spi, si): (PermIndex, Sym) = smallest_equivalence(&perm);
         let ri =
             self.table
-                .binary_search(&pi)
+                .binary_search(&spi)
                 .expect("Invariant violation: Permutation does not have a representative in the RepresentativeTable.");
         (RepIndex(ri.try_into().expect("Invariant violated: the size of the rep table exceeded PermIndexes maximum bound.")), si)
     }
@@ -150,11 +147,10 @@ mod tests {
             assert_eq!(rep_table.table[i - 1] < rep_table.table[i], true);
         }
 
-        // perm_to_indexes round trips
+        // raw_index_to_sym_index round trips
         for pi in all::<TwoTrianglesIndex>() {
-            let p = pi.into();
-            let (ri, sym) = rep_table.perm_to_indexes(&p);
-            let rep = p.get_equivalent(&sym);
+            let (ri, sym) = rep_table.raw_index_to_sym_index(pi);
+            let rep = Into::<TwoTriangles>::into(pi).get_equivalent(&sym);
             assert_eq!(rep_table.rep_index_to_perm(ri), rep)
         }
     }
@@ -171,11 +167,10 @@ mod tests {
             assert_eq!(rep_table.table[i - 1] < rep_table.table[i], true);
         }
 
-        // perm_to_indexes round trips
+        // raw_index_to_sym_index round trips
         for pi in all::<TwoTrianglesIndex>() {
-            let p = pi.into();
-            let (ri, sym) = rep_table.perm_to_indexes(&p);
-            let rep = p.get_equivalent(&sym);
+            let (ri, sym) = rep_table.raw_index_to_sym_index(pi);
+            let rep = Into::<TwoTriangles>::into(pi).get_equivalent(&sym);
             assert_eq!(rep_table.rep_index_to_perm(ri), rep)
         }
     }
@@ -192,11 +187,10 @@ mod tests {
             assert_eq!(rep_table.table[i - 1] < rep_table.table[i], true);
         }
 
-        // perm_to_indexes round trips
+        // raw_index_to_sym_index round trips
         for pi in all::<TwoTrianglesIndex>() {
-            let p = pi.into();
-            let (ri, sym) = rep_table.perm_to_indexes(&p);
-            let rep = p.get_equivalent(&sym);
+            let (ri, sym) = rep_table.raw_index_to_sym_index(pi);
+            let rep = Into::<TwoTriangles>::into(pi).get_equivalent(&sym);
             assert_eq!(rep_table.rep_index_to_perm(ri), rep)
         }
     }
@@ -213,11 +207,10 @@ mod tests {
             assert_eq!(rep_table.table[i - 1] < rep_table.table[i], true);
         }
 
-        // perm_to_indexes round trips
+        // raw_index_to_sym_index round trips
         for pi in all::<TwoTrianglesEvenIndex>() {
-            let p = pi.into();
-            let (ri, sym) = rep_table.perm_to_indexes(&p);
-            let rep = p.get_equivalent(&sym);
+            let (ri, sym) = rep_table.raw_index_to_sym_index(pi);
+            let rep = Into::<TwoTriangles>::into(pi).get_equivalent(&sym);
             assert_eq!(rep_table.rep_index_to_perm(ri), rep)
         }
     }
@@ -234,11 +227,10 @@ mod tests {
             assert_eq!(rep_table.table[i - 1] < rep_table.table[i], true);
         }
 
-        // perm_to_indexes round trips
+        // raw_index_to_sym_index round trips
         for pi in all::<TwoTrianglesEvenIndex>() {
-            let p = pi.into();
-            let (ri, sym) = rep_table.perm_to_indexes(&p);
-            let rep = p.get_equivalent(&sym);
+            let (ri, sym) = rep_table.raw_index_to_sym_index(pi);
+            let rep = Into::<TwoTriangles>::into(pi).get_equivalent(&sym);
             assert_eq!(rep_table.rep_index_to_perm(ri), rep)
         }
     }
@@ -255,11 +247,10 @@ mod tests {
             assert_eq!(rep_table.table[i - 1] < rep_table.table[i], true);
         }
 
-        // perm_to_indexes round trips
+        // raw_index_to_sym_index round trips
         for pi in all::<TwoTrianglesEvenIndex>() {
-            let p = pi.into();
-            let (ri, sym) = rep_table.perm_to_indexes(&p);
-            let rep = p.get_equivalent(&sym);
+            let (ri, sym) = rep_table.raw_index_to_sym_index(pi);
+            let rep = Into::<TwoTriangles>::into(pi).get_equivalent(&sym);
             assert_eq!(rep_table.rep_index_to_perm(ri), rep)
         }
     }

@@ -22,6 +22,9 @@ pub struct MoveTable<Perm, Sym, PermIndex, Turn> {
 // Instead we need some sort of Turnable trait, which can automatically be
 // satisfied if Perm is a PermutationGroup, and Turn is Into<Perm> (which
 // possibly it can implement too).
+// TODO: If the PermIndex is even all Turns must be even too, and if the
+// PermIndex is odd then at least one Turn in the set must also be odd.  Can
+// this be expressed through Traits to guarantee a match?
 impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Turn: Sequence + Copy + Into<Perm> + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize> + Into<Perm>> MoveTable<Perm, Sym, PermIndex, Turn> where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
     // TODO: We can have an alterative method that automatically generates the
     // RepTable to simplify cases where it isn't shared with other MoveTables.
@@ -32,7 +35,7 @@ impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Turn: Sequence 
             let p = rep_table.rep_index_to_perm(ri);
             for t in all::<Turn>() {
                 let turned: Perm = p.clone().permute(<Turn as Into<Perm>>::into(t));
-                table.push(rep_table.perm_to_indexes(&turned));
+                table.push(rep_table.raw_index_to_sym_index(turned.into()));
             }
         }
 
@@ -61,8 +64,8 @@ impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Turn: Sequence 
         self.rep_table.len()
     }
 
-    pub fn perm_to_indexes(&self, perm: &Perm) -> (RepIndex<PermIndex>, Sym) {
-        self.rep_table.perm_to_indexes(perm)
+    pub fn raw_index_to_sym_index(&self, pi: PermIndex) -> (RepIndex<PermIndex>, Sym) {
+        self.rep_table.raw_index_to_sym_index(pi)
     }
 }
 
@@ -97,9 +100,8 @@ mod tests {
         // that can put you in state b from a, then there must exist an inverse
         // turn that puts you from state a to state b.
         for pi in all::<TwoTrianglesIndex>() {
-            let p = pi.into();
             for t in all::<Turns>() {
-                let (ri_a, _) = move_table.perm_to_indexes(&p);
+                let (ri_a, _) = move_table.raw_index_to_sym_index(pi);
                 let (ri_b, _) = move_table.turn(ri_a, t);
                 let mut found = false;
                 for t in all::<Turns>() {
@@ -138,9 +140,8 @@ mod tests {
         // that can put you in state b from a, then there must exist an inverse
         // turn that puts you from state a to state b.
         for pi in all::<TwoTrianglesIndex>() {
-            let p = pi.into();
             for t in all::<Turns>() {
-                let (ri_a, _) = move_table.perm_to_indexes(&p);
+                let (ri_a, _) = move_table.raw_index_to_sym_index(pi);
                 let (ri_b, _) = move_table.turn(ri_a, t);
                 let mut found = false;
                 for t in all::<Turns>() {
@@ -174,9 +175,8 @@ mod tests {
         // that can put you in state b from a, then there must exist an inverse
         // turn that puts you from state a to state b.
         for pi in all::<TwoTrianglesIndex>() {
-            let p = pi.into();
             for t in all::<Turns>() {
-                let (ri_a, _) = move_table.perm_to_indexes(&p);
+                let (ri_a, _) = move_table.raw_index_to_sym_index(pi);
                 let (ri_b, _) = move_table.turn(ri_a, t);
                 let mut found = false;
                 for t in all::<Turns>() {
@@ -213,9 +213,8 @@ mod tests {
         // that can put you in state b from a, then there must exist an inverse
         // turn that puts you from state a to state b.
         for pi in all::<TwoTrianglesEvenIndex>() {
-            let p = pi.into();
             for t in all::<Turns>() {
-                let (ri_a, _) = move_table.perm_to_indexes(&p);
+                let (ri_a, _) = move_table.raw_index_to_sym_index(pi);
                 let (ri_b, _) = move_table.turn(ri_a, t);
                 let mut found = false;
                 for t in all::<Turns>() {
@@ -233,7 +232,7 @@ mod tests {
         // Even though just Left + Right is sufficient and symmetric,
         // MoveTables should basically always include turn inverses, so that
         // they can go forward or backwards.
-        let move_table: MoveTable<TwoTriangles, RotationalSymmetry, TwoTrianglesIndex, Turns> = MoveTable::new(rep_table.clone());
+        let move_table: MoveTable<TwoTriangles, RotationalSymmetry, TwoTrianglesEvenIndex, Turns> = MoveTable::new(rep_table.clone());
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
@@ -252,9 +251,8 @@ mod tests {
         // that can put you in state b from a, then there must exist an inverse
         // turn that puts you from state a to state b.
         for pi in all::<TwoTrianglesEvenIndex>() {
-            let p = pi.into();
             for t in all::<Turns>() {
-                let (ri_a, _) = move_table.perm_to_indexes(&p);
+                let (ri_a, _) = move_table.raw_index_to_sym_index(pi);
                 let (ri_b, _) = move_table.turn(ri_a, t);
                 let mut found = false;
                 for t in all::<Turns>() {
@@ -269,7 +267,7 @@ mod tests {
     #[test]
     fn move_table_is_correct_for_two_triangles_even_parity_with_full_symmetry() {
         let rep_table = Arc::new(RepresentativeTable::new());
-        let move_table: MoveTable<TwoTriangles, FullSymmetry, TwoTrianglesIndex, Turns> = MoveTable::new(rep_table.clone());
+        let move_table: MoveTable<TwoTriangles, FullSymmetry, TwoTrianglesEvenIndex, Turns> = MoveTable::new(rep_table.clone());
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
@@ -288,9 +286,8 @@ mod tests {
         // that can put you in state b from a, then there must exist an inverse
         // turn that puts you from state a to state b.
         for pi in all::<TwoTrianglesEvenIndex>() {
-            let p = pi.into();
             for t in all::<Turns>() {
-                let (ri_a, _) = move_table.perm_to_indexes(&p);
+                let (ri_a, _) = move_table.raw_index_to_sym_index(pi);
                 let (ri_b, _) = move_table.turn(ri_a, t);
                 let mut found = false;
                 for t in all::<Turns>() {

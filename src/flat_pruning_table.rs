@@ -34,7 +34,7 @@ impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Turn: Sequence 
     // in either direction, but the pruning table would only be generated with
     // the inverted subset (how to solve it), or with the forward set (how to
     // get to the scrambled position).
-    pub fn new<I: Iterator<Item=Perm>>(move_table: Arc<MoveTable<Perm, Sym, PermIndex, Turn>>, goal_states: I) -> Self {
+    pub fn new<I: Iterator<Item=PermIndex>>(move_table: Arc<MoveTable<Perm, Sym, PermIndex, Turn>>, goal_states: I) -> Self {
         let table_size = move_table.len() / 4 + if move_table.len() % 4 == 0 { 0 } else { 1 };
         let mut table = Vec::with_capacity(table_size);
         // 0b00 means (turns left `mod` 3 = 0)
@@ -44,8 +44,8 @@ impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Turn: Sequence 
         table.resize(table_size, 255);
         let mut queue = VecDeque::new();
         let mut goals = BTreeSet::new();
-        for p in goal_states {
-            let (ri, _) = move_table.perm_to_indexes(&p);
+        for pi in goal_states {
+            let (ri, _) = move_table.raw_index_to_sym_index(pi);
             let i: usize = ri.into();
             let was_new = set_if_new(&mut table, i, 0);
             if was_new {
@@ -79,9 +79,9 @@ impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Turn: Sequence 
     }
 
     // For perfect pruning tables, the lower_bound _is_ the remaining turn count.
-    pub fn remaining_turns_lower_bound(&self, p: &Perm) -> u8 {
+    pub fn remaining_turns_lower_bound(&self, pi: PermIndex) -> u8 {
         let mut count = 0;
-        let (mut ri, _) = self.move_table.perm_to_indexes(p);
+        let (mut ri, _) = self.move_table.raw_index_to_sym_index(pi);
 
         loop {
             if self.goals.contains(&ri) {
@@ -136,12 +136,12 @@ mod tests {
         let rep_table = Arc::new(rep_table);
         let move_table: MoveTable<TwoTriangles, NoSymmetry, TwoTrianglesEvenIndex, Turns> = MoveTable::new(rep_table.clone());
         let move_table = Arc::new(move_table);
-        let pruning_table: PruningTable<TwoTriangles, NoSymmetry, TwoTrianglesEvenIndex, Turns> = PruningTable::new(move_table.clone(), std::iter::once(TwoTriangles::identity()));
+        let pruning_table: PruningTable<TwoTriangles, NoSymmetry, TwoTrianglesEvenIndex, Turns> = PruningTable::new(move_table.clone(), std::iter::once(TwoTriangles::identity().into()));
 
         // Our simple implementation (TwoTriangles is small enough to solve naively) matches our more complex one
         let tt_table = moves_to_solve();
-        for p in all_perms {
-            assert_eq!(*tt_table.get(&p).unwrap(), pruning_table.remaining_turns_lower_bound(&p) as usize);
+        for pi in all::<TwoTrianglesEvenIndex>() {
+            assert_eq!(*tt_table.get(&pi).unwrap(), pruning_table.remaining_turns_lower_bound(pi) as usize);
         }
     }
 
@@ -153,12 +153,12 @@ mod tests {
         let rep_table = Arc::new(rep_table);
         let move_table: MoveTable<TwoTriangles, RotationalSymmetry, TwoTrianglesEvenIndex, Turns> = MoveTable::new(rep_table.clone());
         let move_table = Arc::new(move_table);
-        let pruning_table: PruningTable<TwoTriangles, RotationalSymmetry, TwoTrianglesEvenIndex, Turns> = PruningTable::new(move_table.clone(), std::iter::once(TwoTriangles::identity()));
+        let pruning_table: PruningTable<TwoTriangles, RotationalSymmetry, TwoTrianglesEvenIndex, Turns> = PruningTable::new(move_table.clone(), std::iter::once(TwoTriangles::identity().into()));
 
         // Our simple implementation (TwoTriangles is small enough to solve naively) matches our more complex one
         let tt_table = moves_to_solve();
-        for p in all_perms {
-            assert_eq!(*tt_table.get(&p).unwrap(), pruning_table.remaining_turns_lower_bound(&p) as usize);
+        for pi in all::<TwoTrianglesEvenIndex>() {
+            assert_eq!(*tt_table.get(&pi).unwrap(), pruning_table.remaining_turns_lower_bound(pi) as usize);
         }
     }
 
@@ -170,12 +170,12 @@ mod tests {
         let rep_table = Arc::new(rep_table);
         let move_table: MoveTable<TwoTriangles, FullSymmetry, TwoTrianglesEvenIndex, Turns> = MoveTable::new(rep_table.clone());
         let move_table = Arc::new(move_table);
-        let pruning_table: PruningTable<TwoTriangles, FullSymmetry, TwoTrianglesEvenIndex, Turns> = PruningTable::new(move_table.clone(), std::iter::once(TwoTriangles::identity()));
+        let pruning_table: PruningTable<TwoTriangles, FullSymmetry, TwoTrianglesEvenIndex, Turns> = PruningTable::new(move_table.clone(), std::iter::once(TwoTriangles::identity().into()));
 
         // Our simple implementation (TwoTriangles is small enough to solve naively) matches our more complex one
         let tt_table = moves_to_solve();
-        for p in all_perms {
-            assert_eq!(*tt_table.get(&p).unwrap(), pruning_table.remaining_turns_lower_bound(&p) as usize);
+        for pi in all::<TwoTrianglesEvenIndex>() {
+            assert_eq!(*tt_table.get(&pi).unwrap(), pruning_table.remaining_turns_lower_bound(pi) as usize);
         }
     }
 }
