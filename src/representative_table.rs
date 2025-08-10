@@ -174,7 +174,6 @@ mod tests {
         // perm_to_indexes round trips
         for pi in all::<TwoTrianglesIndex>() {
             let p = pi.into();
-            let (ri, si) = rep_table.perm_to_indexes(&p);
             let (ri, sym) = rep_table.perm_to_indexes(&p);
             let rep = p.get_equivalent(&sym);
             assert_eq!(rep_table.rep_index_to_perm(ri), rep)
