@@ -6,7 +6,7 @@ use std::sync::Arc;
 use std::convert::TryFrom;
 use enum_iterator::{ Sequence, all, cardinality };
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct MoveTable<Perm, Sym, PermIndex, Turn> {
     // TODO: Not even really sure we need this Arc, probably nothing else needs
     // to access this.  There are some upsides of making this an abstract T (we
