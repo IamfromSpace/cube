@@ -155,6 +155,50 @@ pub enum FullSymmetry {
     MirrorBoth,
 }
 
+impl functional::BinaryOperation<FullSymmetry> for FullSymmetry {
+    fn apply(a: FullSymmetry, b: FullSymmetry) -> FullSymmetry {
+        match (a, b) {
+            (FullSymmetry::Identity, FullSymmetry::Identity) => FullSymmetry::Identity,
+            (FullSymmetry::Identity, FullSymmetry::MirrorLR) => FullSymmetry::MirrorLR,
+            (FullSymmetry::Identity, FullSymmetry::MirrorTD) => FullSymmetry::MirrorTD,
+            (FullSymmetry::Identity, FullSymmetry::MirrorBoth) => FullSymmetry::MirrorBoth,
+            (FullSymmetry::MirrorLR, FullSymmetry::Identity) => FullSymmetry::MirrorLR,
+            (FullSymmetry::MirrorLR, FullSymmetry::MirrorLR) => FullSymmetry::Identity,
+            (FullSymmetry::MirrorLR, FullSymmetry::MirrorTD) => FullSymmetry::MirrorBoth,
+            (FullSymmetry::MirrorLR, FullSymmetry::MirrorBoth) => FullSymmetry::MirrorTD,
+            (FullSymmetry::MirrorTD, FullSymmetry::Identity) => FullSymmetry::MirrorTD,
+            (FullSymmetry::MirrorTD, FullSymmetry::MirrorLR) => FullSymmetry::MirrorBoth,
+            (FullSymmetry::MirrorTD, FullSymmetry::MirrorTD) => FullSymmetry::Identity,
+            (FullSymmetry::MirrorTD, FullSymmetry::MirrorBoth) => FullSymmetry::MirrorLR,
+            (FullSymmetry::MirrorBoth, FullSymmetry::Identity) => FullSymmetry::MirrorBoth,
+            (FullSymmetry::MirrorBoth, FullSymmetry::MirrorLR) => FullSymmetry::MirrorTD,
+            (FullSymmetry::MirrorBoth, FullSymmetry::MirrorTD) => FullSymmetry::MirrorLR,
+            (FullSymmetry::MirrorBoth, FullSymmetry::MirrorBoth) => FullSymmetry::Identity,
+        }
+    }
+}
+
+impl functional::AssociativeOperation<FullSymmetry> for FullSymmetry { }
+
+impl functional::Monoid<FullSymmetry> for FullSymmetry {
+    fn one() -> FullSymmetry {
+        FullSymmetry::Identity
+    }
+}
+
+impl Invertable for FullSymmetry {
+    fn invert(&self) -> FullSymmetry {
+        match self {
+            FullSymmetry::Identity => FullSymmetry::Identity,
+            FullSymmetry::MirrorLR => FullSymmetry::MirrorLR,
+            FullSymmetry::MirrorTD => FullSymmetry::MirrorTD,
+            FullSymmetry::MirrorBoth => FullSymmetry::MirrorBoth,
+        }
+    }
+}
+
+impl PG for FullSymmetry {}
+
 impl Into<TwoTriangles> for FullSymmetry {
     fn into(self) -> TwoTriangles {
         match self {
@@ -208,6 +252,28 @@ pub enum NoSymmetry {
     Identity,
 }
 
+impl functional::BinaryOperation<NoSymmetry> for NoSymmetry {
+    fn apply(_: NoSymmetry, _: NoSymmetry) -> NoSymmetry {
+        NoSymmetry::Identity
+    }
+}
+
+impl functional::AssociativeOperation<NoSymmetry> for NoSymmetry { }
+
+impl functional::Monoid<NoSymmetry> for NoSymmetry {
+    fn one() -> NoSymmetry {
+        NoSymmetry::Identity
+    }
+}
+
+impl Invertable for NoSymmetry {
+    fn invert(&self) -> NoSymmetry {
+        NoSymmetry::Identity
+    }
+}
+
+impl PG for NoSymmetry {}
+
 impl Into<FullSymmetry> for NoSymmetry {
     fn into(self) -> FullSymmetry {
         match self {
@@ -243,6 +309,36 @@ pub enum RotationalSymmetry {
     Identity,
     Rotate180,
 }
+
+impl functional::BinaryOperation<RotationalSymmetry> for RotationalSymmetry {
+    fn apply(a: RotationalSymmetry, b: RotationalSymmetry) -> RotationalSymmetry {
+        match (a, b) {
+            (RotationalSymmetry::Identity, RotationalSymmetry::Identity) => RotationalSymmetry::Identity,
+            (RotationalSymmetry::Identity, RotationalSymmetry::Rotate180) => RotationalSymmetry::Rotate180,
+            (RotationalSymmetry::Rotate180, RotationalSymmetry::Identity) => RotationalSymmetry::Rotate180,
+            (RotationalSymmetry::Rotate180, RotationalSymmetry::Rotate180) => RotationalSymmetry::Identity,
+        }
+    }
+}
+
+impl functional::AssociativeOperation<RotationalSymmetry> for RotationalSymmetry { }
+
+impl functional::Monoid<RotationalSymmetry> for RotationalSymmetry {
+    fn one() -> RotationalSymmetry {
+        RotationalSymmetry::Identity
+    }
+}
+
+impl Invertable for RotationalSymmetry {
+    fn invert(&self) -> RotationalSymmetry {
+        match self {
+            RotationalSymmetry::Identity => RotationalSymmetry::Identity,
+            RotationalSymmetry::Rotate180 => RotationalSymmetry::Rotate180,
+        }
+    }
+}
+
+impl PG for RotationalSymmetry {}
 
 impl Into<FullSymmetry> for RotationalSymmetry {
     fn into(self) -> FullSymmetry {
@@ -608,6 +704,51 @@ mod tests {
                     let after_permute = p.permute(t.into()).get_equivalent(&s);
                     let before_permute = p.get_equivalent(&s).permute(t.get_equivalent(&s).into());
                     assert_eq!(after_permute, before_permute)
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn direct_and_indirect_sym_multiplication_are_equivalent_for_full_symmetry() {
+        // Typically we need to use quickcheck here, but we can be exhaustive for a puzzle this size
+        for s0 in all::<FullSymmetry>() {
+            for s1 in all::<FullSymmetry>() {
+                for pi in all::<TwoTrianglesIndex>() {
+                    let p: TwoTriangles = pi.into();
+                    let as_tt = p.permute(s0.into()).permute(s1.into());
+                    let as_sym = p.permute(s0.permute(s1).into());
+                    assert_eq!(as_tt, as_sym);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn direct_and_indirect_sym_multiplication_are_equivalent_for_rotational_symmetry() {
+        // Typically we need to use quickcheck here, but we can be exhaustive for a puzzle this size
+        for s0 in all::<RotationalSymmetry>() {
+            for s1 in all::<RotationalSymmetry>() {
+                for pi in all::<TwoTrianglesIndex>() {
+                    let p: TwoTriangles = pi.into();
+                    let as_tt = p.permute(s0.into()).permute(s1.into());
+                    let as_sym = p.permute(s0.permute(s1).into());
+                    assert_eq!(as_tt, as_sym);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn direct_and_indirect_sym_multiplication_are_equivalent_for_no_symmetry() {
+        // Typically we need to use quickcheck here, but we can be exhaustive for a puzzle this size
+        for s0 in all::<NoSymmetry>() {
+            for s1 in all::<NoSymmetry>() {
+                for pi in all::<TwoTrianglesIndex>() {
+                    let p: TwoTriangles = pi.into();
+                    let as_tt = p.permute(s0.into()).permute(s1.into());
+                    let as_sym = p.permute(s0.permute(s1).into());
+                    assert_eq!(as_tt, as_sym);
                 }
             }
         }
