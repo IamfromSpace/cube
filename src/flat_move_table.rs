@@ -1,4 +1,5 @@
 use permutation_group::PermutationGroup as PG;
+use invertable::Invertable;
 use equivalence_class::EquivalenceClass;
 use representative_table::{ RepresentativeTable, RepIndex };
 
@@ -26,7 +27,7 @@ pub struct MoveTable<Perm, Sym, PermIndex, Turn> {
 // TODO: If the PermIndex is even all Turns must be even too, and if the
 // PermIndex is odd then at least one Turn in the set must also be odd.  Can
 // this be expressed through Traits to guarantee a match?
-impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Turn: Sequence + Copy + Into<Perm> + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + Into<usize>, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize> + Into<Perm>> MoveTable<Perm, Sym, PermIndex, Turn> where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
+impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Turn: Sequence + Copy + Into<Perm> + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + Into<usize> + Invertable, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize> + Into<Perm>> MoveTable<Perm, Sym, PermIndex, Turn> where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
     // TODO: We can have an alterative method that automatically generates the
     // RepTable to simplify cases where it isn't shared with other MoveTables.
     pub fn new(rep_table: Arc<RepresentativeTable<Perm, Sym, PermIndex>>) -> Self {
@@ -41,7 +42,10 @@ impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Turn: Sequence 
             }
 
             for s in all::<Sym>() {
-                sym_table.push(p.clone().get_equivalent(&s).into());
+                // NOTE: We invert the Sym, because we want to use this for
+                // _undoing_ sym-coords.  We aren't storing the equivalents,
+                // we're storing reverse equivalents.
+                sym_table.push(p.clone().get_equivalent(&s.invert()).into());
             }
         }
 
@@ -101,19 +105,7 @@ mod tests {
             let p: TwoTriangles = rep_table.rep_index_to_perm(ri);
             for t in all::<Turns>() {
                 let by_perm = p.permute(t.into());
-                let (ri, sym) = move_table.turn(ri, t);
-                let before_sym = rep_table.rep_index_to_perm(ri);
-                let by_table = before_sym.get_equivalent(&sym);
-                assert_eq!(by_perm, by_table);
-            }
-        }
-
-        // Getting an symmetric equivalent is identical to applying permutations
-        for ri in rep_table.rep_indexes() {
-            let p: TwoTriangles = rep_table.rep_index_to_perm(ri);
-            for s in all::<NoSymmetry>() {
-                let by_perm = p.get_equivalent(&s);
-                let by_table = move_table.sym_index_to_raw_index((ri, s)).into();
+                let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
                 assert_eq!(by_perm, by_table);
             }
         }
@@ -151,19 +143,7 @@ mod tests {
             let p: TwoTriangles = rep_table.rep_index_to_perm(ri);
             for t in all::<Turns>() {
                 let by_perm = p.permute(t.into());
-                let (ri, sym) = move_table.turn(ri, t);
-                let before_sym = rep_table.rep_index_to_perm(ri);
-                let by_table = before_sym.get_equivalent(&sym);
-                assert_eq!(by_perm, by_table);
-            }
-        }
-
-        // Getting an symmetric equivalent is identical to applying permutations
-        for ri in rep_table.rep_indexes() {
-            let p: TwoTriangles = rep_table.rep_index_to_perm(ri);
-            for s in all::<RotationalSymmetry>() {
-                let by_perm = p.get_equivalent(&s);
-                let by_table = move_table.sym_index_to_raw_index((ri, s)).into();
+                let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
                 assert_eq!(by_perm, by_table);
             }
         }
@@ -196,19 +176,7 @@ mod tests {
             let p: TwoTriangles = rep_table.rep_index_to_perm(ri);
             for t in all::<Turns>() {
                 let by_perm = p.permute(t.into());
-                let (ri, sym) = move_table.turn(ri, t);
-                let before_sym = rep_table.rep_index_to_perm(ri);
-                let by_table = before_sym.get_equivalent(&sym);
-                assert_eq!(by_perm, by_table);
-            }
-        }
-
-        // Getting an symmetric equivalent is identical to applying permutations
-        for ri in rep_table.rep_indexes() {
-            let p: TwoTriangles = rep_table.rep_index_to_perm(ri);
-            for s in all::<FullSymmetry>() {
-                let by_perm = p.get_equivalent(&s);
-                let by_table = move_table.sym_index_to_raw_index((ri, s)).into();
+                let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
                 assert_eq!(by_perm, by_table);
             }
         }
@@ -244,19 +212,7 @@ mod tests {
             let p: TwoTriangles = rep_table.rep_index_to_perm(ri);
             for t in all::<Turns>() {
                 let by_perm = p.permute(t.into());
-                let (ri, sym) = move_table.turn(ri, t);
-                let before_sym = rep_table.rep_index_to_perm(ri);
-                let by_table = before_sym.get_equivalent(&sym);
-                assert_eq!(by_perm, by_table);
-            }
-        }
-
-        // Getting an symmetric equivalent is identical to applying permutations
-        for ri in rep_table.rep_indexes() {
-            let p: TwoTriangles = rep_table.rep_index_to_perm(ri);
-            for s in all::<NoSymmetry>() {
-                let by_perm = p.get_equivalent(&s);
-                let by_table = move_table.sym_index_to_raw_index((ri, s)).into();
+                let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
                 assert_eq!(by_perm, by_table);
             }
         }
@@ -292,19 +248,7 @@ mod tests {
             let p: TwoTriangles = rep_table.rep_index_to_perm(ri);
             for t in all::<Turns>() {
                 let by_perm = p.permute(t.into());
-                let (ri, sym) = move_table.turn(ri, t);
-                let before_sym = rep_table.rep_index_to_perm(ri);
-                let by_table = before_sym.get_equivalent(&sym);
-                assert_eq!(by_perm, by_table);
-            }
-        }
-
-        // Getting an symmetric equivalent is identical to applying permutations
-        for ri in rep_table.rep_indexes() {
-            let p: TwoTriangles = rep_table.rep_index_to_perm(ri);
-            for s in all::<RotationalSymmetry>() {
-                let by_perm = p.get_equivalent(&s);
-                let by_table = move_table.sym_index_to_raw_index((ri, s)).into();
+                let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
                 assert_eq!(by_perm, by_table);
             }
         }
@@ -337,19 +281,7 @@ mod tests {
             let p: TwoTriangles = rep_table.rep_index_to_perm(ri);
             for t in all::<Turns>() {
                 let by_perm = p.permute(t.into());
-                let (ri, sym) = move_table.turn(ri, t);
-                let before_sym = rep_table.rep_index_to_perm(ri);
-                let by_table = before_sym.get_equivalent(&sym);
-                assert_eq!(by_perm, by_table);
-            }
-        }
-
-        // Getting an symmetric equivalent is identical to applying permutations
-        for ri in rep_table.rep_indexes() {
-            let p: TwoTriangles = rep_table.rep_index_to_perm(ri);
-            for s in all::<FullSymmetry>() {
-                let by_perm = p.get_equivalent(&s);
-                let by_table = move_table.sym_index_to_raw_index((ri, s)).into();
+                let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
                 assert_eq!(by_perm, by_table);
             }
         }
@@ -387,19 +319,7 @@ mod tests {
             let p: two_lines::TwoLines = rep_table.rep_index_to_perm(ri);
             for t in all::<two_lines::Turns>() {
                 let by_perm = p.permute(t.into());
-                let (ri, sym) = move_table.turn(ri, t);
-                let before_sym = rep_table.rep_index_to_perm(ri);
-                let by_table = before_sym.get_equivalent(&sym);
-                assert_eq!(by_perm, by_table);
-            }
-        }
-
-        // Getting an symmetric equivalent is identical to applying permutations
-        for ri in rep_table.rep_indexes() {
-            let p: two_lines::TwoLines = rep_table.rep_index_to_perm(ri);
-            for s in all::<two_lines::NoSymmetry>() {
-                let by_perm = p.get_equivalent(&s);
-                let by_table = move_table.sym_index_to_raw_index((ri, s)).into();
+                let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
                 assert_eq!(by_perm, by_table);
             }
         }
@@ -434,19 +354,7 @@ mod tests {
             let p: two_lines::TwoLines = rep_table.rep_index_to_perm(ri);
             for t in all::<two_lines::Turns>() {
                 let by_perm = p.permute(t.into());
-                let (ri, sym) = move_table.turn(ri, t);
-                let before_sym = rep_table.rep_index_to_perm(ri);
-                let by_table = before_sym.get_equivalent(&sym);
-                assert_eq!(by_perm, by_table);
-            }
-        }
-
-        // Getting an symmetric equivalent is identical to applying permutations
-        for ri in rep_table.rep_indexes() {
-            let p: two_lines::TwoLines = rep_table.rep_index_to_perm(ri);
-            for s in all::<two_lines::FullSymmetry>() {
-                let by_perm = p.get_equivalent(&s);
-                let by_table = move_table.sym_index_to_raw_index((ri, s)).into();
+                let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
                 assert_eq!(by_perm, by_table);
             }
         }
