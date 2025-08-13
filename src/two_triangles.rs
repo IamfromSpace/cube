@@ -155,6 +155,12 @@ pub enum FullSymmetry {
     MirrorBoth,
 }
 
+impl Into<usize> for FullSymmetry {
+    fn into(self) -> usize {
+        self as usize
+    }
+}
+
 impl functional::BinaryOperation<FullSymmetry> for FullSymmetry {
     fn apply(a: FullSymmetry, b: FullSymmetry) -> FullSymmetry {
         match (a, b) {
@@ -252,6 +258,12 @@ pub enum NoSymmetry {
     Identity,
 }
 
+impl Into<usize> for NoSymmetry {
+    fn into(self) -> usize {
+        self as usize
+    }
+}
+
 impl functional::BinaryOperation<NoSymmetry> for NoSymmetry {
     fn apply(_: NoSymmetry, _: NoSymmetry) -> NoSymmetry {
         NoSymmetry::Identity
@@ -308,6 +320,12 @@ impl EquivalenceClass<NoSymmetry> for Turns {
 pub enum RotationalSymmetry {
     Identity,
     Rotate180,
+}
+
+impl Into<usize> for RotationalSymmetry {
+    fn into(self) -> usize {
+        self as usize
+    }
 }
 
 impl functional::BinaryOperation<RotationalSymmetry> for RotationalSymmetry {

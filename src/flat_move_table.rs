@@ -14,7 +14,8 @@ pub struct MoveTable<Perm, Sym, PermIndex, Turn> {
     // a full trait definition of our RepTable to implement and error messages
     // get wierder.
     rep_table: Arc<RepresentativeTable<Perm, Sym, PermIndex>>,
-    table: Vec<(RepIndex<PermIndex>, Sym)>,
+    turn_table: Vec<(RepIndex<PermIndex>, Sym)>,
+    sym_table: Vec<PermIndex>,
     turns: std::marker::PhantomData<Turn>,
 }
 
@@ -25,30 +26,36 @@ pub struct MoveTable<Perm, Sym, PermIndex, Turn> {
 // TODO: If the PermIndex is even all Turns must be even too, and if the
 // PermIndex is odd then at least one Turn in the set must also be odd.  Can
 // this be expressed through Traits to guarantee a match?
-impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Turn: Sequence + Copy + Into<Perm> + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize> + Into<Perm>> MoveTable<Perm, Sym, PermIndex, Turn> where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
+impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Turn: Sequence + Copy + Into<Perm> + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + Into<usize>, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize> + Into<Perm>> MoveTable<Perm, Sym, PermIndex, Turn> where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
     // TODO: We can have an alterative method that automatically generates the
     // RepTable to simplify cases where it isn't shared with other MoveTables.
     pub fn new(rep_table: Arc<RepresentativeTable<Perm, Sym, PermIndex>>) -> Self {
-        let mut table = Vec::with_capacity(rep_table.len() * cardinality::<Turn>());
+        let mut turn_table = Vec::with_capacity(rep_table.len() * cardinality::<Turn>());
+        let mut sym_table = Vec::with_capacity(rep_table.len() * cardinality::<Sym>());
 
         for ri in rep_table.rep_indexes() {
             let p = rep_table.rep_index_to_perm(ri);
             for t in all::<Turn>() {
                 let turned: Perm = p.clone().permute(<Turn as Into<Perm>>::into(t));
-                table.push(rep_table.raw_index_to_sym_index(turned.into()));
+                turn_table.push(rep_table.raw_index_to_sym_index(turned.into()));
+            }
+
+            for s in all::<Sym>() {
+                sym_table.push(p.clone().get_equivalent(&s).into());
             }
         }
 
         MoveTable {
             rep_table,
-            table,
+            turn_table,
+            sym_table,
             turns: std::marker::PhantomData,
         }
     }
 
     pub fn turn(&self, ri: RepIndex<PermIndex>, t: Turn) -> (RepIndex<PermIndex>, Sym) {
         let i = <RepIndex<PermIndex> as Into<usize>>::into(ri) * cardinality::<Turn>() + <Turn as Into<usize>>::into(t);
-        self.table[i]
+        self.turn_table[i]
     }
 
     // TODO: The value of this method is much more dubious, now that we can
@@ -56,7 +63,7 @@ impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Turn: Sequence 
     // much could it really be anyway?
     pub fn apply_turns(&self, ri: RepIndex<PermIndex>) -> impl Iterator<Item = (RepIndex<PermIndex>, Sym)> + '_ {
         let start = <RepIndex<PermIndex> as Into<usize>>::into(ri) * cardinality::<Turn>();
-        (start..(start + cardinality::<Turn>())).map(move |i| self.table[i])
+        (start..(start + cardinality::<Turn>())).map(move |i| self.turn_table[i])
     }
 
     // Count of Reps
@@ -66,6 +73,12 @@ impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Turn: Sequence 
 
     pub fn raw_index_to_sym_index(&self, pi: PermIndex) -> (RepIndex<PermIndex>, Sym) {
         self.rep_table.raw_index_to_sym_index(pi)
+    }
+
+    pub fn sym_index_to_raw_index(&self, si: (RepIndex<PermIndex>, Sym)) -> PermIndex {
+        let (ri, s) = si;
+        let i = <RepIndex<PermIndex> as Into<usize>>::into(ri) * cardinality::<Sym>() + <Sym as Into<usize>>::into(s);
+        self.sym_table[i]
     }
 }
 
@@ -91,6 +104,16 @@ mod tests {
                 let (ri, sym) = move_table.turn(ri, t);
                 let before_sym = rep_table.rep_index_to_perm(ri);
                 let by_table = before_sym.get_equivalent(&sym);
+                assert_eq!(by_perm, by_table);
+            }
+        }
+
+        // Getting an symmetric equivalent is identical to applying permutations
+        for ri in rep_table.rep_indexes() {
+            let p: TwoTriangles = rep_table.rep_index_to_perm(ri);
+            for s in all::<NoSymmetry>() {
+                let by_perm = p.get_equivalent(&s);
+                let by_table = move_table.sym_index_to_raw_index((ri, s)).into();
                 assert_eq!(by_perm, by_table);
             }
         }
@@ -135,6 +158,16 @@ mod tests {
             }
         }
 
+        // Getting an symmetric equivalent is identical to applying permutations
+        for ri in rep_table.rep_indexes() {
+            let p: TwoTriangles = rep_table.rep_index_to_perm(ri);
+            for s in all::<RotationalSymmetry>() {
+                let by_perm = p.get_equivalent(&s);
+                let by_table = move_table.sym_index_to_raw_index((ri, s)).into();
+                assert_eq!(by_perm, by_table);
+            }
+        }
+
         // All entries are bi-directional (this holds because all turns in the
         // turn set also have an inverse in the turn set).  If there's a move
         // that can put you in state b from a, then there must exist an inverse
@@ -166,6 +199,16 @@ mod tests {
                 let (ri, sym) = move_table.turn(ri, t);
                 let before_sym = rep_table.rep_index_to_perm(ri);
                 let by_table = before_sym.get_equivalent(&sym);
+                assert_eq!(by_perm, by_table);
+            }
+        }
+
+        // Getting an symmetric equivalent is identical to applying permutations
+        for ri in rep_table.rep_indexes() {
+            let p: TwoTriangles = rep_table.rep_index_to_perm(ri);
+            for s in all::<FullSymmetry>() {
+                let by_perm = p.get_equivalent(&s);
+                let by_table = move_table.sym_index_to_raw_index((ri, s)).into();
                 assert_eq!(by_perm, by_table);
             }
         }
@@ -208,6 +251,16 @@ mod tests {
             }
         }
 
+        // Getting an symmetric equivalent is identical to applying permutations
+        for ri in rep_table.rep_indexes() {
+            let p: TwoTriangles = rep_table.rep_index_to_perm(ri);
+            for s in all::<NoSymmetry>() {
+                let by_perm = p.get_equivalent(&s);
+                let by_table = move_table.sym_index_to_raw_index((ri, s)).into();
+                assert_eq!(by_perm, by_table);
+            }
+        }
+
         // All entries are bi-directional (this holds because all turns in the
         // turn set also have an inverse in the turn set).  If there's a move
         // that can put you in state b from a, then there must exist an inverse
@@ -246,6 +299,16 @@ mod tests {
             }
         }
 
+        // Getting an symmetric equivalent is identical to applying permutations
+        for ri in rep_table.rep_indexes() {
+            let p: TwoTriangles = rep_table.rep_index_to_perm(ri);
+            for s in all::<RotationalSymmetry>() {
+                let by_perm = p.get_equivalent(&s);
+                let by_table = move_table.sym_index_to_raw_index((ri, s)).into();
+                assert_eq!(by_perm, by_table);
+            }
+        }
+
         // All entries are bi-directional (this holds because all turns in the
         // turn set also have an inverse in the turn set).  If there's a move
         // that can put you in state b from a, then there must exist an inverse
@@ -277,6 +340,16 @@ mod tests {
                 let (ri, sym) = move_table.turn(ri, t);
                 let before_sym = rep_table.rep_index_to_perm(ri);
                 let by_table = before_sym.get_equivalent(&sym);
+                assert_eq!(by_perm, by_table);
+            }
+        }
+
+        // Getting an symmetric equivalent is identical to applying permutations
+        for ri in rep_table.rep_indexes() {
+            let p: TwoTriangles = rep_table.rep_index_to_perm(ri);
+            for s in all::<FullSymmetry>() {
+                let by_perm = p.get_equivalent(&s);
+                let by_table = move_table.sym_index_to_raw_index((ri, s)).into();
                 assert_eq!(by_perm, by_table);
             }
         }
