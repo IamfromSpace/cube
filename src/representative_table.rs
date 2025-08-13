@@ -254,4 +254,126 @@ mod tests {
             assert_eq!(rep_table.rep_index_to_perm(ri), rep)
         }
     }
+
+    use three_triangles;
+
+    #[test]
+    fn representative_table_is_correct_for_three_triangles_without_symmetry() {
+        let rep_table: RepresentativeTable<three_triangles::ThreeTriangles, three_triangles::NoSymmetry, three_triangles::ThreeTrianglesIndex> = RepresentativeTable::new();
+
+        // Finds the expected number
+        assert_eq!(rep_table.table.len(), 24);
+
+        // Is ordered without duplicates
+        for i in 1..rep_table.table.len() {
+            assert_eq!(rep_table.table[i - 1] < rep_table.table[i], true);
+        }
+
+        // raw_index_to_sym_index round trips
+        for pi in all::<three_triangles::ThreeTrianglesIndex>() {
+            let (ri, sym) = rep_table.raw_index_to_sym_index(pi);
+            let rep = Into::<three_triangles::ThreeTriangles>::into(pi).get_equivalent(&sym);
+            assert_eq!(rep_table.rep_index_to_perm(ri), rep)
+        }
+    }
+
+    #[test]
+    fn representative_table_is_correct_for_three_triangles_with_rotational_symmetry() {
+        let rep_table: RepresentativeTable<three_triangles::ThreeTriangles, three_triangles::RotationalSymmetry, three_triangles::ThreeTrianglesIndex> = RepresentativeTable::new();
+
+        // Finds the expected number
+        assert_eq!(rep_table.table.len(), 10);
+
+        // Is ordered without duplicates
+        for i in 1..rep_table.table.len() {
+            assert_eq!(rep_table.table[i - 1] < rep_table.table[i], true);
+        }
+
+        // raw_index_to_sym_index round trips
+        for pi in all::<three_triangles::ThreeTrianglesIndex>() {
+            let (ri, sym) = rep_table.raw_index_to_sym_index(pi);
+            let rep = Into::<three_triangles::ThreeTriangles>::into(pi).get_equivalent(&sym);
+            assert_eq!(rep_table.rep_index_to_perm(ri), rep)
+        }
+    }
+
+    #[test]
+    fn representative_table_is_correct_for_three_triangles_with_full_symmetry() {
+        let rep_table: RepresentativeTable<three_triangles::ThreeTriangles, three_triangles::FullSymmetry, three_triangles::ThreeTrianglesIndex> = RepresentativeTable::new();
+
+        // Finds the expected number
+        assert_eq!(rep_table.table.len(), 7);
+
+        // Is ordered without duplicates
+        for i in 1..rep_table.table.len() {
+            assert_eq!(rep_table.table[i - 1] < rep_table.table[i], true);
+        }
+
+        // raw_index_to_sym_index round trips
+        for pi in all::<three_triangles::ThreeTrianglesIndex>() {
+            let (ri, sym) = rep_table.raw_index_to_sym_index(pi);
+            let rep = Into::<three_triangles::ThreeTriangles>::into(pi).get_equivalent(&sym);
+            assert_eq!(rep_table.rep_index_to_perm(ri), rep)
+        }
+    }
+
+    #[test]
+    fn representative_table_is_correct_for_three_triangles_even_perms_without_symmetry() {
+        let rep_table: RepresentativeTable<three_triangles::ThreeTriangles, three_triangles::NoSymmetry, three_triangles::ThreeTrianglesEvenIndex> = RepresentativeTable::new();
+
+        // Finds the expected number
+        assert_eq!(rep_table.table.len(), 12);
+
+        // Is ordered without duplicates
+        for i in 1..rep_table.table.len() {
+            assert_eq!(rep_table.table[i - 1] < rep_table.table[i], true);
+        }
+
+        // raw_index_to_sym_index round trips
+        for pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+            let (ri, sym) = rep_table.raw_index_to_sym_index(pi);
+            let rep = Into::<three_triangles::ThreeTriangles>::into(pi).get_equivalent(&sym);
+            assert_eq!(rep_table.rep_index_to_perm(ri), rep)
+        }
+    }
+
+    #[test]
+    fn representative_table_is_correct_for_three_triangles_even_perms_with_rotational_symmetry() {
+        let rep_table: RepresentativeTable<three_triangles::ThreeTriangles, three_triangles::RotationalSymmetry, three_triangles::ThreeTrianglesEvenIndex> = RepresentativeTable::new();
+
+        // Finds the expected number
+        assert_eq!(rep_table.table.len(), 6);
+
+        // Is ordered without duplicates
+        for i in 1..rep_table.table.len() {
+            assert_eq!(rep_table.table[i - 1] < rep_table.table[i], true);
+        }
+
+        // raw_index_to_sym_index round trips
+        for pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+            let (ri, sym) = rep_table.raw_index_to_sym_index(pi);
+            let rep = Into::<three_triangles::ThreeTriangles>::into(pi).get_equivalent(&sym);
+            assert_eq!(rep_table.rep_index_to_perm(ri), rep)
+        }
+    }
+
+    #[test]
+    fn representative_table_is_correct_for_three_triangles_even_perms_with_full_symmetry() {
+        let rep_table: RepresentativeTable<three_triangles::ThreeTriangles, three_triangles::FullSymmetry, three_triangles::ThreeTrianglesEvenIndex> = RepresentativeTable::new();
+
+        // Finds the expected number
+        assert_eq!(rep_table.table.len(), 4);
+
+        // Is ordered without duplicates
+        for i in 1..rep_table.table.len() {
+            assert_eq!(rep_table.table[i - 1] < rep_table.table[i], true);
+        }
+
+        // raw_index_to_sym_index round trips
+        for pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+            let (ri, sym) = rep_table.raw_index_to_sym_index(pi);
+            let rep = Into::<three_triangles::ThreeTriangles>::into(pi).get_equivalent(&sym);
+            assert_eq!(rep_table.rep_index_to_perm(ri), rep)
+        }
+    }
 }

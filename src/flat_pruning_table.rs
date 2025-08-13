@@ -167,4 +167,45 @@ mod tests {
             assert_eq!(*tt_table.get(&pi).unwrap(), pruning_table.remaining_turns_lower_bound(pi) as usize);
         }
     }
+
+    use three_triangles;
+
+    #[test]
+    fn pruning_table_is_correct_for_three_triangles_even_parity_without_symmetry() {
+        let rep_table = Arc::new(RepresentativeTable::new());
+        let move_table = Arc::new(MoveTable::new(rep_table));
+        let pruning_table: PruningTable<three_triangles::ThreeTriangles, three_triangles::NoSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles::Turns> = PruningTable::new(move_table, std::iter::once(three_triangles::ThreeTriangles::identity().into()));
+
+        // Our simple implementation (three_triangles::ThreeTriangles is small enough to solve naively) matches our more complex one
+        let tt_table = three_triangles::moves_to_solve();
+        for pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+            assert_eq!(*tt_table.get(&pi).unwrap(), pruning_table.remaining_turns_lower_bound(pi) as usize);
+        }
+    }
+
+    #[test]
+    fn pruning_table_is_correct_for_three_triangles_even_parity_with_rotational_symmetry() {
+        let rep_table = Arc::new(RepresentativeTable::new());
+        let move_table = Arc::new(MoveTable::new(rep_table));
+        let pruning_table: PruningTable<three_triangles::ThreeTriangles, three_triangles::RotationalSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles::Turns> = PruningTable::new(move_table.clone(), std::iter::once(three_triangles::ThreeTriangles::identity().into()));
+
+        // Our simple implementation (three_triangles::ThreeTriangles is small enough to solve naively) matches our more complex one
+        let tt_table = three_triangles::moves_to_solve();
+        for pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+            assert_eq!(*tt_table.get(&pi).unwrap(), pruning_table.remaining_turns_lower_bound(pi) as usize);
+        }
+    }
+
+    #[test]
+    fn pruning_table_is_correct_for_three_triangles_even_parity_with_full_symmetry() {
+        let rep_table = Arc::new(RepresentativeTable::new());
+        let move_table = Arc::new(MoveTable::new(rep_table));
+        let pruning_table: PruningTable<three_triangles::ThreeTriangles, three_triangles::FullSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles::Turns> = PruningTable::new(move_table.clone(), std::iter::once(three_triangles::ThreeTriangles::identity().into()));
+
+        // Our simple implementation (three_triangles::ThreeTriangles is small enough to solve naively) matches our more complex one
+        let tt_table = three_triangles::moves_to_solve();
+        for pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+            assert_eq!(*tt_table.get(&pi).unwrap(), pruning_table.remaining_turns_lower_bound(pi) as usize);
+        }
+    }
 }
