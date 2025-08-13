@@ -29,13 +29,6 @@ use enum_iterator::{all, Sequence};
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
 pub struct TwoTriangles([u8; 5]);
 
-// TODO: No need to be public once we fully flip to using Sequence
-impl TwoTriangles {
-    pub fn is_even_parity(&self) -> bool {
-        is_even_parity(self.0)
-    }
-}
-
 const fn permute_arr(a: &[u8; 5], b: &[u8; 5]) -> [u8; 5] {
     [
         a[b[0] as usize],
@@ -628,7 +621,7 @@ mod tests {
         let mut count = 0;
         for i in all::<TwoTrianglesIndex>() {
             let t: TwoTriangles = i.into();
-            if t.is_even_parity() {
+            if is_even_parity(t.0) {
                 even_count += 1;
             }
             count += 1;
@@ -643,7 +636,7 @@ mod tests {
         let mut count = 0;
         for i in all::<TwoTrianglesEvenIndex>() {
             let t: TwoTriangles = i.into();
-            if t.is_even_parity() {
+            if is_even_parity(t.0) {
                 even_count += 1;
             }
             count += 1;
@@ -655,31 +648,31 @@ mod tests {
     #[test]
     fn one_swap_is_odd() {
         let t = TwoTriangles([1, 0, 2, 3, 4]);
-        assert_eq!(t.is_even_parity(), false);
+        assert_eq!(is_even_parity(t.0), false);
     }
 
     #[test]
     fn two_independent_swaps_are_even() {
         let t = TwoTriangles([1, 0, 3, 2, 4]);
-        assert_eq!(t.is_even_parity(), true);
+        assert_eq!(is_even_parity(t.0), true);
     }
 
     #[test]
     fn two_cycle_and_three_cycle_is_odd() {
         let t = TwoTriangles([1, 0, 4, 2, 3]);
-        assert_eq!(t.is_even_parity(), false);
+        assert_eq!(is_even_parity(t.0), false);
     }
 
     #[test]
     fn four_cycle_is_odd() {
         let t = TwoTriangles([0, 4, 1, 2, 3]);
-        assert_eq!(t.is_even_parity(), false);
+        assert_eq!(is_even_parity(t.0), false);
     }
 
     #[test]
     fn five_cycle_is_even() {
         let t = TwoTriangles([4, 0, 1, 2, 3]);
-        assert_eq!(t.is_even_parity(), true);
+        assert_eq!(is_even_parity(t.0), true);
     }
 
     #[test]
