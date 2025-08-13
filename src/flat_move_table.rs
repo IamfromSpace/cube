@@ -371,4 +371,101 @@ mod tests {
             }
         }
     }
+
+    use two_lines;
+
+    #[test]
+    fn move_table_is_correct_for_two_lines_without_symmetry() {
+        let rep_table = Arc::new(RepresentativeTable::new());
+        // Even though either Left + Right generates all states, MoveTables
+        // should basically always include turn inverses, so that they can go
+        // forward or backwards.
+        let move_table: MoveTable<two_lines::TwoLines, two_lines::NoSymmetry, two_lines::TwoLinesIndex, two_lines::Turns> = MoveTable::new(rep_table.clone());
+
+        // Applying move_table moves is identical to applying permutations
+        for ri in rep_table.rep_indexes() {
+            let p: two_lines::TwoLines = rep_table.rep_index_to_perm(ri);
+            for t in all::<two_lines::Turns>() {
+                let by_perm = p.permute(t.into());
+                let (ri, sym) = move_table.turn(ri, t);
+                let before_sym = rep_table.rep_index_to_perm(ri);
+                let by_table = before_sym.get_equivalent(&sym);
+                assert_eq!(by_perm, by_table);
+            }
+        }
+
+        // Getting an symmetric equivalent is identical to applying permutations
+        for ri in rep_table.rep_indexes() {
+            let p: two_lines::TwoLines = rep_table.rep_index_to_perm(ri);
+            for s in all::<two_lines::NoSymmetry>() {
+                let by_perm = p.get_equivalent(&s);
+                let by_table = move_table.sym_index_to_raw_index((ri, s)).into();
+                assert_eq!(by_perm, by_table);
+            }
+        }
+
+        // All entries are bi-directional (this holds because all turns in the
+        // turn set also have an inverse in the turn set).  If there's a move
+        // that can put you in state b from a, then there must exist an inverse
+        // turn that puts you from state a to state b.
+        for pi in all::<two_lines::TwoLinesIndex>() {
+            for t in all::<two_lines::Turns>() {
+                let (ri_a, _) = move_table.raw_index_to_sym_index(pi);
+                let (ri_b, _) = move_table.turn(ri_a, t);
+                let mut found = false;
+                for t in all::<two_lines::Turns>() {
+                    let (ri_rt, _ ) = move_table.turn(ri_b, t);
+                    found |= ri_a == ri_rt;
+                }
+                assert_eq!(found, true);
+            }
+        }
+    }
+    #[test]
+    fn move_table_is_correct_for_two_lines_with_symmetry() {
+        let rep_table = Arc::new(RepresentativeTable::new());
+        // Even though either Left + Right generates all states, MoveTables
+        // should basically always include turn inverses, so that they can go
+        // forward or backwards.
+        let move_table: MoveTable<two_lines::TwoLines, two_lines::FullSymmetry, two_lines::TwoLinesIndex, two_lines::Turns> = MoveTable::new(rep_table.clone());
+
+        // Applying move_table moves is identical to applying permutations
+        for ri in rep_table.rep_indexes() {
+            let p: two_lines::TwoLines = rep_table.rep_index_to_perm(ri);
+            for t in all::<two_lines::Turns>() {
+                let by_perm = p.permute(t.into());
+                let (ri, sym) = move_table.turn(ri, t);
+                let before_sym = rep_table.rep_index_to_perm(ri);
+                let by_table = before_sym.get_equivalent(&sym);
+                assert_eq!(by_perm, by_table);
+            }
+        }
+
+        // Getting an symmetric equivalent is identical to applying permutations
+        for ri in rep_table.rep_indexes() {
+            let p: two_lines::TwoLines = rep_table.rep_index_to_perm(ri);
+            for s in all::<two_lines::FullSymmetry>() {
+                let by_perm = p.get_equivalent(&s);
+                let by_table = move_table.sym_index_to_raw_index((ri, s)).into();
+                assert_eq!(by_perm, by_table);
+            }
+        }
+
+        // All entries are bi-directional (this holds because all turns in the
+        // turn set also have an inverse in the turn set).  If there's a move
+        // that can put you in state b from a, then there must exist an inverse
+        // turn that puts you from state a to state b.
+        for pi in all::<two_lines::TwoLinesIndex>() {
+            for t in all::<two_lines::Turns>() {
+                let (ri_a, _) = move_table.raw_index_to_sym_index(pi);
+                let (ri_b, _) = move_table.turn(ri_a, t);
+                let mut found = false;
+                for t in all::<two_lines::Turns>() {
+                    let (ri_rt, _ ) = move_table.turn(ri_b, t);
+                    found |= ri_a == ri_rt;
+                }
+                assert_eq!(found, true);
+            }
+        }
+    }
 }

@@ -32,6 +32,8 @@ mod util;
 
 #[cfg(test)]
 mod two_triangles;
+#[cfg(test)]
+mod two_lines;
 
 use std::fs::File;
 use std::io::Write;
