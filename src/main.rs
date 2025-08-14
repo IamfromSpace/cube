@@ -35,6 +35,8 @@ mod two_triangles;
 #[cfg(test)]
 mod three_triangles;
 #[cfg(test)]
+mod three_triangles_stack;
+#[cfg(test)]
 mod two_lines;
 
 use std::fs::File;
