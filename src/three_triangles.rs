@@ -373,6 +373,79 @@ impl EquivalenceClass<NoSymmetry> for Turns {
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash, Sequence)]
 #[repr(u8)]
+pub enum MirrorUDSymmetry {
+    Identity,
+    Mirror,
+}
+
+impl Into<usize> for MirrorUDSymmetry {
+    fn into(self) -> usize {
+        self as usize
+    }
+}
+
+impl functional::BinaryOperation<MirrorUDSymmetry> for MirrorUDSymmetry {
+    fn apply(a: MirrorUDSymmetry, b: MirrorUDSymmetry) -> MirrorUDSymmetry {
+        match (a, b) {
+            (MirrorUDSymmetry::Identity, MirrorUDSymmetry::Identity) => MirrorUDSymmetry::Identity,
+            (MirrorUDSymmetry::Identity, MirrorUDSymmetry::Mirror) => MirrorUDSymmetry::Mirror,
+            (MirrorUDSymmetry::Mirror, MirrorUDSymmetry::Identity) => MirrorUDSymmetry::Mirror,
+            (MirrorUDSymmetry::Mirror, MirrorUDSymmetry::Mirror) => MirrorUDSymmetry::Identity,
+        }
+    }
+}
+
+impl functional::AssociativeOperation<MirrorUDSymmetry> for MirrorUDSymmetry { }
+
+impl functional::Monoid<MirrorUDSymmetry> for MirrorUDSymmetry {
+    fn one() -> MirrorUDSymmetry {
+        MirrorUDSymmetry::Identity
+    }
+}
+
+impl Invertable for MirrorUDSymmetry {
+    fn invert(&self) -> MirrorUDSymmetry {
+        match self {
+            MirrorUDSymmetry::Identity => MirrorUDSymmetry::Identity,
+            MirrorUDSymmetry::Mirror => MirrorUDSymmetry::Mirror,
+        }
+    }
+}
+
+impl PG for MirrorUDSymmetry {}
+
+impl Into<FullSymmetry> for MirrorUDSymmetry {
+    fn into(self) -> FullSymmetry {
+        match self {
+            MirrorUDSymmetry::Identity => FullSymmetry::Identity,
+            MirrorUDSymmetry::Mirror => FullSymmetry::MirrorLeft,
+        }
+    }
+}
+
+impl Into<ThreeTriangles> for MirrorUDSymmetry {
+    fn into(self) -> ThreeTriangles {
+        let full: FullSymmetry = self.into();
+        full.into()
+    }
+}
+
+impl EquivalenceClass<MirrorUDSymmetry> for ThreeTriangles {
+    fn get_equivalent(self, sym: &MirrorUDSymmetry) -> ThreeTriangles {
+        let x: ThreeTriangles = sym.clone().into();
+        x.invert().permute(self).permute(x)
+    }
+}
+
+impl EquivalenceClass<MirrorUDSymmetry> for Turns {
+    fn get_equivalent(self, sym: &MirrorUDSymmetry) -> Turns {
+        let full: FullSymmetry = (*sym).into();
+        self.get_equivalent(&full)
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash, Sequence)]
+#[repr(u8)]
 pub enum RotationalSymmetry {
     Identity,
     RotateCounterClock,
@@ -752,6 +825,24 @@ mod tests {
     }
 
     #[test]
+    fn perm_and_turn_mirror_ud_symmetries_are_equivalent() {
+        // Typically we need to use quickcheck here, but we can be exhaustive for a puzzle this size
+        for s in all::<MirrorUDSymmetry>() {
+            for pi in all::<ThreeTrianglesIndex>() {
+                let p: ThreeTriangles = pi.into();
+                for t in all::<Turns>() {
+                    let after_permute = p.permute(t.into()).get_equivalent(&s);
+                    let before_permute = p.get_equivalent(&s).permute(t.get_equivalent(&s).into());
+                    if after_permute != before_permute {
+                        println!("{:?} - {:?} - {:?}", s, p, t);
+                    }
+                    assert_eq!(after_permute, before_permute)
+                }
+            }
+        }
+    }
+
+    #[test]
     fn perm_and_turn_rotational_symmetries_are_equivalent() {
         // Typically we need to use quickcheck here, but we can be exhaustive for a puzzle this size
         for s in all::<RotationalSymmetry>() {
@@ -789,6 +880,21 @@ mod tests {
         // Typically we need to use quickcheck here, but we can be exhaustive for a puzzle this size
         for s0 in all::<FullSymmetry>() {
             for s1 in all::<FullSymmetry>() {
+                for pi in all::<ThreeTrianglesIndex>() {
+                    let p: ThreeTriangles = pi.into();
+                    let as_tt = p.permute(s0.into()).permute(s1.into());
+                    let as_sym = p.permute(s0.permute(s1).into());
+                    assert_eq!(as_tt, as_sym);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn direct_and_indirect_sym_multiplication_are_equivalent_for_mirror_ud_symmetry() {
+        // Typically we need to use quickcheck here, but we can be exhaustive for a puzzle this size
+        for s0 in all::<MirrorUDSymmetry>() {
+            for s1 in all::<MirrorUDSymmetry>() {
                 for pi in all::<ThreeTrianglesIndex>() {
                     let p: ThreeTriangles = pi.into();
                     let as_tt = p.permute(s0.into()).permute(s1.into());
