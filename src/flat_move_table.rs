@@ -110,6 +110,12 @@ mod tests {
             }
         }
 
+        // Raw to sym and sym to raw functions round trip
+        for pi in all::<TwoTrianglesIndex>() {
+            let pi_rt = move_table.sym_index_to_raw_index(move_table.raw_index_to_sym_index(pi));
+            assert_eq!(pi_rt, pi);
+        }
+
         // All entries are bi-directional (this holds because all turns in the
         // turn set also have an inverse in the turn set).  If there's a move
         // that can put you in state b from a, then there must exist an inverse
@@ -148,6 +154,12 @@ mod tests {
             }
         }
 
+        // Raw to sym and sym to raw functions round trip
+        for pi in all::<TwoTrianglesIndex>() {
+            let pi_rt = move_table.sym_index_to_raw_index(move_table.raw_index_to_sym_index(pi));
+            assert_eq!(pi_rt, pi);
+        }
+
         // All entries are bi-directional (this holds because all turns in the
         // turn set also have an inverse in the turn set).  If there's a move
         // that can put you in state b from a, then there must exist an inverse
@@ -179,6 +191,12 @@ mod tests {
                 let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
                 assert_eq!(by_perm, by_table);
             }
+        }
+
+        // Raw to sym and sym to raw functions round trip
+        for pi in all::<TwoTrianglesIndex>() {
+            let pi_rt = move_table.sym_index_to_raw_index(move_table.raw_index_to_sym_index(pi));
+            assert_eq!(pi_rt, pi);
         }
 
         // All entries are bi-directional (this holds because all turns in the
@@ -217,6 +235,12 @@ mod tests {
             }
         }
 
+        // Raw to sym and sym to raw functions round trip
+        for pi in all::<TwoTrianglesEvenIndex>() {
+            let pi_rt = move_table.sym_index_to_raw_index(move_table.raw_index_to_sym_index(pi));
+            assert_eq!(pi_rt, pi);
+        }
+
         // All entries are bi-directional (this holds because all turns in the
         // turn set also have an inverse in the turn set).  If there's a move
         // that can put you in state b from a, then there must exist an inverse
@@ -253,6 +277,12 @@ mod tests {
             }
         }
 
+        // Raw to sym and sym to raw functions round trip
+        for pi in all::<TwoTrianglesEvenIndex>() {
+            let pi_rt = move_table.sym_index_to_raw_index(move_table.raw_index_to_sym_index(pi));
+            assert_eq!(pi_rt, pi);
+        }
+
         // All entries are bi-directional (this holds because all turns in the
         // turn set also have an inverse in the turn set).  If there's a move
         // that can put you in state b from a, then there must exist an inverse
@@ -284,6 +314,12 @@ mod tests {
                 let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
                 assert_eq!(by_perm, by_table);
             }
+        }
+
+        // Raw to sym and sym to raw functions round trip
+        for pi in all::<TwoTrianglesEvenIndex>() {
+            let pi_rt = move_table.sym_index_to_raw_index(move_table.raw_index_to_sym_index(pi));
+            assert_eq!(pi_rt, pi);
         }
 
         // All entries are bi-directional (this holds because all turns in the
@@ -324,6 +360,12 @@ mod tests {
             }
         }
 
+        // Raw to sym and sym to raw functions round trip
+        for pi in all::<two_lines::TwoLinesIndex>() {
+            let pi_rt = move_table.sym_index_to_raw_index(move_table.raw_index_to_sym_index(pi));
+            assert_eq!(pi_rt, pi);
+        }
+
         // All entries are bi-directional (this holds because all turns in the
         // turn set also have an inverse in the turn set).  If there's a move
         // that can put you in state b from a, then there must exist an inverse
@@ -357,6 +399,12 @@ mod tests {
                 let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
                 assert_eq!(by_perm, by_table);
             }
+        }
+
+        // Raw to sym and sym to raw functions round trip
+        for pi in all::<two_lines::TwoLinesIndex>() {
+            let pi_rt = move_table.sym_index_to_raw_index(move_table.raw_index_to_sym_index(pi));
+            assert_eq!(pi_rt, pi);
         }
 
         // All entries are bi-directional (this holds because all turns in the
@@ -397,6 +445,12 @@ mod tests {
             }
         }
 
+        // Raw to sym and sym to raw functions round trip
+        for pi in all::<three_triangles::ThreeTrianglesIndex>() {
+            let pi_rt = move_table.sym_index_to_raw_index(move_table.raw_index_to_sym_index(pi));
+            assert_eq!(pi_rt, pi);
+        }
+
         // All entries are bi-directional (this holds because all turns in the
         // turn set also have an inverse in the turn set).  If there's a move
         // that can put you in state b from a, then there must exist an inverse
@@ -431,6 +485,12 @@ mod tests {
                 let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
                 assert_eq!(by_perm, by_table);
             }
+        }
+
+        // Raw to sym and sym to raw functions round trip
+        for pi in all::<three_triangles::ThreeTrianglesIndex>() {
+            let pi_rt = move_table.sym_index_to_raw_index(move_table.raw_index_to_sym_index(pi));
+            assert_eq!(pi_rt, pi);
         }
 
         // All entries are bi-directional (this holds because all turns in the
@@ -469,6 +529,12 @@ mod tests {
             }
         }
 
+        // Raw to sym and sym to raw functions round trip
+        for pi in all::<three_triangles::ThreeTrianglesIndex>() {
+            let pi_rt = move_table.sym_index_to_raw_index(move_table.raw_index_to_sym_index(pi));
+            assert_eq!(pi_rt, pi);
+        }
+
         // All entries are bi-directional (this holds because all turns in the
         // turn set also have an inverse in the turn set).  If there's a move
         // that can put you in state b from a, then there must exist an inverse
@@ -503,6 +569,12 @@ mod tests {
                 let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
                 assert_eq!(by_perm, by_table);
             }
+        }
+
+        // Raw to sym and sym to raw functions round trip
+        for pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+            let pi_rt = move_table.sym_index_to_raw_index(move_table.raw_index_to_sym_index(pi));
+            assert_eq!(pi_rt, pi);
         }
 
         // All entries are bi-directional (this holds because all turns in the
@@ -541,6 +613,12 @@ mod tests {
             }
         }
 
+        // Raw to sym and sym to raw functions round trip
+        for pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+            let pi_rt = move_table.sym_index_to_raw_index(move_table.raw_index_to_sym_index(pi));
+            assert_eq!(pi_rt, pi);
+        }
+
         // All entries are bi-directional (this holds because all turns in the
         // turn set also have an inverse in the turn set).  If there's a move
         // that can put you in state b from a, then there must exist an inverse
@@ -575,6 +653,12 @@ mod tests {
                 let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
                 assert_eq!(by_perm, by_table);
             }
+        }
+
+        // Raw to sym and sym to raw functions round trip
+        for pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+            let pi_rt = move_table.sym_index_to_raw_index(move_table.raw_index_to_sym_index(pi));
+            assert_eq!(pi_rt, pi);
         }
 
         // All entries are bi-directional (this holds because all turns in the
