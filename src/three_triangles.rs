@@ -810,6 +810,35 @@ mod tests {
     }
 
     #[test]
+    fn perm_and_turns_and_sym_invert_round_trips() {
+        // Typically we need to use quickcheck here, but we can be exhaustive for a puzzle this size
+        for pi in all::<ThreeTrianglesIndex>() {
+            let p: ThreeTriangles = pi.into();
+            assert_eq!(p, p.invert().invert());
+
+            for t in all::<Turns>() {
+                assert_eq!(p, p.permute(t.into()).permute(t.invert().into()));
+            }
+
+            for s in all::<FullSymmetry>() {
+                assert_eq!(p, p.permute(s.into()).permute(s.invert().into()));
+            }
+
+            for s in all::<MirrorUDSymmetry>() {
+                assert_eq!(p, p.permute(s.into()).permute(s.invert().into()));
+            }
+
+            for s in all::<RotationalSymmetry>() {
+                assert_eq!(p, p.permute(s.into()).permute(s.invert().into()));
+            }
+
+            for s in all::<FullSymmetry>() {
+                assert_eq!(p, p.permute(s.into()).permute(s.invert().into()));
+            }
+        }
+    }
+
+    #[test]
     fn perm_and_turn_no_symmetries_are_equivalent() {
         // Typically we need to use quickcheck here, but we can be exhaustive for a puzzle this size
         for s in all::<NoSymmetry>() {
