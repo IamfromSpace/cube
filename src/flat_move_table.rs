@@ -810,4 +810,96 @@ mod tests {
             }
         }
     }
+
+    use three_triangles_stack;
+
+    #[test]
+    fn move_table_is_correct_for_top_three_triangles_even_parity_with_full_symmetry() {
+        let rep_table = Arc::new(RepresentativeTable::new());
+        // Even though either Left + Right generates all states, MoveTables
+        // should basically always include turn inverses, so that they can go
+        // forward or backwards.
+        let move_table: MoveTable<three_triangles_stack::TopThreeTriangles, three_triangles_stack::FullSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles_stack::Turns> = MoveTable::new(rep_table.clone());
+
+        // Applying move_table moves is identical to applying permutations
+        for ri in rep_table.rep_indexes() {
+            let p: three_triangles_stack::TopThreeTriangles = rep_table.rep_index_to_perm(ri);
+            for t in all::<three_triangles_stack::Turns>() {
+                let by_perm = p.permute(t.into());
+                let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
+                assert_eq!(by_perm, by_table);
+            }
+        }
+
+        // Raw to sym and sym to raw functions round trip
+        for pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+            let pi_rt = move_table.sym_index_to_raw_index(move_table.raw_index_to_sym_index(pi));
+            assert_eq!(pi_rt, pi);
+        }
+
+        // All entries are bi-directional (this holds because all turns in the
+        // turn set also have an inverse in the turn set).  If there's a move
+        // that can put you in state b from a, then there must exist an inverse
+        // turn that puts you from state a to state b.
+        for pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+            for t in all::<three_triangles_stack::Turns>() {
+                let (ri_a, _) = move_table.raw_index_to_sym_index(pi);
+                let (ri_b, _) = move_table.turn(ri_a, t);
+                let mut found = false;
+                for t in all::<three_triangles_stack::Turns>() {
+                    let (ri_rt, _ ) = move_table.turn(ri_b, t);
+                    if ri_a == ri_rt {
+                        found = true;
+                        break;
+                    }
+                }
+                assert_eq!(found, true);
+            }
+        }
+    }
+
+    #[test]
+    fn move_table_is_correct_for_bottom_three_triangles_even_parity_with_full_symmetry() {
+        let rep_table = Arc::new(RepresentativeTable::new());
+        // Even though either Left + Right generates all states, MoveTables
+        // should basically always include turn inverses, so that they can go
+        // forward or backwards.
+        let move_table: MoveTable<three_triangles_stack::BottomThreeTriangles, three_triangles_stack::FullSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles_stack::Turns> = MoveTable::new(rep_table.clone());
+
+        // Applying move_table moves is identical to applying permutations
+        for ri in rep_table.rep_indexes() {
+            let p: three_triangles_stack::BottomThreeTriangles = rep_table.rep_index_to_perm(ri);
+            for t in all::<three_triangles_stack::Turns>() {
+                let by_perm = p.permute(t.into());
+                let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
+                assert_eq!(by_perm, by_table);
+            }
+        }
+
+        // Raw to sym and sym to raw functions round trip
+        for pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+            let pi_rt = move_table.sym_index_to_raw_index(move_table.raw_index_to_sym_index(pi));
+            assert_eq!(pi_rt, pi);
+        }
+
+        // All entries are bi-directional (this holds because all turns in the
+        // turn set also have an inverse in the turn set).  If there's a move
+        // that can put you in state b from a, then there must exist an inverse
+        // turn that puts you from state a to state b.
+        for pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+            for t in all::<three_triangles_stack::Turns>() {
+                let (ri_a, _) = move_table.raw_index_to_sym_index(pi);
+                let (ri_b, _) = move_table.turn(ri_a, t);
+                let mut found = false;
+                for t in all::<three_triangles_stack::Turns>() {
+                    let (ri_rt, _ ) = move_table.turn(ri_b, t);
+                    if ri_a == ri_rt {
+                        found = true;
+                        break;
+                    }
+                }
+                assert_eq!(found, true);
+            }
+        }
+    }
 }
