@@ -127,7 +127,10 @@ mod tests {
                 let mut found = false;
                 for t in all::<Turns>() {
                     let (ri_rt, _ ) = move_table.turn(ri_b, t);
-                    found |= ri_a == ri_rt;
+                    if ri_a == ri_rt {
+                        found = true;
+                        break;
+                    }
                 }
                 assert_eq!(found, true);
             }
@@ -171,7 +174,10 @@ mod tests {
                 let mut found = false;
                 for t in all::<Turns>() {
                     let (ri_rt, _ ) = move_table.turn(ri_b, t);
-                    found |= ri_a == ri_rt;
+                    if ri_a == ri_rt {
+                        found = true;
+                        break;
+                    }
                 }
                 assert_eq!(found, true);
             }
@@ -210,7 +216,10 @@ mod tests {
                 let mut found = false;
                 for t in all::<Turns>() {
                     let (ri_rt, _ ) = move_table.turn(ri_b, t);
-                    found |= ri_a == ri_rt;
+                    if ri_a == ri_rt {
+                        found = true;
+                        break;
+                    }
                 }
                 assert_eq!(found, true);
             }
@@ -252,7 +261,10 @@ mod tests {
                 let mut found = false;
                 for t in all::<Turns>() {
                     let (ri_rt, _ ) = move_table.turn(ri_b, t);
-                    found |= ri_a == ri_rt;
+                    if ri_a == ri_rt {
+                        found = true;
+                        break;
+                    }
                 }
                 assert_eq!(found, true);
             }
@@ -294,7 +306,10 @@ mod tests {
                 let mut found = false;
                 for t in all::<Turns>() {
                     let (ri_rt, _ ) = move_table.turn(ri_b, t);
-                    found |= ri_a == ri_rt;
+                    if ri_a == ri_rt {
+                        found = true;
+                        break;
+                    }
                 }
                 assert_eq!(found, true);
             }
@@ -333,7 +348,10 @@ mod tests {
                 let mut found = false;
                 for t in all::<Turns>() {
                     let (ri_rt, _ ) = move_table.turn(ri_b, t);
-                    found |= ri_a == ri_rt;
+                    if ri_a == ri_rt {
+                        found = true;
+                        break;
+                    }
                 }
                 assert_eq!(found, true);
             }
@@ -377,7 +395,10 @@ mod tests {
                 let mut found = false;
                 for t in all::<two_lines::Turns>() {
                     let (ri_rt, _ ) = move_table.turn(ri_b, t);
-                    found |= ri_a == ri_rt;
+                    if ri_a == ri_rt {
+                        found = true;
+                        break;
+                    }
                 }
                 assert_eq!(found, true);
             }
@@ -418,7 +439,10 @@ mod tests {
                 let mut found = false;
                 for t in all::<two_lines::Turns>() {
                     let (ri_rt, _ ) = move_table.turn(ri_b, t);
-                    found |= ri_a == ri_rt;
+                    if ri_a == ri_rt {
+                        found = true;
+                        break;
+                    }
                 }
                 assert_eq!(found, true);
             }
@@ -462,7 +486,10 @@ mod tests {
                 let mut found = false;
                 for t in all::<three_triangles::Turns>() {
                     let (ri_rt, _ ) = move_table.turn(ri_b, t);
-                    found |= ri_a == ri_rt;
+                    if ri_a == ri_rt {
+                        found = true;
+                        break;
+                    }
                 }
                 assert_eq!(found, true);
             }
@@ -504,7 +531,10 @@ mod tests {
                 let mut found = false;
                 for t in all::<three_triangles::Turns>() {
                     let (ri_rt, _ ) = move_table.turn(ri_b, t);
-                    found |= ri_a == ri_rt;
+                    if ri_a == ri_rt {
+                        found = true;
+                        break;
+                    }
                 }
                 assert_eq!(found, true);
             }
@@ -546,7 +576,10 @@ mod tests {
                 let mut found = false;
                 for t in all::<three_triangles::Turns>() {
                     let (ri_rt, _ ) = move_table.turn(ri_b, t);
-                    found |= ri_a == ri_rt;
+                    if ri_a == ri_rt {
+                        found = true;
+                        break;
+                    }
                 }
                 assert_eq!(found, true);
             }
@@ -588,7 +621,10 @@ mod tests {
                 let mut found = false;
                 for t in all::<three_triangles::Turns>() {
                     let (ri_rt, _ ) = move_table.turn(ri_b, t);
-                    found |= ri_a == ri_rt;
+                    if ri_a == ri_rt {
+                        found = true;
+                        break;
+                    }
                 }
                 assert_eq!(found, true);
             }
@@ -630,7 +666,10 @@ mod tests {
                 let mut found = false;
                 for t in all::<three_triangles::Turns>() {
                     let (ri_rt, _ ) = move_table.turn(ri_b, t);
-                    found |= ri_a == ri_rt;
+                    if ri_a == ri_rt {
+                        found = true;
+                        break;
+                    }
                 }
                 assert_eq!(found, true);
             }
@@ -672,7 +711,10 @@ mod tests {
                 let mut found = false;
                 for t in all::<three_triangles::Turns>() {
                     let (ri_rt, _ ) = move_table.turn(ri_b, t);
-                    found |= ri_a == ri_rt;
+                    if ri_a == ri_rt {
+                        found = true;
+                        break;
+                    }
                 }
                 assert_eq!(found, true);
             }
