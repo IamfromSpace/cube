@@ -86,7 +86,7 @@ impl<PermA: PG + Clone + EquivalenceClass<Sym> + Into<PermIndexA>, PermB: PG + C
      *
      * (Sb1' * Sb0' * Sa) * Bx * (Sa' * Sb0 * Sb1) = Brep1
      */
-    pub fn turn(&self, i: CompositeIndex<RepIndex<PermIndexA>, PermIndexB>, t: Turn) -> (CompositeIndex<RepIndex<PermIndexA>, PermIndexB>, Sym) {
+    pub fn turn(&self, i: CompositeIndex<RepIndex<Sym, PermIndexA>, PermIndexB>, t: Turn) -> (CompositeIndex<RepIndex<Sym, PermIndexA>, PermIndexB>, Sym) {
         let (a_rep_1, s_a) = self.a.turn(i.0, t);
         let a_raw = self.a.sym_index_to_raw_index((a_rep_1, s_a));
 
@@ -137,7 +137,7 @@ impl<PermA: PG + Clone + EquivalenceClass<Sym> + Into<PermIndexA>, PermB: PG + C
      *
      * s_b' * s_a * b_raw * s_a' * s_b = b_rep
      */
-    pub fn raw_index_to_sym_index(&self, pi: (PermIndexA, PermIndexB)) -> (CompositeIndex<RepIndex<PermIndexA>, PermIndexB>, Sym) {
+    pub fn raw_index_to_sym_index(&self, pi: (PermIndexA, PermIndexB)) -> (CompositeIndex<RepIndex<Sym, PermIndexA>, PermIndexB>, Sym) {
         let (a_rep, s_a) = self.a.raw_index_to_sym_index(pi.0);
 
         // Self-symmetric states cause us an additional headache here.  If
@@ -190,7 +190,7 @@ impl<PermA: PG + Clone + EquivalenceClass<Sym> + Into<PermIndexA>, PermB: PG + C
      *
      * s_b' * s_a' * b_raw * s_a * s_b = b_rep
      */
-    pub fn sym_index_to_raw_index(&self, (CompositeIndex(a_rep, b_rep_raw), s_a): (CompositeIndex<RepIndex<PermIndexA>, PermIndexB>, Sym)) -> (PermIndexA, PermIndexB) {
+    pub fn sym_index_to_raw_index(&self, (CompositeIndex(a_rep, b_rep_raw), s_a): (CompositeIndex<RepIndex<Sym, PermIndexA>, PermIndexB>, Sym)) -> (PermIndexA, PermIndexB) {
         let a_raw = self.a.sym_index_to_raw_index((a_rep, s_a));
         let (b_rep, s_b) = self.b.raw_index_to_sym_index(b_rep_raw);
         let b_raw = self.b.sym_index_to_raw_index((b_rep, s_a.permute(s_b)));

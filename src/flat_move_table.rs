@@ -15,7 +15,7 @@ pub struct MoveTable<Perm, Sym, PermIndex, Turn> {
     // a full trait definition of our RepTable to implement and error messages
     // get wierder.
     rep_table: Arc<RepresentativeTable<Perm, Sym, PermIndex>>,
-    turn_table: Vec<(RepIndex<PermIndex>, Sym)>,
+    turn_table: Vec<(RepIndex<Sym, PermIndex>, Sym)>,
     sym_table: Vec<PermIndex>,
     turns: std::marker::PhantomData<Turn>,
 }
@@ -57,16 +57,16 @@ impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Turn: Sequence 
         }
     }
 
-    pub fn turn(&self, ri: RepIndex<PermIndex>, t: Turn) -> (RepIndex<PermIndex>, Sym) {
-        let i = <RepIndex<PermIndex> as Into<usize>>::into(ri) * cardinality::<Turn>() + <Turn as Into<usize>>::into(t);
+    pub fn turn(&self, ri: RepIndex<Sym, PermIndex>, t: Turn) -> (RepIndex<Sym, PermIndex>, Sym) {
+        let i = <RepIndex<Sym, PermIndex> as Into<usize>>::into(ri) * cardinality::<Turn>() + <Turn as Into<usize>>::into(t);
         self.turn_table[i]
     }
 
     // TODO: The value of this method is much more dubious, now that we can
     // just iterate over Turn.  This _might_ be more performant, but by how
     // much could it really be anyway?
-    pub fn apply_turns(&self, ri: RepIndex<PermIndex>) -> impl Iterator<Item = (RepIndex<PermIndex>, Sym)> + '_ {
-        let start = <RepIndex<PermIndex> as Into<usize>>::into(ri) * cardinality::<Turn>();
+    pub fn apply_turns(&self, ri: RepIndex<Sym, PermIndex>) -> impl Iterator<Item = (RepIndex<Sym, PermIndex>, Sym)> + '_ {
+        let start = <RepIndex<Sym, PermIndex> as Into<usize>>::into(ri) * cardinality::<Turn>();
         (start..(start + cardinality::<Turn>())).map(move |i| self.turn_table[i])
     }
 
@@ -75,17 +75,17 @@ impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Turn: Sequence 
         self.rep_table.len()
     }
 
-    pub fn raw_index_to_sym_index(&self, pi: PermIndex) -> (RepIndex<PermIndex>, Sym) {
+    pub fn raw_index_to_sym_index(&self, pi: PermIndex) -> (RepIndex<Sym, PermIndex>, Sym) {
         self.rep_table.raw_index_to_sym_index(pi)
     }
 
-    pub fn sym_index_to_raw_index(&self, si: (RepIndex<PermIndex>, Sym)) -> PermIndex {
+    pub fn sym_index_to_raw_index(&self, si: (RepIndex<Sym, PermIndex>, Sym)) -> PermIndex {
         let (ri, s) = si;
-        let i = <RepIndex<PermIndex> as Into<usize>>::into(ri) * cardinality::<Sym>() + <Sym as Into<usize>>::into(s);
+        let i = <RepIndex<Sym, PermIndex> as Into<usize>>::into(ri) * cardinality::<Sym>() + <Sym as Into<usize>>::into(s);
         self.sym_table[i]
     }
 
-    pub fn is_self_symmetric(&self, ri: RepIndex<PermIndex>) -> bool {
+    pub fn is_self_symmetric(&self, ri: RepIndex<Sym, PermIndex>) -> bool {
         self.rep_table.is_self_symmetric(ri)
     }
 }

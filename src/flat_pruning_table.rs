@@ -23,10 +23,10 @@ pub struct PruningTable<Perm, Sym, PermIndex, Turn> {
     // for what a pruning table needs specifically from a stateful (or
     // stateless) Turner.
     move_table: Arc<MoveTable<Perm, Sym, PermIndex, Turn>>,
-    goals: BTreeSet<RepIndex<PermIndex>>,
+    goals: BTreeSet<RepIndex<Sym, PermIndex>>,
 }
 
-impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Turn: Sequence + Copy + Into<Perm> + PartialEq + Into<usize> + Invertable + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + Into<usize> + Invertable, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize> + Into<Perm> + std::fmt::Debug> PruningTable<Perm, Sym, PermIndex, Turn> where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
+impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Turn: Sequence + Copy + Into<Perm> + PartialEq + Into<usize> + Invertable + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + Into<usize> + Invertable + Ord, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize> + Into<Perm> + std::fmt::Debug> PruningTable<Perm, Sym, PermIndex, Turn> where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
     // TODO: Hypothetically our pruning table could use a different Turn set
     // than our MoveTable.  We'd need the MoveTableTurn to be Invertable, but
     // not the PruningTableTurn.  PruningTableTurn must be From<MoveTableTurn>.

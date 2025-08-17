@@ -8,9 +8,9 @@ use enum_iterator::{Sequence, all};
 
 // Opaque type to prevent accidental misuse
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub struct RepIndex<PermIndex>(PermIndex);
+pub struct RepIndex<Sym, PermIndex>(PermIndex, std::marker::PhantomData<Sym>);
 
-impl<PermIndex: Into<usize>> Into<usize> for RepIndex<PermIndex> {
+impl<Sym, PermIndex: Into<usize>> Into<usize> for RepIndex<Sym, PermIndex> {
     fn into(self) -> usize {
         self.0.into()
     }
@@ -92,17 +92,17 @@ impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Sym: Sequence +
     // bits here, it's going to be quite fiddly to enable that degree of
     // genericness, and packing cannot every be perfectly efficient without
     // potentially compromising speed by adding multiplication and modulos.
-    pub fn raw_index_to_sym_index(&self, pi: PermIndex) -> (RepIndex<PermIndex>, Sym) {
+    pub fn raw_index_to_sym_index(&self, pi: PermIndex) -> (RepIndex<Sym, PermIndex>, Sym) {
         let perm: Perm = pi.into();
         let (spi, si, _): (PermIndex, Sym, bool) = smallest_equivalence(&perm);
         let ri =
             self.table
                 .binary_search(&spi)
                 .expect("Invariant violation: Permutation does not have a representative in the RepresentativeTable.");
-        (RepIndex(ri.try_into().expect("Invariant violated: the size of the rep table exceeded PermIndexes maximum bound.")), si)
+        (RepIndex(ri.try_into().expect("Invariant violated: the size of the rep table exceeded PermIndexes maximum bound."), std::marker::PhantomData), si)
     }
 
-    pub fn rep_index_to_perm(&self, i: RepIndex<PermIndex>) -> Perm {
+    pub fn rep_index_to_perm(&self, i: RepIndex<Sym, PermIndex>) -> Perm {
         let pi: PermIndex = self.table[<PermIndex as Into<usize>>::into(i.0)];
         <PermIndex as Into<Perm>>::into(pi)
     }
@@ -113,11 +113,11 @@ impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Sym: Sequence +
     }
 
     // TODO: Should MoveTable implement Sequence?
-    pub fn rep_indexes(&self) -> impl Iterator<Item = RepIndex<PermIndex>> + '_ {
-        (0..self.table.len()).map(|ri| RepIndex(ri.try_into().expect("Invariant violated: the size of the rep table exceeded PermIndexes maximum bound.")))
+    pub fn rep_indexes(&self) -> impl Iterator<Item = RepIndex<Sym, PermIndex>> + '_ {
+        (0..self.table.len()).map(|ri| RepIndex(ri.try_into().expect("Invariant violated: the size of the rep table exceeded PermIndexes maximum bound."), std::marker::PhantomData))
     }
 
-    pub fn is_self_symmetric(&self, ri: RepIndex<PermIndex>) -> bool {
+    pub fn is_self_symmetric(&self, ri: RepIndex<Sym, PermIndex>) -> bool {
         let i: usize = ri.0.into();
         ((self.self_symmetric_table[i / 8] >> (i % 8)) & 1) != 0
     }
