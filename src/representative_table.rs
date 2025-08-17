@@ -20,6 +20,7 @@ impl<PermIndex: Into<usize>> Into<usize> for RepIndex<PermIndex> {
 #[derive(Debug)]
 pub struct RepresentativeTable<Perm, Sym, PermIndex> {
     table: Vec<PermIndex>,
+    self_symmetric_table: Vec<u8>,
     syms: std::marker::PhantomData<Sym>,
     perm: std::marker::PhantomData<Perm>,
 }
@@ -27,10 +28,24 @@ pub struct RepresentativeTable<Perm, Sym, PermIndex> {
 impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Sym: Sequence + Clone, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize> + Into<Perm>> RepresentativeTable<Perm, Sym, PermIndex> where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
     pub fn new() -> Self {
         let mut discovered = BTreeSet::new();
+        let mut self_symmetric_table = Vec::new();
 
         for pi in all::<PermIndex>() {
             let perm: Perm = pi.into();
-            let (ri, _): (PermIndex, Sym) = smallest_equivalence(&perm);
+            let (ri, _, is_self_symmetric): (PermIndex, Sym, bool) = smallest_equivalence(&perm);
+
+            // Extend on self_symmetry table when necessary
+            let byte_index = discovered.len() % 8;
+            if byte_index == 0 {
+                self_symmetric_table.push(0);
+            }
+            // If the position is self symmetric, set its bit flag
+            if is_self_symmetric {
+                let i = self_symmetric_table.len() - 1;
+                let new = self_symmetric_table[i] | (1 << byte_index);
+                self_symmetric_table[i] = new;
+            }
+
             discovered.insert(ri);
         }
 
@@ -42,6 +57,7 @@ impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Sym: Sequence +
 
         RepresentativeTable {
             table,
+            self_symmetric_table,
             syms: std::marker::PhantomData,
             perm: std::marker::PhantomData,
         }
@@ -78,7 +94,7 @@ impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Sym: Sequence +
     // potentially compromising speed by adding multiplication and modulos.
     pub fn raw_index_to_sym_index(&self, pi: PermIndex) -> (RepIndex<PermIndex>, Sym) {
         let perm: Perm = pi.into();
-        let (spi, si): (PermIndex, Sym) = smallest_equivalence(&perm);
+        let (spi, si, _): (PermIndex, Sym, bool) = smallest_equivalence(&perm);
         let ri =
             self.table
                 .binary_search(&spi)
@@ -100,14 +116,29 @@ impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Sym: Sequence +
     pub fn rep_indexes(&self) -> impl Iterator<Item = RepIndex<PermIndex>> + '_ {
         (0..self.table.len()).map(|ri| RepIndex(ri.try_into().expect("Invariant violated: the size of the rep table exceeded PermIndexes maximum bound.")))
     }
+
+    pub fn is_self_symmetric(&self, ri: RepIndex<PermIndex>) -> bool {
+        let i: usize = ri.0.into();
+        ((self.self_symmetric_table[i / 8] >> (i % 8)) & 1) != 0
+    }
 }
 
-fn smallest_equivalence<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Sym: Sequence, PermIndex: Ord>(perm: &Perm) -> (PermIndex, Sym) {
-    // Identity must be included as a symmetry
-    let mut smallest = perm.clone().into(); // Not sure why From<&Perm> is such a pain
-    let mut sym = Sym::first().expect("Error: The Sym type has no members, but it _must_ have at least the Identity.");
+// We consider all symmetries for a position, and return the smallest,
+// according to the Ord implementation.  We also return the symmetry (which may
+// be the Identity), and we return whether or not this position is
+// self-symmetric in any way.  Self-symmetric means that an original and
+// symmetric equivalent state are identical.  For example, the identity state
+// will always be self-symmetric (assuming we have meaningful symmetry, rather
+// than `enum Sym { Identitiy }`).  We return this value, because it indicates
+// whether or not the returned symmetry is the _only_ symmetry that does this
+// reduction, or if there are other valid options.  Since self-symmetric cases
+// are rare, this allows us to skip searching through all valid symmetries in
+// the cases where we need to consider them all, like composite move tables.
+fn smallest_equivalence<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Sym: Sequence, PermIndex: Ord>(perm: &Perm) -> (PermIndex, Sym, bool) {
+    let mut smallest: Option<PermIndex> = None;
+    let mut sym: Option<Sym> = None;
+    let mut is_self_symmetric = false;
 
-    // TODO: don't replay first
     for s in all::<Sym>() {
         // TODO: This clone is pretty wasteful, because we really only need a
         // reference, but get_equivalent takes self not &self, because so do
@@ -122,18 +153,25 @@ fn smallest_equivalence<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermInde
         // reference to the first two parameters, but then create something new
         // at the end.
         let ei = perm.clone().get_equivalent(&s).into();
-        if ei < smallest {
-            smallest = ei;
-            sym = s;
+
+        if smallest.as_ref().map(|pi| &ei == pi).unwrap_or(false) {
+            is_self_symmetric = true;
+        }
+
+        if smallest.as_ref().map(|pi| &ei < pi).unwrap_or(true) {
+            smallest = Some(ei);
+            sym = Some(s);
+            is_self_symmetric = false;
         }
     }
-    (smallest, sym)
+    (smallest.expect("Invariant Violation: Did not find a smallest symmetry!"), sym.expect("Invariant Violation: Did not find a smallest symmetry!"), is_self_symmetric)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use two_triangles::*;
+    use enum_iterator::cardinality;
 
     #[test]
     fn representative_table_is_correct_for_two_triangles_without_symmetry() {
@@ -153,6 +191,13 @@ mod tests {
             let rep = Into::<TwoTriangles>::into(pi).get_equivalent(&sym);
             assert_eq!(rep_table.rep_index_to_perm(ri), rep)
         }
+
+        // Number of self-symmetric positions does not exceed possible bound
+        let mut count = 0;
+        for ri in rep_table.rep_indexes() {
+            count += cardinality::<NoSymmetry>() - (if rep_table.is_self_symmetric(ri) { 1 } else { 0 });
+        }
+        assert_eq!(count >= cardinality::<TwoTrianglesIndex>(), true);
     }
 
     #[test]
@@ -173,6 +218,13 @@ mod tests {
             let rep = Into::<TwoTriangles>::into(pi).get_equivalent(&sym);
             assert_eq!(rep_table.rep_index_to_perm(ri), rep)
         }
+
+        // Number of self-symmetric positions does not exceed possible bound
+        let mut count = 0;
+        for ri in rep_table.rep_indexes() {
+            count += cardinality::<RotationalSymmetry>() - (if rep_table.is_self_symmetric(ri) { 1 } else { 0 });
+        }
+        assert_eq!(count >= cardinality::<TwoTrianglesIndex>(), true);
     }
 
     #[test]
@@ -193,6 +245,13 @@ mod tests {
             let rep = Into::<TwoTriangles>::into(pi).get_equivalent(&sym);
             assert_eq!(rep_table.rep_index_to_perm(ri), rep)
         }
+
+        // Number of self-symmetric positions does not exceed possible bound
+        let mut count = 0;
+        for ri in rep_table.rep_indexes() {
+            count += cardinality::<FullSymmetry>() - (if rep_table.is_self_symmetric(ri) { 1 } else { 0 });
+        }
+        assert_eq!(count >= cardinality::<TwoTrianglesIndex>(), true);
     }
 
     #[test]
@@ -213,6 +272,13 @@ mod tests {
             let rep = Into::<TwoTriangles>::into(pi).get_equivalent(&sym);
             assert_eq!(rep_table.rep_index_to_perm(ri), rep)
         }
+
+        // Number of self-symmetric positions does not exceed possible bound
+        let mut count = 0;
+        for ri in rep_table.rep_indexes() {
+            count += cardinality::<NoSymmetry>() - (if rep_table.is_self_symmetric(ri) { 1 } else { 0 });
+        }
+        assert_eq!(count >= cardinality::<TwoTrianglesEvenIndex>(), true);
     }
 
     #[test]
@@ -233,6 +299,13 @@ mod tests {
             let rep = Into::<TwoTriangles>::into(pi).get_equivalent(&sym);
             assert_eq!(rep_table.rep_index_to_perm(ri), rep)
         }
+
+        // Number of self-symmetric positions does not exceed possible bound
+        let mut count = 0;
+        for ri in rep_table.rep_indexes() {
+            count += cardinality::<RotationalSymmetry>() - (if rep_table.is_self_symmetric(ri) { 1 } else { 0 });
+        }
+        assert_eq!(count >= cardinality::<TwoTrianglesEvenIndex>(), true);
     }
 
     #[test]
@@ -253,6 +326,13 @@ mod tests {
             let rep = Into::<TwoTriangles>::into(pi).get_equivalent(&sym);
             assert_eq!(rep_table.rep_index_to_perm(ri), rep)
         }
+
+        // Number of self-symmetric positions does not exceed possible bound
+        let mut count = 0;
+        for ri in rep_table.rep_indexes() {
+            count += cardinality::<FullSymmetry>() - (if rep_table.is_self_symmetric(ri) { 1 } else { 0 });
+        }
+        assert_eq!(count >= cardinality::<TwoTrianglesEvenIndex>(), true);
     }
 
     use three_triangles;
@@ -275,6 +355,13 @@ mod tests {
             let rep = Into::<three_triangles::ThreeTriangles>::into(pi).get_equivalent(&sym);
             assert_eq!(rep_table.rep_index_to_perm(ri), rep)
         }
+
+        // Number of self-symmetric positions does not exceed possible bound
+        let mut count = 0;
+        for ri in rep_table.rep_indexes() {
+            count += cardinality::<three_triangles::NoSymmetry>() - (if rep_table.is_self_symmetric(ri) { 1 } else { 0 });
+        }
+        assert_eq!(count >= cardinality::<three_triangles::ThreeTrianglesIndex>(), true);
     }
 
     #[test]
@@ -295,6 +382,13 @@ mod tests {
             let rep = Into::<three_triangles::ThreeTriangles>::into(pi).get_equivalent(&sym);
             assert_eq!(rep_table.rep_index_to_perm(ri), rep)
         }
+
+        // Number of self-symmetric positions does not exceed possible bound
+        let mut count = 0;
+        for ri in rep_table.rep_indexes() {
+            count += cardinality::<three_triangles::RotationalSymmetry>() - (if rep_table.is_self_symmetric(ri) { 1 } else { 0 });
+        }
+        assert_eq!(count >= cardinality::<three_triangles::ThreeTrianglesIndex>(), true);
     }
 
     #[test]
@@ -315,6 +409,13 @@ mod tests {
             let rep = Into::<three_triangles::ThreeTriangles>::into(pi).get_equivalent(&sym);
             assert_eq!(rep_table.rep_index_to_perm(ri), rep)
         }
+
+        // Number of self-symmetric positions does not exceed possible bound
+        let mut count = 0;
+        for ri in rep_table.rep_indexes() {
+            count += cardinality::<three_triangles::FullSymmetry>() - (if rep_table.is_self_symmetric(ri) { 1 } else { 0 });
+        }
+        assert_eq!(count >= cardinality::<three_triangles::ThreeTrianglesIndex>(), true);
     }
 
     #[test]
@@ -335,6 +436,13 @@ mod tests {
             let rep = Into::<three_triangles::ThreeTriangles>::into(pi).get_equivalent(&sym);
             assert_eq!(rep_table.rep_index_to_perm(ri), rep)
         }
+
+        // Number of self-symmetric positions does not exceed possible bound
+        let mut count = 0;
+        for ri in rep_table.rep_indexes() {
+            count += cardinality::<three_triangles::NoSymmetry>() - (if rep_table.is_self_symmetric(ri) { 1 } else { 0 });
+        }
+        assert_eq!(count >= cardinality::<three_triangles::ThreeTrianglesEvenIndex>(), true);
     }
 
     #[test]
@@ -355,6 +463,13 @@ mod tests {
             let rep = Into::<three_triangles::ThreeTriangles>::into(pi).get_equivalent(&sym);
             assert_eq!(rep_table.rep_index_to_perm(ri), rep)
         }
+
+        // Number of self-symmetric positions does not exceed possible bound
+        let mut count = 0;
+        for ri in rep_table.rep_indexes() {
+            count += cardinality::<three_triangles::RotationalSymmetry>() - (if rep_table.is_self_symmetric(ri) { 1 } else { 0 });
+        }
+        assert_eq!(count >= cardinality::<three_triangles::ThreeTrianglesEvenIndex>(), true);
     }
 
     #[test]
@@ -375,5 +490,12 @@ mod tests {
             let rep = Into::<three_triangles::ThreeTriangles>::into(pi).get_equivalent(&sym);
             assert_eq!(rep_table.rep_index_to_perm(ri), rep)
         }
+
+        // Number of self-symmetric positions does not exceed possible bound
+        let mut count = 0;
+        for ri in rep_table.rep_indexes() {
+            count += cardinality::<three_triangles::FullSymmetry>() - (if rep_table.is_self_symmetric(ri) { 1 } else { 0 });
+        }
+        assert_eq!(count >= cardinality::<three_triangles::ThreeTrianglesEvenIndex>(), true);
     }
 }

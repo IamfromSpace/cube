@@ -84,6 +84,10 @@ impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Turn: Sequence 
         let i = <RepIndex<PermIndex> as Into<usize>>::into(ri) * cardinality::<Sym>() + <Sym as Into<usize>>::into(s);
         self.sym_table[i]
     }
+
+    pub fn is_self_symmetric(&self, ri: RepIndex<PermIndex>) -> bool {
+        self.rep_table.is_self_symmetric(ri)
+    }
 }
 
 #[cfg(test)]
