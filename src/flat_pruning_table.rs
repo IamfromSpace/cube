@@ -9,7 +9,7 @@ use std::sync::Arc;
 use std::convert::TryFrom;
 use std::collections::BTreeSet;
 use std::collections::VecDeque;
-use enum_iterator::Sequence;
+use enum_iterator::{all, Sequence};
 
 #[derive(Debug)]
 pub struct PruningTable<Perm, Sym, PermIndex, Turn> {
@@ -26,7 +26,7 @@ pub struct PruningTable<Perm, Sym, PermIndex, Turn> {
     goals: BTreeSet<RepIndex<Sym, PermIndex>>,
 }
 
-impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Turn: Sequence + Copy + Into<Perm> + PartialEq + Into<usize> + Invertable + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + Into<usize> + Invertable + Ord, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize> + Into<Perm> + std::fmt::Debug> PruningTable<Perm, Sym, PermIndex, Turn> where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
+impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Turn: Sequence + Copy + Into<Perm> + PartialEq + Into<usize> + Invertable + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + Into<usize> + Invertable + PG + Ord, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize> + Into<Perm> + std::fmt::Debug> PruningTable<Perm, Sym, PermIndex, Turn> where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
     // TODO: Hypothetically our pruning table could use a different Turn set
     // than our MoveTable.  We'd need the MoveTableTurn to be Invertable, but
     // not the PruningTableTurn.  PruningTableTurn must be From<MoveTableTurn>.
@@ -104,6 +104,49 @@ impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Turn: Sequence 
             }
         }
     }
+
+    /*
+     * s' * pi * s = ri
+     * pi = s * ri * s'
+     * pi * t = s * ri * s' * t
+     *
+     * s * tx * s' = t
+     * tx = s' * t * s
+     *
+     * pi * t = s * ri * s' * s * tx * s'
+     * pi * t = s * ri * tx * s'
+     *
+     * s2' * ri * tx * s2 = ri2
+     * ri * tx = s2 * ri2 * s2'
+     *
+     * pi * t = s * s2 * ri2 * s2' * s'
+     * s2' * s' * pi * t * s * s2 = ri2
+     */
+    // TODO: This only works for perfect pruning tables.
+    pub fn solve(&self, pi: PermIndex) -> Vec<Turn> {
+        let mut turns: Vec<Turn> = Vec::new();
+        let (mut ri, mut s) = self.move_table.raw_index_to_sym_index(pi);
+
+        loop {
+            if self.goals.contains(&ri) {
+                break turns;
+            }
+
+            let target = (lookup(&self.table, ri.into()) + 2) % 3;
+
+            for turn in all::<Turn>() {
+                let (ri2, s2) = self.move_table.turn(ri, turn.get_equivalent(&s));
+                if target == lookup(&self.table, ri2.into()) {
+                    turns.push(turn);
+                    ri = ri2;
+                    // TODO: We should probably wait to correct our turns until
+                    // the end, so we only permute the symmetries that actually
+                    // solve the cube, but this is just so much simpler.
+                    s = s.permute(s2);
+                }
+            }
+        }
+    }
 }
 
 fn lookup(v: &Vec<u8>, i: usize) -> u8 {
@@ -140,6 +183,17 @@ mod tests {
         for pi in all::<TwoTrianglesEvenIndex>() {
             assert_eq!(*tt_table.get(&pi).unwrap(), pruning_table.remaining_turns_lower_bound(pi) as usize);
         }
+
+        // Solves the puzzle
+        for pi in all::<TwoTrianglesEvenIndex>() {
+            let mut turns = pruning_table.solve(pi);
+            turns.reverse();
+            let mut p = TwoTriangles::identity();
+            for t in turns {
+                p = p.permute(t.invert().into());
+            }
+            assert_eq!(pi, p.into());
+        }
     }
 
     #[test]
@@ -153,6 +207,17 @@ mod tests {
         for pi in all::<TwoTrianglesEvenIndex>() {
             assert_eq!(*tt_table.get(&pi).unwrap(), pruning_table.remaining_turns_lower_bound(pi) as usize);
         }
+
+        // Solves the puzzle
+        for pi in all::<TwoTrianglesEvenIndex>() {
+            let mut turns = pruning_table.solve(pi);
+            turns.reverse();
+            let mut p = TwoTriangles::identity();
+            for t in turns {
+                p = p.permute(t.invert().into());
+            }
+            assert_eq!(pi, p.into());
+        }
     }
 
     #[test]
@@ -165,6 +230,17 @@ mod tests {
         let tt_table = moves_to_solve();
         for pi in all::<TwoTrianglesEvenIndex>() {
             assert_eq!(*tt_table.get(&pi).unwrap(), pruning_table.remaining_turns_lower_bound(pi) as usize);
+        }
+
+        // Solves the puzzle
+        for pi in all::<TwoTrianglesEvenIndex>() {
+            let mut turns = pruning_table.solve(pi);
+            turns.reverse();
+            let mut p = TwoTriangles::identity();
+            for t in turns {
+                p = p.permute(t.invert().into());
+            }
+            assert_eq!(pi, p.into());
         }
     }
 
@@ -206,6 +282,17 @@ mod tests {
         let tt_table = three_triangles::moves_to_solve();
         for pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
             assert_eq!(*tt_table.get(&pi).unwrap(), pruning_table.remaining_turns_lower_bound(pi) as usize);
+        }
+
+        // Solves the puzzle
+        for pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+            let mut turns = pruning_table.solve(pi);
+            turns.reverse();
+            let mut p = three_triangles::ThreeTriangles::identity();
+            for t in turns {
+                p = p.permute(t.invert().into());
+            }
+            assert_eq!(pi, p.into());
         }
     }
 }
