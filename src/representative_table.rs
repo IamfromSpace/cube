@@ -2,9 +2,9 @@ use permutation_group::PermutationGroup as PG;
 use invertable::Invertable;
 use equivalence_class::EquivalenceClass;
 
-use std::collections::BTreeSet;
+use std::collections::BTreeMap;
 use std::convert::{TryInto, TryFrom};
-use enum_iterator::{Sequence, all};
+use enum_iterator::{Sequence, all, cardinality};
 
 // Opaque type to prevent accidental misuse
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -21,18 +21,21 @@ impl<Sym, PermIndex: Into<usize>> Into<usize> for RepIndex<Sym, PermIndex> {
 pub struct RepresentativeTable<Perm, Sym, PermIndex> {
     table: Vec<PermIndex>,
     self_symmetric_table: Vec<u8>,
+    to_sym_index_table: Vec<(RepIndex<Sym, PermIndex>, Sym)>,
     syms: std::marker::PhantomData<Sym>,
     perm: std::marker::PhantomData<Perm>,
 }
 
 impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Sym: Sequence + Clone, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize> + Into<Perm>> RepresentativeTable<Perm, Sym, PermIndex> where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
     pub fn new() -> Self {
-        let mut discovered = BTreeSet::new();
+        let mut discovered = BTreeMap::new();
         let mut self_symmetric_table = Vec::new();
+        let mut table = Vec::new();
+        let mut to_sym_index_table = Vec::with_capacity(cardinality::<PermIndex>());
 
         for pi in all::<PermIndex>() {
             let perm: Perm = pi.into();
-            let (ri, _, is_self_symmetric): (PermIndex, Sym, bool) = smallest_equivalence(&perm);
+            let (pi2, sym, is_self_symmetric): (PermIndex, Sym, bool) = smallest_equivalence(&perm);
 
             // Extend on self_symmetry table when necessary
             let byte_index = discovered.len() % 8;
@@ -46,18 +49,23 @@ impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Sym: Sequence +
                 self_symmetric_table[i] = new;
             }
 
-            discovered.insert(ri);
-        }
-
-        // Not sure why BTreeSet<T> isn't Into<Vec<T>>
-        let mut table = Vec::with_capacity(discovered.len());
-        for x in discovered {
-           table.push(x);
+            let mut ri = discovered.len();
+            match discovered.get(&pi2) {
+                None => {
+                    discovered.insert(pi2, ri);
+                    table.push(pi2);
+                },
+                Some(i) => {
+                    ri = *i;
+                }
+            }
+            to_sym_index_table.push((RepIndex(ri.try_into().expect("Invariant violated: the size of the rep table exceeded PermIndexes maximum bound."), std::marker::PhantomData), sym));
         }
 
         RepresentativeTable {
             table,
             self_symmetric_table,
+            to_sym_index_table,
             syms: std::marker::PhantomData,
             perm: std::marker::PhantomData,
         }
@@ -93,13 +101,7 @@ impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Sym: Sequence +
     // genericness, and packing cannot every be perfectly efficient without
     // potentially compromising speed by adding multiplication and modulos.
     pub fn raw_index_to_sym_index(&self, pi: PermIndex) -> (RepIndex<Sym, PermIndex>, Sym) {
-        let perm: Perm = pi.into();
-        let (spi, si, _): (PermIndex, Sym, bool) = smallest_equivalence(&perm);
-        let ri =
-            self.table
-                .binary_search(&spi)
-                .expect("Invariant violation: Permutation does not have a representative in the RepresentativeTable.");
-        (RepIndex(ri.try_into().expect("Invariant violated: the size of the rep table exceeded PermIndexes maximum bound."), std::marker::PhantomData), si)
+        self.to_sym_index_table[<PermIndex as Into<usize>>::into(pi)].clone()
     }
 
     pub fn rep_index_to_perm(&self, i: RepIndex<Sym, PermIndex>) -> Perm {

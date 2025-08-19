@@ -106,9 +106,6 @@ impl<PermA: PG + Clone + EquivalenceClass<Sym> + Into<PermIndexA>, PermB: PG + C
         let mut sym = Sym::first().expect("Sym has no members, but there must be at least an identity.");
 
         for s in syms {
-            // TODO: raw_index_to_sym_index is O(log(n))!  But actually... that
-            // makes no sense, a PermIndex can perfectly index into an array.  It's
-            // no larger than a sym-conjugate table.
             let (b_rep_0, sb_0) = self.b.raw_index_to_sym_index(i.1);
             let (b_rep_1, sb_1) = self.b.turn(b_rep_0, t.get_equivalent(&sb_0));
             let b_raw_rep = self.b.sym_index_to_raw_index((b_rep_1, s.invert().permute(sb_0).permute(sb_1)));
