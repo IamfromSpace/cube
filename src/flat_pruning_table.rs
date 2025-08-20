@@ -11,14 +11,6 @@ use enum_iterator::{all, Sequence};
 #[derive(Debug)]
 pub struct PruningTable<Sym, PermIndex, RepIndex, Turn, MoveTable> {
     table: Vec<u8>,
-    // TODO: We almost certainly want/need to just use some abstract T here,
-    // where it will implement some sort of Turner trait.  The reason is, that
-    // Pruning Tables work rather broadly, and MoveTables are totally optional,
-    // symmetry management is totally optional, and in practice we're going to
-    // have tables that require composite MoveTables.  Rather than have a type
-    // that captures all of this, we're going to be better off having a trait
-    // for what a pruning table needs specifically from a stateful (or
-    // stateless) Turner.
     move_table: MoveTable,
     goals: BTreeSet<RepIndex>,
     turns: std::marker::PhantomData<Turn>,
