@@ -174,7 +174,7 @@ mod tests {
 
     #[test]
     fn pruning_table_is_correct_for_two_triangles_even_parity_without_symmetry() {
-        let rep_table = Arc::new(RepresentativeTable::new());
+        let rep_table = Arc::new(RepresentativeTable::new::<TwoTriangles>());
         let move_table = Arc::new(MoveTable::new(rep_table));
         let pruning_table: PruningTable<TwoTriangles, NoSymmetry, TwoTrianglesEvenIndex, Turns> = PruningTable::new(move_table, std::iter::once(TwoTriangles::identity().into()));
 
@@ -198,7 +198,7 @@ mod tests {
 
     #[test]
     fn pruning_table_is_correct_for_two_triangles_even_parity_with_rotational_symmetry() {
-        let rep_table = Arc::new(RepresentativeTable::new());
+        let rep_table = Arc::new(RepresentativeTable::new::<TwoTriangles>());
         let move_table = Arc::new(MoveTable::new(rep_table));
         let pruning_table: PruningTable<TwoTriangles, RotationalSymmetry, TwoTrianglesEvenIndex, Turns> = PruningTable::new(move_table.clone(), std::iter::once(TwoTriangles::identity().into()));
 
@@ -222,7 +222,7 @@ mod tests {
 
     #[test]
     fn pruning_table_is_correct_for_two_triangles_even_parity_with_full_symmetry() {
-        let rep_table = Arc::new(RepresentativeTable::new());
+        let rep_table = Arc::new(RepresentativeTable::new::<TwoTriangles>());
         let move_table = Arc::new(MoveTable::new(rep_table));
         let pruning_table: PruningTable<TwoTriangles, FullSymmetry, TwoTrianglesEvenIndex, Turns> = PruningTable::new(move_table.clone(), std::iter::once(TwoTriangles::identity().into()));
 
@@ -248,7 +248,7 @@ mod tests {
 
     #[test]
     fn pruning_table_is_correct_for_three_triangles_even_parity_without_symmetry() {
-        let rep_table = Arc::new(RepresentativeTable::new());
+        let rep_table = Arc::new(RepresentativeTable::new::<three_triangles::ThreeTriangles>());
         let move_table = Arc::new(MoveTable::new(rep_table));
         let pruning_table: PruningTable<three_triangles::ThreeTriangles, three_triangles::NoSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles::Turns> = PruningTable::new(move_table, std::iter::once(three_triangles::ThreeTriangles::identity().into()));
 
@@ -261,7 +261,7 @@ mod tests {
 
     #[test]
     fn pruning_table_is_correct_for_three_triangles_even_parity_with_rotational_symmetry() {
-        let rep_table = Arc::new(RepresentativeTable::new());
+        let rep_table = Arc::new(RepresentativeTable::new::<three_triangles::ThreeTriangles>());
         let move_table = Arc::new(MoveTable::new(rep_table));
         let pruning_table: PruningTable<three_triangles::ThreeTriangles, three_triangles::RotationalSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles::Turns> = PruningTable::new(move_table.clone(), std::iter::once(three_triangles::ThreeTriangles::identity().into()));
 
@@ -274,7 +274,7 @@ mod tests {
 
     #[test]
     fn pruning_table_is_correct_for_three_triangles_even_parity_with_full_symmetry() {
-        let rep_table = Arc::new(RepresentativeTable::new());
+        let rep_table = Arc::new(RepresentativeTable::new::<three_triangles::ThreeTriangles>());
         let move_table = Arc::new(MoveTable::new(rep_table));
         let pruning_table: PruningTable<three_triangles::ThreeTriangles, three_triangles::FullSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles::Turns> = PruningTable::new(move_table.clone(), std::iter::once(three_triangles::ThreeTriangles::identity().into()));
 

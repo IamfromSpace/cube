@@ -14,10 +14,11 @@ pub struct MoveTable<Perm, Sym, PermIndex, Turn> {
     // don't propagate all the trait bounds), but the downside is that we need
     // a full trait definition of our RepTable to implement and error messages
     // get wierder.
-    rep_table: Arc<RepresentativeTable<Perm, Sym, PermIndex>>,
+    rep_table: Arc<RepresentativeTable<Sym, PermIndex>>,
     turn_table: Vec<(RepIndex<Sym, PermIndex>, Sym)>,
     sym_table: Vec<PermIndex>,
     turns: std::marker::PhantomData<Turn>,
+    perms: std::marker::PhantomData<Perm>,
 }
 
 // TODO: Turn: Into<Perm> won't work for patterns (partial permutations).
@@ -30,7 +31,7 @@ pub struct MoveTable<Perm, Sym, PermIndex, Turn> {
 impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Turn: Sequence + Copy + Into<Perm> + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + Into<usize> + Invertable, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize> + Into<Perm>> MoveTable<Perm, Sym, PermIndex, Turn> where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
     // TODO: We can have an alterative method that automatically generates the
     // RepTable to simplify cases where it isn't shared with other MoveTables.
-    pub fn new(rep_table: Arc<RepresentativeTable<Perm, Sym, PermIndex>>) -> Self {
+    pub fn new(rep_table: Arc<RepresentativeTable<Sym, PermIndex>>) -> Self {
         let mut turn_table = Vec::with_capacity(rep_table.len() * cardinality::<Turn>());
         let mut sym_table = Vec::with_capacity(rep_table.len() * cardinality::<Sym>());
 
@@ -54,6 +55,7 @@ impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Turn: Sequence 
             turn_table,
             sym_table,
             turns: std::marker::PhantomData,
+            perms: std::marker::PhantomData,
         }
     }
 
@@ -98,7 +100,7 @@ mod tests {
     // TODO: Time to parameterize these tests
     #[test]
     fn move_table_is_correct_for_two_triangles_without_symmetry() {
-        let rep_table = Arc::new(RepresentativeTable::new());
+        let rep_table = Arc::new(RepresentativeTable::new::<TwoTriangles>());
         // Even though either Left + Right generates all states, MoveTables
         // should basically always include turn inverses, so that they can go
         // forward or backwards.
@@ -145,7 +147,7 @@ mod tests {
     // we only use one symmetry.
     #[test]
     fn move_table_is_correct_for_two_triangles_with_rotational_symmetry() {
-        let rep_table = Arc::new(RepresentativeTable::new());
+        let rep_table = Arc::new(RepresentativeTable::new::<TwoTriangles>());
         // Even though just Left + Right is sufficient and symmetric,
         // MoveTables should basically always include turn inverses, so that
         // they can go forward or backwards.
@@ -190,7 +192,7 @@ mod tests {
 
     #[test]
     fn move_table_is_correct_for_two_triangles_with_full_symmetry() {
-        let rep_table = Arc::new(RepresentativeTable::new());
+        let rep_table = Arc::new(RepresentativeTable::new::<TwoTriangles>());
         let move_table: MoveTable<TwoTriangles, FullSymmetry, TwoTrianglesIndex, Turns> = MoveTable::new(rep_table.clone());
 
         // Applying move_table moves is identical to applying permutations
@@ -232,7 +234,7 @@ mod tests {
 
     #[test]
     fn move_table_is_correct_for_two_triangles_even_parity_without_symmetry() {
-        let rep_table = Arc::new(RepresentativeTable::new());
+        let rep_table = Arc::new(RepresentativeTable::new::<TwoTriangles>());
         // Even though either Left + Right generates all states, MoveTables
         // should basically always include turn inverses, so that they can go
         // forward or backwards.
@@ -277,7 +279,7 @@ mod tests {
 
     #[test]
     fn move_table_is_correct_for_two_triangles_even_parity_with_rotational_symmetry() {
-        let rep_table = Arc::new(RepresentativeTable::new());
+        let rep_table = Arc::new(RepresentativeTable::new::<TwoTriangles>());
         // Even though just Left + Right is sufficient and symmetric,
         // MoveTables should basically always include turn inverses, so that
         // they can go forward or backwards.
@@ -322,7 +324,7 @@ mod tests {
 
     #[test]
     fn move_table_is_correct_for_two_triangles_even_parity_with_full_symmetry() {
-        let rep_table = Arc::new(RepresentativeTable::new());
+        let rep_table = Arc::new(RepresentativeTable::new::<TwoTriangles>());
         let move_table: MoveTable<TwoTriangles, FullSymmetry, TwoTrianglesEvenIndex, Turns> = MoveTable::new(rep_table.clone());
 
         // Applying move_table moves is identical to applying permutations
@@ -366,7 +368,7 @@ mod tests {
 
     #[test]
     fn move_table_is_correct_for_two_lines_without_symmetry() {
-        let rep_table = Arc::new(RepresentativeTable::new());
+        let rep_table = Arc::new(RepresentativeTable::new::<two_lines::TwoLines>());
         // Even though either Left + Right generates all states, MoveTables
         // should basically always include turn inverses, so that they can go
         // forward or backwards.
@@ -410,7 +412,7 @@ mod tests {
     }
     #[test]
     fn move_table_is_correct_for_two_lines_with_symmetry() {
-        let rep_table = Arc::new(RepresentativeTable::new());
+        let rep_table = Arc::new(RepresentativeTable::new::<two_lines::TwoLines>());
         // Even though either Left + Right generates all states, MoveTables
         // should basically always include turn inverses, so that they can go
         // forward or backwards.
@@ -457,7 +459,7 @@ mod tests {
 
     #[test]
     fn move_table_is_correct_for_three_triangles_without_symmetry() {
-        let rep_table = Arc::new(RepresentativeTable::new());
+        let rep_table = Arc::new(RepresentativeTable::new::<three_triangles::ThreeTriangles>());
         // Even though either Left + Right generates all states, MoveTables
         // should basically always include turn inverses, so that they can go
         // forward or backwards.
@@ -502,7 +504,7 @@ mod tests {
 
     #[test]
     fn move_table_is_correct_for_three_triangles_with_mirror_ud_symmetry() {
-        let rep_table = Arc::new(RepresentativeTable::new());
+        let rep_table = Arc::new(RepresentativeTable::new::<three_triangles::ThreeTriangles>());
         // Even though either Left + Right generates all states, MoveTables
         // should basically always include turn inverses, so that they can go
         // forward or backwards.
@@ -547,7 +549,7 @@ mod tests {
 
     #[test]
     fn move_table_is_correct_for_three_triangles_with_rotational_symmetry() {
-        let rep_table = Arc::new(RepresentativeTable::new());
+        let rep_table = Arc::new(RepresentativeTable::new::<three_triangles::ThreeTriangles>());
         // Even though either Left + Right generates all states, MoveTables
         // should basically always include turn inverses, so that they can go
         // forward or backwards.
@@ -592,7 +594,7 @@ mod tests {
 
     #[test]
     fn move_table_is_correct_for_three_triangles_with_full_symmetry() {
-        let rep_table = Arc::new(RepresentativeTable::new());
+        let rep_table = Arc::new(RepresentativeTable::new::<three_triangles::ThreeTriangles>());
         // Even though either Left + Right generates all states, MoveTables
         // should basically always include turn inverses, so that they can go
         // forward or backwards.
@@ -637,7 +639,7 @@ mod tests {
 
     #[test]
     fn move_table_is_correct_for_three_triangles_even_parity_with_mirror_ud_symmetry() {
-        let rep_table = Arc::new(RepresentativeTable::new());
+        let rep_table = Arc::new(RepresentativeTable::new::<three_triangles::ThreeTriangles>());
         // Even though either Left + Right generates all states, MoveTables
         // should basically always include turn inverses, so that they can go
         // forward or backwards.
@@ -682,7 +684,7 @@ mod tests {
 
     #[test]
     fn move_table_is_correct_for_three_triangles_even_parity_with_rotational_symmetry() {
-        let rep_table = Arc::new(RepresentativeTable::new());
+        let rep_table = Arc::new(RepresentativeTable::new::<three_triangles::ThreeTriangles>());
         // Even though either Left + Right generates all states, MoveTables
         // should basically always include turn inverses, so that they can go
         // forward or backwards.
@@ -727,7 +729,7 @@ mod tests {
 
     #[test]
     fn move_table_is_correct_for_three_triangles_even_parity_without_symmetry() {
-        let rep_table = Arc::new(RepresentativeTable::new());
+        let rep_table = Arc::new(RepresentativeTable::new::<three_triangles::ThreeTriangles>());
         // Even though either Left + Right generates all states, MoveTables
         // should basically always include turn inverses, so that they can go
         // forward or backwards.
@@ -772,7 +774,7 @@ mod tests {
 
     #[test]
     fn move_table_is_correct_for_three_triangles_even_parity_with_full_symmetry() {
-        let rep_table = Arc::new(RepresentativeTable::new());
+        let rep_table = Arc::new(RepresentativeTable::new::<three_triangles::ThreeTriangles>());
         // Even though either Left + Right generates all states, MoveTables
         // should basically always include turn inverses, so that they can go
         // forward or backwards.
@@ -819,7 +821,7 @@ mod tests {
 
     #[test]
     fn move_table_is_correct_for_top_three_triangles_even_parity_with_full_symmetry() {
-        let rep_table = Arc::new(RepresentativeTable::new());
+        let rep_table = Arc::new(RepresentativeTable::new::<three_triangles_stack::TopThreeTriangles>());
         // Even though either Left + Right generates all states, MoveTables
         // should basically always include turn inverses, so that they can go
         // forward or backwards.
@@ -864,7 +866,7 @@ mod tests {
 
     #[test]
     fn move_table_is_correct_for_bottom_three_triangles_even_parity_with_full_symmetry() {
-        let rep_table = Arc::new(RepresentativeTable::new());
+        let rep_table = Arc::new(RepresentativeTable::new::<three_triangles_stack::BottomThreeTriangles>());
         // Even though either Left + Right generates all states, MoveTables
         // should basically always include turn inverses, so that they can go
         // forward or backwards.

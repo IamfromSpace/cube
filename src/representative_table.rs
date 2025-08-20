@@ -18,16 +18,15 @@ impl<Sym, PermIndex: Into<usize>> Into<usize> for RepIndex<Sym, PermIndex> {
 
 // PermIndex should be small to make the final array compact, like a u8 or u16 if possible.
 #[derive(Debug)]
-pub struct RepresentativeTable<Perm, Sym, PermIndex> {
+pub struct RepresentativeTable<Sym, PermIndex> {
     table: Vec<PermIndex>,
     self_symmetric_table: Vec<u8>,
     to_sym_index_table: Vec<(RepIndex<Sym, PermIndex>, Sym)>,
     syms: std::marker::PhantomData<Sym>,
-    perm: std::marker::PhantomData<Perm>,
 }
 
-impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Sym: Sequence + Clone, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize> + Into<Perm>> RepresentativeTable<Perm, Sym, PermIndex> where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
-    pub fn new() -> Self {
+impl<Sym: Sequence + Clone, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>> RepresentativeTable<Sym, PermIndex> where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
+    pub fn new<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>>() -> Self where PermIndex: Into<Perm> {
         let mut discovered = BTreeMap::new();
         let mut self_symmetric_table = Vec::new();
         let mut table = Vec::new();
@@ -67,7 +66,6 @@ impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Sym: Sequence +
             self_symmetric_table,
             to_sym_index_table,
             syms: std::marker::PhantomData,
-            perm: std::marker::PhantomData,
         }
     }
 
@@ -176,7 +174,7 @@ mod tests {
 
     #[test]
     fn representative_table_is_correct_for_two_triangles_without_symmetry() {
-        let rep_table: RepresentativeTable<TwoTriangles, NoSymmetry, TwoTrianglesIndex> = RepresentativeTable::new();
+        let rep_table: RepresentativeTable<NoSymmetry, TwoTrianglesIndex> = RepresentativeTable::new::<TwoTriangles>();
 
         // Finds the expected number
         assert_eq!(rep_table.table.len(), 120);
@@ -203,7 +201,7 @@ mod tests {
 
     #[test]
     fn representative_table_is_correct_for_two_triangles_with_rotational_symmetry() {
-        let rep_table: RepresentativeTable<TwoTriangles, RotationalSymmetry, TwoTrianglesIndex> = RepresentativeTable::new();
+        let rep_table: RepresentativeTable<RotationalSymmetry, TwoTrianglesIndex> = RepresentativeTable::new::<TwoTriangles>();
 
         // Finds the expected number
         assert_eq!(rep_table.table.len(), 64);
@@ -230,7 +228,7 @@ mod tests {
 
     #[test]
     fn representative_table_is_correct_for_two_triangles_with_full_symmetry() {
-        let rep_table: RepresentativeTable<TwoTriangles, FullSymmetry, TwoTrianglesIndex> = RepresentativeTable::new();
+        let rep_table: RepresentativeTable<FullSymmetry, TwoTrianglesIndex> = RepresentativeTable::new::<TwoTriangles>();
 
         // Finds the expected number
         assert_eq!(rep_table.table.len(), 36);
@@ -257,7 +255,7 @@ mod tests {
 
     #[test]
     fn representative_table_is_correct_for_two_triangles_even_perms_without_symmetry() {
-        let rep_table: RepresentativeTable<TwoTriangles, NoSymmetry, TwoTrianglesEvenIndex> = RepresentativeTable::new();
+        let rep_table: RepresentativeTable<NoSymmetry, TwoTrianglesEvenIndex> = RepresentativeTable::new::<TwoTriangles>();
 
         // Finds the expected number
         assert_eq!(rep_table.table.len(), 60);
@@ -284,7 +282,7 @@ mod tests {
 
     #[test]
     fn representative_table_is_correct_for_two_triangles_even_perms_with_rotational_symmetry() {
-        let rep_table: RepresentativeTable<TwoTriangles, RotationalSymmetry, TwoTrianglesEvenIndex> = RepresentativeTable::new();
+        let rep_table: RepresentativeTable<RotationalSymmetry, TwoTrianglesEvenIndex> = RepresentativeTable::new::<TwoTriangles>();
 
         // Finds the expected number
         assert_eq!(rep_table.table.len(), 32);
@@ -311,7 +309,7 @@ mod tests {
 
     #[test]
     fn representative_table_is_correct_for_two_triangles_even_perms_with_full_symmetry() {
-        let rep_table: RepresentativeTable<TwoTriangles, FullSymmetry, TwoTrianglesEvenIndex> = RepresentativeTable::new();
+        let rep_table: RepresentativeTable<FullSymmetry, TwoTrianglesEvenIndex> = RepresentativeTable::new::<TwoTriangles>();
 
         // Finds the expected number
         assert_eq!(rep_table.table.len(), 18);
@@ -340,7 +338,7 @@ mod tests {
 
     #[test]
     fn representative_table_is_correct_for_three_triangles_without_symmetry() {
-        let rep_table: RepresentativeTable<three_triangles::ThreeTriangles, three_triangles::NoSymmetry, three_triangles::ThreeTrianglesIndex> = RepresentativeTable::new();
+        let rep_table: RepresentativeTable<three_triangles::NoSymmetry, three_triangles::ThreeTrianglesIndex> = RepresentativeTable::new::<three_triangles::ThreeTriangles>();
 
         // Finds the expected number
         assert_eq!(rep_table.table.len(), 24);
@@ -367,7 +365,7 @@ mod tests {
 
     #[test]
     fn representative_table_is_correct_for_three_triangles_with_rotational_symmetry() {
-        let rep_table: RepresentativeTable<three_triangles::ThreeTriangles, three_triangles::RotationalSymmetry, three_triangles::ThreeTrianglesIndex> = RepresentativeTable::new();
+        let rep_table: RepresentativeTable<three_triangles::RotationalSymmetry, three_triangles::ThreeTrianglesIndex> = RepresentativeTable::new::<three_triangles::ThreeTriangles>();
 
         // Finds the expected number
         assert_eq!(rep_table.table.len(), 10);
@@ -394,7 +392,7 @@ mod tests {
 
     #[test]
     fn representative_table_is_correct_for_three_triangles_with_full_symmetry() {
-        let rep_table: RepresentativeTable<three_triangles::ThreeTriangles, three_triangles::FullSymmetry, three_triangles::ThreeTrianglesIndex> = RepresentativeTable::new();
+        let rep_table: RepresentativeTable<three_triangles::FullSymmetry, three_triangles::ThreeTrianglesIndex> = RepresentativeTable::new::<three_triangles::ThreeTriangles>();
 
         // Finds the expected number
         assert_eq!(rep_table.table.len(), 7);
@@ -421,7 +419,7 @@ mod tests {
 
     #[test]
     fn representative_table_is_correct_for_three_triangles_even_perms_without_symmetry() {
-        let rep_table: RepresentativeTable<three_triangles::ThreeTriangles, three_triangles::NoSymmetry, three_triangles::ThreeTrianglesEvenIndex> = RepresentativeTable::new();
+        let rep_table: RepresentativeTable<three_triangles::NoSymmetry, three_triangles::ThreeTrianglesEvenIndex> = RepresentativeTable::new::<three_triangles::ThreeTriangles>();
 
         // Finds the expected number
         assert_eq!(rep_table.table.len(), 12);
@@ -448,7 +446,7 @@ mod tests {
 
     #[test]
     fn representative_table_is_correct_for_three_triangles_even_perms_with_rotational_symmetry() {
-        let rep_table: RepresentativeTable<three_triangles::ThreeTriangles, three_triangles::RotationalSymmetry, three_triangles::ThreeTrianglesEvenIndex> = RepresentativeTable::new();
+        let rep_table: RepresentativeTable<three_triangles::RotationalSymmetry, three_triangles::ThreeTrianglesEvenIndex> = RepresentativeTable::new::<three_triangles::ThreeTriangles>();
 
         // Finds the expected number
         assert_eq!(rep_table.table.len(), 6);
@@ -475,7 +473,7 @@ mod tests {
 
     #[test]
     fn representative_table_is_correct_for_three_triangles_even_perms_with_full_symmetry() {
-        let rep_table: RepresentativeTable<three_triangles::ThreeTriangles, three_triangles::FullSymmetry, three_triangles::ThreeTrianglesEvenIndex> = RepresentativeTable::new();
+        let rep_table: RepresentativeTable<three_triangles::FullSymmetry, three_triangles::ThreeTrianglesEvenIndex> = RepresentativeTable::new::<three_triangles::ThreeTriangles>();
 
         // Finds the expected number
         assert_eq!(rep_table.table.len(), 4);

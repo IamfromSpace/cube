@@ -207,7 +207,7 @@ mod tests {
         // pieces always move together.  So this test isn't very interesting,
         // but a decent sanity check.
 
-        let rep_table = Arc::new(RepresentativeTable::new());
+        let rep_table = Arc::new(RepresentativeTable::new::<three_triangles::ThreeTriangles>());
         let tt_move_table: Arc<MoveTable<three_triangles::ThreeTriangles, three_triangles::FullSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles::Turns>> = Arc::new(MoveTable::new(rep_table.clone()));
 
         let move_table = CompositeMoveTable::new(tt_move_table.clone(), tt_move_table.clone());
@@ -260,10 +260,10 @@ mod tests {
     #[test]
     fn composite_move_table_is_correct_for_three_triangles_stack_even_parity_with_no_symmetry() {
         // TODO: Ideally these use the same move table!
-        let top_rep_table = Arc::new(RepresentativeTable::new());
+        let top_rep_table = Arc::new(RepresentativeTable::new::<TopThreeTriangles>());
         let top_move_table: MoveTable<TopThreeTriangles, NoSymmetry, three_triangles::ThreeTrianglesEvenIndex, Turns> = MoveTable::new(top_rep_table.clone());
 
-        let bottom_rep_table = Arc::new(RepresentativeTable::new());
+        let bottom_rep_table = Arc::new(RepresentativeTable::new::<BottomThreeTriangles>());
         let bottom_move_table: MoveTable<BottomThreeTriangles, NoSymmetry, three_triangles::ThreeTrianglesEvenIndex, Turns> = MoveTable::new(bottom_rep_table.clone());
         let move_table = CompositeMoveTable::new(Arc::new(top_move_table), Arc::new(bottom_move_table));
 
@@ -317,10 +317,10 @@ mod tests {
     #[test]
     fn composite_move_table_is_correct_for_three_triangles_stack_even_parity_with_mirror_ud_symmetry() {
         // TODO: Ideally these use the same move table!
-        let top_rep_table = Arc::new(RepresentativeTable::new());
+        let top_rep_table = Arc::new(RepresentativeTable::new::<TopThreeTriangles>());
         let top_move_table: MoveTable<TopThreeTriangles, MirrorUDSymmetry, three_triangles::ThreeTrianglesEvenIndex, Turns> = MoveTable::new(top_rep_table.clone());
 
-        let bottom_rep_table = Arc::new(RepresentativeTable::new());
+        let bottom_rep_table = Arc::new(RepresentativeTable::new::<BottomThreeTriangles>());
         let bottom_move_table: MoveTable<BottomThreeTriangles, MirrorUDSymmetry, three_triangles::ThreeTrianglesEvenIndex, Turns> = MoveTable::new(bottom_rep_table.clone());
         let move_table = CompositeMoveTable::new(Arc::new(top_move_table), Arc::new(bottom_move_table));
 
@@ -377,10 +377,10 @@ mod tests {
     #[test]
     fn composite_move_table_is_correct_for_three_triangles_stack_even_parity_with_rotational_symmetry() {
         // TODO: Ideally these use the same move table!
-        let top_rep_table = Arc::new(RepresentativeTable::new());
+        let top_rep_table = Arc::new(RepresentativeTable::new::<TopThreeTriangles>());
         let top_move_table: MoveTable<TopThreeTriangles, RotationalSymmetry, three_triangles::ThreeTrianglesEvenIndex, Turns> = MoveTable::new(top_rep_table.clone());
 
-        let bottom_rep_table = Arc::new(RepresentativeTable::new());
+        let bottom_rep_table = Arc::new(RepresentativeTable::new::<BottomThreeTriangles>());
         let bottom_move_table: MoveTable<BottomThreeTriangles, RotationalSymmetry, three_triangles::ThreeTrianglesEvenIndex, Turns> = MoveTable::new(bottom_rep_table.clone());
         let move_table = CompositeMoveTable::new(Arc::new(top_move_table), Arc::new(bottom_move_table));
 
@@ -434,10 +434,10 @@ mod tests {
     #[test]
     fn composite_move_table_is_correct_for_three_triangles_stack_even_parity_with_full_symmetry() {
         // TODO: Ideally these use the same move table!
-        let top_rep_table = Arc::new(RepresentativeTable::new());
+        let top_rep_table = Arc::new(RepresentativeTable::new::<TopThreeTriangles>());
         let top_move_table: MoveTable<TopThreeTriangles, FullSymmetry, three_triangles::ThreeTrianglesEvenIndex, Turns> = MoveTable::new(top_rep_table.clone());
 
-        let bottom_rep_table = Arc::new(RepresentativeTable::new());
+        let bottom_rep_table = Arc::new(RepresentativeTable::new::<BottomThreeTriangles>());
         let bottom_move_table: MoveTable<BottomThreeTriangles, FullSymmetry, three_triangles::ThreeTrianglesEvenIndex, Turns> = MoveTable::new(bottom_rep_table.clone());
         let move_table = CompositeMoveTable::new(Arc::new(top_move_table), Arc::new(bottom_move_table));
 
