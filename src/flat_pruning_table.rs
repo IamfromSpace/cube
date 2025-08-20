@@ -60,7 +60,8 @@ impl<Turn: Sequence + Copy + PartialEq + Into<usize> + Invertable + EquivalenceC
             match queue.pop_front() {
                 None => break,
                 Some((ri, count)) => {
-                    for (ri, _) in move_table.apply_turns(ri) {
+                    for t in all::<Turn>() {
+                        let (ri, _) = move_table.turn(ri, t);
                         let i: usize = ri.into();
                         let was_new = set_if_new(&mut table, i, count % 3);
                         if was_new {
@@ -89,7 +90,8 @@ impl<Turn: Sequence + Copy + PartialEq + Into<usize> + Invertable + EquivalenceC
             } else {
                 let target = (lookup(&self.table, ri.into()) + 2) % 3;
                 let mut found = false;
-                for (candidate, _) in self.move_table.apply_turns(ri) {
+                for t in all::<Turn>() {
+                    let (candidate, _) = self.move_table.turn(ri, t);
                     if target == lookup(&self.table, candidate.into()) {
                         count += 1;
                         ri = candidate;

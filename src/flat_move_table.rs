@@ -62,14 +62,6 @@ impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sy
         self.turn_table[i]
     }
 
-    // TODO: The value of this method is much more dubious, now that we can
-    // just iterate over Turn.  This _might_ be more performant, but by how
-    // much could it really be anyway?
-    pub fn apply_turns(&self, ri: RepIndex<Sym, PermIndex>) -> impl Iterator<Item = (RepIndex<Sym, PermIndex>, Sym)> + '_ {
-        let start = <RepIndex<Sym, PermIndex> as Into<usize>>::into(ri) * cardinality::<Turn>();
-        (start..(start + cardinality::<Turn>())).map(move |i| self.turn_table[i])
-    }
-
     // Count of Reps
     pub fn len(&self) -> usize {
         self.rep_table.len()
