@@ -2,6 +2,7 @@ use permutation_group::PermutationGroup as PG;
 use invertable::Invertable;
 use equivalence_class::EquivalenceClass;
 use representative_table::{ RepresentativeTable, RepIndex };
+use table_traits::{ TableTurn, TableRawIndexToSymIndex, TableSymIndexToRawIndex, TableRepCount };
 
 use std::sync::Arc;
 use std::convert::TryFrom;
@@ -190,6 +191,32 @@ impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sy
         let (b_rep, s_b) = self.b.raw_index_to_sym_index(b_rep_raw);
         let b_raw = self.b.sym_index_to_raw_index((b_rep, s_a.permute(s_b)));
         (a_raw, b_raw)
+    }
+}
+
+// TODO: Don't need as many constraints (just the specfic ones to this trait)
+// if we fully migrate to traits and the implementation is here
+impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + Into<usize> + Invertable + PG, PermIndexA: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>, PermIndexB: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>> TableTurn<Sym, CompositeIndex<RepIndex<Sym, PermIndexA>, PermIndexB>, Turn> for CompositeMoveTable<Sym, PermIndexA, PermIndexB, Turn> where <PermIndexA as TryFrom<usize>>::Error: std::fmt::Debug, <PermIndexB as TryFrom<usize>>::Error: std::fmt::Debug {
+    fn table_turn(&self, ri: CompositeIndex<RepIndex<Sym, PermIndexA>, PermIndexB>, t: Turn) -> (CompositeIndex<RepIndex<Sym, PermIndexA>, PermIndexB>, Sym) {
+        self.turn(ri, t)
+    }
+}
+
+impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + Into<usize> + Invertable + PG, PermIndexA: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>, PermIndexB: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>> TableRawIndexToSymIndex<Sym, (PermIndexA, PermIndexB), CompositeIndex<RepIndex<Sym, PermIndexA>, PermIndexB>> for CompositeMoveTable<Sym, PermIndexA, PermIndexB, Turn> where <PermIndexA as TryFrom<usize>>::Error: std::fmt::Debug, <PermIndexB as TryFrom<usize>>::Error: std::fmt::Debug {
+    fn table_raw_index_to_sym_index(&self, pi: (PermIndexA, PermIndexB)) -> (CompositeIndex<RepIndex<Sym, PermIndexA>, PermIndexB>, Sym) {
+        self.raw_index_to_sym_index(pi)
+    }
+}
+
+impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + Into<usize> + Invertable + PG, PermIndexA: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>, PermIndexB: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>> TableSymIndexToRawIndex<Sym, (PermIndexA, PermIndexB), CompositeIndex<RepIndex<Sym, PermIndexA>, PermIndexB>> for CompositeMoveTable<Sym, PermIndexA, PermIndexB, Turn> where <PermIndexA as TryFrom<usize>>::Error: std::fmt::Debug, <PermIndexB as TryFrom<usize>>::Error: std::fmt::Debug {
+    fn table_sym_index_to_raw_index(&self, si: (CompositeIndex<RepIndex<Sym, PermIndexA>, PermIndexB>, Sym)) -> (PermIndexA, PermIndexB) {
+        self.sym_index_to_raw_index(si)
+    }
+}
+
+impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + Into<usize> + Invertable + PG, PermIndexA: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>, PermIndexB: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>> TableRepCount for CompositeMoveTable<Sym, PermIndexA, PermIndexB, Turn> where <PermIndexA as TryFrom<usize>>::Error: std::fmt::Debug, <PermIndexB as TryFrom<usize>>::Error: std::fmt::Debug {
+    fn table_rep_count(&self) -> usize {
+        self.len()
     }
 }
 

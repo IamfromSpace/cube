@@ -301,4 +301,159 @@ mod tests {
             assert_eq!(pi, p.into());
         }
     }
+
+    use three_triangles_stack;
+    use composite_move_table::CompositeMoveTable;
+
+    #[test]
+    fn pruning_table_is_correct_for_three_triangles_stack_even_parity_with_no_symmetry_via_composite() {
+        // TODO: Ideally these use the same move table!
+        let top_rep_table = Arc::new(RepresentativeTable::new::<three_triangles_stack::TopThreeTriangles>());
+        let top_move_table: MoveTable<three_triangles_stack::NoSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles_stack::Turns> = MoveTable::new::<three_triangles_stack::TopThreeTriangles>(top_rep_table.clone());
+
+        let bottom_rep_table = Arc::new(RepresentativeTable::new::<three_triangles_stack::BottomThreeTriangles>());
+        let bottom_move_table: MoveTable<three_triangles_stack::NoSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles_stack::Turns> = MoveTable::new::<three_triangles_stack::BottomThreeTriangles>(bottom_rep_table.clone());
+        let move_table = CompositeMoveTable::new(Arc::new(top_move_table), Arc::new(bottom_move_table));
+        let pruning_table: PruningTable<three_triangles_stack::NoSymmetry, (three_triangles::ThreeTrianglesEvenIndex, three_triangles::ThreeTrianglesEvenIndex), _, three_triangles_stack::Turns, _> = PruningTable::new(move_table, std::iter::once((three_triangles::ThreeTriangles::identity().into(), three_triangles::ThreeTriangles::identity().into())));
+
+        // Our simple implementation (three_triangles_stack is small enough to solve naively) matches our more complex one
+        let tt_table = three_triangles_stack::moves_to_solve();
+        for top_pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+            for bottom_pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+                let pi = (top_pi, bottom_pi);
+                let p = (top_pi.into(), bottom_pi.into());
+                assert_eq!(*tt_table.get(&p).unwrap(), pruning_table.remaining_turns_lower_bound(pi) as usize);
+            }
+        }
+
+        // Solves the puzzle
+        for top_pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+            for bottom_pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+                let pi = (top_pi, bottom_pi);
+                let mut turns = pruning_table.solve(pi);
+                turns.reverse();
+                let mut top_p = three_triangles_stack::TopThreeTriangles::identity();
+                let mut bottom_p = three_triangles_stack::BottomThreeTriangles::identity();
+                for t in turns {
+                    top_p = top_p.permute(t.invert().into());
+                    bottom_p = bottom_p.permute(t.invert().into());
+                }
+                assert_eq!(pi, (top_p.into(), bottom_p.into()));
+            }
+        }
+    }
+
+    #[test]
+    fn pruning_table_is_correct_for_three_triangles_stack_even_parity_with_mirror_ud_symmetry_via_composite() {
+        // TODO: Ideally these use the same move table!
+        let top_rep_table = Arc::new(RepresentativeTable::new::<three_triangles_stack::TopThreeTriangles>());
+        let top_move_table: MoveTable<three_triangles_stack::MirrorUDSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles_stack::Turns> = MoveTable::new::<three_triangles_stack::TopThreeTriangles>(top_rep_table.clone());
+
+        let bottom_rep_table = Arc::new(RepresentativeTable::new::<three_triangles_stack::BottomThreeTriangles>());
+        let bottom_move_table: MoveTable<three_triangles_stack::MirrorUDSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles_stack::Turns> = MoveTable::new::<three_triangles_stack::BottomThreeTriangles>(bottom_rep_table.clone());
+        let move_table = CompositeMoveTable::new(Arc::new(top_move_table), Arc::new(bottom_move_table));
+        let pruning_table: PruningTable<three_triangles_stack::MirrorUDSymmetry, (three_triangles::ThreeTrianglesEvenIndex, three_triangles::ThreeTrianglesEvenIndex), _, three_triangles_stack::Turns, _> = PruningTable::new(move_table, std::iter::once((three_triangles::ThreeTriangles::identity().into(), three_triangles::ThreeTriangles::identity().into())));
+
+        // Our simple implementation (three_triangles_stack is small enough to solve naively) matches our more complex one
+        let tt_table = three_triangles_stack::moves_to_solve();
+        for top_pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+            for bottom_pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+                let pi = (top_pi, bottom_pi);
+                let p = (top_pi.into(), bottom_pi.into());
+                assert_eq!(*tt_table.get(&p).unwrap(), pruning_table.remaining_turns_lower_bound(pi) as usize);
+            }
+        }
+
+        // Solves the puzzle
+        for top_pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+            for bottom_pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+                let pi = (top_pi, bottom_pi);
+                let mut turns = pruning_table.solve(pi);
+                turns.reverse();
+                let mut top_p = three_triangles_stack::TopThreeTriangles::identity();
+                let mut bottom_p = three_triangles_stack::BottomThreeTriangles::identity();
+                for t in turns {
+                    top_p = top_p.permute(t.invert().into());
+                    bottom_p = bottom_p.permute(t.invert().into());
+                }
+                assert_eq!(pi, (top_p.into(), bottom_p.into()));
+            }
+        }
+    }
+
+    #[test]
+    fn pruning_table_is_correct_for_three_triangles_stack_even_parity_with_rotational_symmetry_via_composite() {
+      // TODO: Ideally these use the same move table!
+      let top_rep_table = Arc::new(RepresentativeTable::new::<three_triangles_stack::TopThreeTriangles>());
+      let top_move_table: MoveTable<three_triangles_stack::RotationalSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles_stack::Turns> = MoveTable::new::<three_triangles_stack::TopThreeTriangles>(top_rep_table.clone());
+
+        let bottom_rep_table = Arc::new(RepresentativeTable::new::<three_triangles_stack::BottomThreeTriangles>());
+        let bottom_move_table: MoveTable<three_triangles_stack::RotationalSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles_stack::Turns> = MoveTable::new::<three_triangles_stack::BottomThreeTriangles>(bottom_rep_table.clone());
+        let move_table = CompositeMoveTable::new(Arc::new(top_move_table), Arc::new(bottom_move_table));
+        let pruning_table: PruningTable<three_triangles_stack::RotationalSymmetry, (three_triangles::ThreeTrianglesEvenIndex, three_triangles::ThreeTrianglesEvenIndex), _, three_triangles_stack::Turns, _> = PruningTable::new(move_table, std::iter::once((three_triangles::ThreeTriangles::identity().into(), three_triangles::ThreeTriangles::identity().into())));
+
+        // Our simple implementation (three_triangles_stack is small enough to solve naively) matches our more complex one
+        let tt_table = three_triangles_stack::moves_to_solve();
+        for top_pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+            for bottom_pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+                let pi = (top_pi, bottom_pi);
+                let p = (top_pi.into(), bottom_pi.into());
+                assert_eq!(*tt_table.get(&p).unwrap(), pruning_table.remaining_turns_lower_bound(pi) as usize);
+            }
+        }
+
+        // Solves the puzzle
+        for top_pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+            for bottom_pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+                let pi = (top_pi, bottom_pi);
+                let mut turns = pruning_table.solve(pi);
+                turns.reverse();
+                let mut top_p = three_triangles_stack::TopThreeTriangles::identity();
+                let mut bottom_p = three_triangles_stack::BottomThreeTriangles::identity();
+                for t in turns {
+                    top_p = top_p.permute(t.invert().into());
+                    bottom_p = bottom_p.permute(t.invert().into());
+                }
+                assert_eq!(pi, (top_p.into(), bottom_p.into()));
+            }
+        }
+    }
+
+    #[test]
+    fn pruning_table_is_correct_for_three_triangles_stack_even_parity_with_full_symmetry_via_composite() {
+        // TODO: Ideally these use the same move table!
+        let top_rep_table = Arc::new(RepresentativeTable::new::<three_triangles_stack::TopThreeTriangles>());
+        let top_move_table: MoveTable<three_triangles_stack::FullSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles_stack::Turns> = MoveTable::new::<three_triangles_stack::TopThreeTriangles>(top_rep_table.clone());
+
+        let bottom_rep_table = Arc::new(RepresentativeTable::new::<three_triangles_stack::BottomThreeTriangles>());
+        let bottom_move_table: MoveTable<three_triangles_stack::FullSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles_stack::Turns> = MoveTable::new::<three_triangles_stack::BottomThreeTriangles>(bottom_rep_table.clone());
+        let move_table = CompositeMoveTable::new(Arc::new(top_move_table), Arc::new(bottom_move_table));
+        let pruning_table: PruningTable<three_triangles_stack::FullSymmetry, (three_triangles::ThreeTrianglesEvenIndex, three_triangles::ThreeTrianglesEvenIndex), _, three_triangles_stack::Turns, _> = PruningTable::new(move_table, std::iter::once((three_triangles::ThreeTriangles::identity().into(), three_triangles::ThreeTriangles::identity().into())));
+
+        // Our simple implementation (three_triangles_stack is small enough to solve naively) matches our more complex one
+        let tt_table = three_triangles_stack::moves_to_solve();
+        for top_pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+            for bottom_pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+                let pi = (top_pi, bottom_pi);
+                let p = (top_pi.into(), bottom_pi.into());
+                assert_eq!(*tt_table.get(&p).unwrap(), pruning_table.remaining_turns_lower_bound(pi) as usize);
+            }
+        }
+
+        // Solves the puzzle
+        for top_pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+            for bottom_pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+                let pi = (top_pi, bottom_pi);
+                let mut turns = pruning_table.solve(pi);
+                turns.reverse();
+                let mut top_p = three_triangles_stack::TopThreeTriangles::identity();
+                let mut bottom_p = three_triangles_stack::BottomThreeTriangles::identity();
+                for t in turns {
+                    top_p = top_p.permute(t.invert().into());
+                    bottom_p = bottom_p.permute(t.invert().into());
+                }
+                assert_eq!(pi, (top_p.into(), bottom_p.into()));
+            }
+        }
+    }
 }
