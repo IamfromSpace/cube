@@ -1,7 +1,6 @@
 use permutation_group::PermutationGroup as PG;
 use invertable::Invertable;
 use equivalence_class::EquivalenceClass;
-use super::util::{n_scoped_workers, while_iter_in_mutex_has_next };
 use flat_move_table::MoveTable;
 use representative_table::RepIndex;
 

@@ -5,7 +5,6 @@ use three_triangles;
 
 use std::collections::BTreeMap;
 use std::collections::VecDeque;
-use std::convert::{TryInto, TryFrom};
 use enum_iterator::{all, Sequence};
 
 // We have a simple puzzle that's just a stack of two three triangles puzzles.
