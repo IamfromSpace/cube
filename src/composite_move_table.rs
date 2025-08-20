@@ -214,7 +214,7 @@ mod tests {
 
         // Applying move_table moves is identical to applying permutations
         for top_rep_index in rep_table.rep_indexes() {
-            let top_perm: three_triangles::ThreeTriangles = rep_table.rep_index_to_perm(top_rep_index);
+            let top_perm: three_triangles::ThreeTriangles = rep_table.rep_index_to_perm_index(top_rep_index).into();
             for bottom_perm_index in all::<three_triangles::ThreeTrianglesEvenIndex>() {
                 let bottom_perm: three_triangles::ThreeTriangles = bottom_perm_index.into();
                 for t in all::<three_triangles::Turns>() {
@@ -278,7 +278,7 @@ mod tests {
 
         // Applying move_table moves is identical to applying permutations
         for top_rep_index in top_rep_table.rep_indexes() {
-            let top_perm: TopThreeTriangles = top_rep_table.rep_index_to_perm(top_rep_index);
+            let top_perm: TopThreeTriangles = top_rep_table.rep_index_to_perm_index(top_rep_index).into();
             for bottom_perm_index in all::<three_triangles::ThreeTrianglesEvenIndex>() {
                 let bottom_perm: BottomThreeTriangles = bottom_perm_index.into();
                 for t in all::<Turns>() {
@@ -335,7 +335,7 @@ mod tests {
 
         // Applying move_table moves is identical to applying permutations
         for top_rep_index in top_rep_table.rep_indexes() {
-            let top_perm: TopThreeTriangles = top_rep_table.rep_index_to_perm(top_rep_index);
+            let top_perm: TopThreeTriangles = top_rep_table.rep_index_to_perm_index(top_rep_index).into();
             for bottom_perm_index in all::<three_triangles::ThreeTrianglesEvenIndex>() {
                 let bottom_perm: BottomThreeTriangles = bottom_perm_index.into();
                 for t in all::<Turns>() {
@@ -395,7 +395,7 @@ mod tests {
 
         // Applying move_table moves is identical to applying permutations
         for top_rep_index in top_rep_table.rep_indexes() {
-            let top_perm: TopThreeTriangles = top_rep_table.rep_index_to_perm(top_rep_index);
+            let top_perm: TopThreeTriangles = top_rep_table.rep_index_to_perm_index(top_rep_index).into();
             for bottom_perm_index in all::<three_triangles::ThreeTrianglesEvenIndex>() {
                 let bottom_perm: BottomThreeTriangles = bottom_perm_index.into();
                 for t in all::<Turns>() {
@@ -452,7 +452,7 @@ mod tests {
 
         // Applying move_table moves is identical to applying permutations
         for top_rep_index in top_rep_table.rep_indexes() {
-            let top_perm: TopThreeTriangles = top_rep_table.rep_index_to_perm(top_rep_index);
+            let top_perm: TopThreeTriangles = top_rep_table.rep_index_to_perm_index(top_rep_index).into();
             for bottom_perm_index in all::<three_triangles::ThreeTrianglesEvenIndex>() {
                 let bottom_perm: BottomThreeTriangles = bottom_perm_index.into();
                 for t in all::<Turns>() {

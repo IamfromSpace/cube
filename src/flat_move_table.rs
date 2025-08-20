@@ -35,7 +35,7 @@ impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Turn: Sequence 
         let mut sym_table = Vec::with_capacity(rep_table.len() * cardinality::<Sym>());
 
         for ri in rep_table.rep_indexes() {
-            let p = rep_table.rep_index_to_perm(ri);
+            let p: Perm = rep_table.rep_index_to_perm_index(ri).into();
             for t in all::<Turn>() {
                 let turned: Perm = p.clone().permute(<Turn as Into<Perm>>::into(t));
                 turn_table.push(rep_table.raw_index_to_sym_index(turned.into()));
@@ -106,7 +106,7 @@ mod tests {
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
-            let p: TwoTriangles = rep_table.rep_index_to_perm(ri);
+            let p: TwoTriangles = rep_table.rep_index_to_perm_index(ri).into();
             for t in all::<Turns>() {
                 let by_perm = p.permute(t.into());
                 let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
@@ -153,7 +153,7 @@ mod tests {
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
-            let p: TwoTriangles = rep_table.rep_index_to_perm(ri);
+            let p: TwoTriangles = rep_table.rep_index_to_perm_index(ri).into();
             for t in all::<Turns>() {
                 let by_perm = p.permute(t.into());
                 let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
@@ -195,7 +195,7 @@ mod tests {
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
-            let p: TwoTriangles = rep_table.rep_index_to_perm(ri);
+            let p: TwoTriangles = rep_table.rep_index_to_perm_index(ri).into();
             for t in all::<Turns>() {
                 let by_perm = p.permute(t.into());
                 let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
@@ -240,7 +240,7 @@ mod tests {
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
-            let p: TwoTriangles = rep_table.rep_index_to_perm(ri);
+            let p: TwoTriangles = rep_table.rep_index_to_perm_index(ri).into();
             for t in all::<Turns>() {
                 let by_perm = p.permute(t.into());
                 let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
@@ -285,7 +285,7 @@ mod tests {
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
-            let p: TwoTriangles = rep_table.rep_index_to_perm(ri);
+            let p: TwoTriangles = rep_table.rep_index_to_perm_index(ri).into();
             for t in all::<Turns>() {
                 let by_perm = p.permute(t.into());
                 let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
@@ -327,7 +327,7 @@ mod tests {
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
-            let p: TwoTriangles = rep_table.rep_index_to_perm(ri);
+            let p: TwoTriangles = rep_table.rep_index_to_perm_index(ri).into();
             for t in all::<Turns>() {
                 let by_perm = p.permute(t.into());
                 let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
@@ -374,7 +374,7 @@ mod tests {
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
-            let p: two_lines::TwoLines = rep_table.rep_index_to_perm(ri);
+            let p: two_lines::TwoLines = rep_table.rep_index_to_perm_index(ri).into();
             for t in all::<two_lines::Turns>() {
                 let by_perm = p.permute(t.into());
                 let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
@@ -418,7 +418,7 @@ mod tests {
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
-            let p: two_lines::TwoLines = rep_table.rep_index_to_perm(ri);
+            let p: two_lines::TwoLines = rep_table.rep_index_to_perm_index(ri).into();
             for t in all::<two_lines::Turns>() {
                 let by_perm = p.permute(t.into());
                 let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
@@ -465,7 +465,7 @@ mod tests {
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
-            let p: three_triangles::ThreeTriangles = rep_table.rep_index_to_perm(ri);
+            let p: three_triangles::ThreeTriangles = rep_table.rep_index_to_perm_index(ri).into();
             for t in all::<three_triangles::Turns>() {
                 let by_perm = p.permute(t.into());
                 let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
@@ -510,7 +510,7 @@ mod tests {
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
-            let p: three_triangles::ThreeTriangles = rep_table.rep_index_to_perm(ri);
+            let p: three_triangles::ThreeTriangles = rep_table.rep_index_to_perm_index(ri).into();
             for t in all::<three_triangles::Turns>() {
                 let by_perm = p.permute(t.into());
                 let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
@@ -555,7 +555,7 @@ mod tests {
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
-            let p: three_triangles::ThreeTriangles = rep_table.rep_index_to_perm(ri);
+            let p: three_triangles::ThreeTriangles = rep_table.rep_index_to_perm_index(ri).into();
             for t in all::<three_triangles::Turns>() {
                 let by_perm = p.permute(t.into());
                 let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
@@ -600,7 +600,7 @@ mod tests {
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
-            let p: three_triangles::ThreeTriangles = rep_table.rep_index_to_perm(ri);
+            let p: three_triangles::ThreeTriangles = rep_table.rep_index_to_perm_index(ri).into();
             for t in all::<three_triangles::Turns>() {
                 let by_perm = p.permute(t.into());
                 let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
@@ -645,7 +645,7 @@ mod tests {
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
-            let p: three_triangles::ThreeTriangles = rep_table.rep_index_to_perm(ri);
+            let p: three_triangles::ThreeTriangles = rep_table.rep_index_to_perm_index(ri).into();
             for t in all::<three_triangles::Turns>() {
                 let by_perm = p.permute(t.into());
                 let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
@@ -690,7 +690,7 @@ mod tests {
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
-            let p: three_triangles::ThreeTriangles = rep_table.rep_index_to_perm(ri);
+            let p: three_triangles::ThreeTriangles = rep_table.rep_index_to_perm_index(ri).into();
             for t in all::<three_triangles::Turns>() {
                 let by_perm = p.permute(t.into());
                 let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
@@ -735,7 +735,7 @@ mod tests {
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
-            let p: three_triangles::ThreeTriangles = rep_table.rep_index_to_perm(ri);
+            let p: three_triangles::ThreeTriangles = rep_table.rep_index_to_perm_index(ri).into();
             for t in all::<three_triangles::Turns>() {
                 let by_perm = p.permute(t.into());
                 let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
@@ -780,7 +780,7 @@ mod tests {
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
-            let p: three_triangles::ThreeTriangles = rep_table.rep_index_to_perm(ri);
+            let p: three_triangles::ThreeTriangles = rep_table.rep_index_to_perm_index(ri).into();
             for t in all::<three_triangles::Turns>() {
                 let by_perm = p.permute(t.into());
                 let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
@@ -827,7 +827,7 @@ mod tests {
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
-            let p: three_triangles_stack::TopThreeTriangles = rep_table.rep_index_to_perm(ri);
+            let p: three_triangles_stack::TopThreeTriangles = rep_table.rep_index_to_perm_index(ri).into();
             for t in all::<three_triangles_stack::Turns>() {
                 let by_perm = p.permute(t.into());
                 let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
@@ -872,7 +872,7 @@ mod tests {
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
-            let p: three_triangles_stack::BottomThreeTriangles = rep_table.rep_index_to_perm(ri);
+            let p: three_triangles_stack::BottomThreeTriangles = rep_table.rep_index_to_perm_index(ri).into();
             for t in all::<three_triangles_stack::Turns>() {
                 let by_perm = p.permute(t.into());
                 let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();

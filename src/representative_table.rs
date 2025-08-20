@@ -104,9 +104,8 @@ impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Sym: Sequence +
         self.to_sym_index_table[<PermIndex as Into<usize>>::into(pi)].clone()
     }
 
-    pub fn rep_index_to_perm(&self, i: RepIndex<Sym, PermIndex>) -> Perm {
-        let pi: PermIndex = self.table[<PermIndex as Into<usize>>::into(i.0)];
-        <PermIndex as Into<Perm>>::into(pi)
+    pub fn rep_index_to_perm_index(&self, i: RepIndex<Sym, PermIndex>) -> PermIndex {
+        self.table[<PermIndex as Into<usize>>::into(i.0)]
     }
 
     // TODO: Should MoveTable implement Sequence?
@@ -191,7 +190,7 @@ mod tests {
         for pi in all::<TwoTrianglesIndex>() {
             let (ri, sym) = rep_table.raw_index_to_sym_index(pi);
             let rep = Into::<TwoTriangles>::into(pi).get_equivalent(&sym);
-            assert_eq!(rep_table.rep_index_to_perm(ri), rep)
+            assert_eq!(rep_table.rep_index_to_perm_index(ri), rep.into())
         }
 
         // Number of self-symmetric positions does not exceed possible bound
@@ -218,7 +217,7 @@ mod tests {
         for pi in all::<TwoTrianglesIndex>() {
             let (ri, sym) = rep_table.raw_index_to_sym_index(pi);
             let rep = Into::<TwoTriangles>::into(pi).get_equivalent(&sym);
-            assert_eq!(rep_table.rep_index_to_perm(ri), rep)
+            assert_eq!(rep_table.rep_index_to_perm_index(ri), rep.into())
         }
 
         // Number of self-symmetric positions does not exceed possible bound
@@ -245,7 +244,7 @@ mod tests {
         for pi in all::<TwoTrianglesIndex>() {
             let (ri, sym) = rep_table.raw_index_to_sym_index(pi);
             let rep = Into::<TwoTriangles>::into(pi).get_equivalent(&sym);
-            assert_eq!(rep_table.rep_index_to_perm(ri), rep)
+            assert_eq!(rep_table.rep_index_to_perm_index(ri), rep.into())
         }
 
         // Number of self-symmetric positions does not exceed possible bound
@@ -272,7 +271,7 @@ mod tests {
         for pi in all::<TwoTrianglesEvenIndex>() {
             let (ri, sym) = rep_table.raw_index_to_sym_index(pi);
             let rep = Into::<TwoTriangles>::into(pi).get_equivalent(&sym);
-            assert_eq!(rep_table.rep_index_to_perm(ri), rep)
+            assert_eq!(rep_table.rep_index_to_perm_index(ri), rep.into())
         }
 
         // Number of self-symmetric positions does not exceed possible bound
@@ -299,7 +298,7 @@ mod tests {
         for pi in all::<TwoTrianglesEvenIndex>() {
             let (ri, sym) = rep_table.raw_index_to_sym_index(pi);
             let rep = Into::<TwoTriangles>::into(pi).get_equivalent(&sym);
-            assert_eq!(rep_table.rep_index_to_perm(ri), rep)
+            assert_eq!(rep_table.rep_index_to_perm_index(ri), rep.into())
         }
 
         // Number of self-symmetric positions does not exceed possible bound
@@ -326,7 +325,7 @@ mod tests {
         for pi in all::<TwoTrianglesEvenIndex>() {
             let (ri, sym) = rep_table.raw_index_to_sym_index(pi);
             let rep = Into::<TwoTriangles>::into(pi).get_equivalent(&sym);
-            assert_eq!(rep_table.rep_index_to_perm(ri), rep)
+            assert_eq!(rep_table.rep_index_to_perm_index(ri), rep.into())
         }
 
         // Number of self-symmetric positions does not exceed possible bound
@@ -355,7 +354,7 @@ mod tests {
         for pi in all::<three_triangles::ThreeTrianglesIndex>() {
             let (ri, sym) = rep_table.raw_index_to_sym_index(pi);
             let rep = Into::<three_triangles::ThreeTriangles>::into(pi).get_equivalent(&sym);
-            assert_eq!(rep_table.rep_index_to_perm(ri), rep)
+            assert_eq!(rep_table.rep_index_to_perm_index(ri), rep.into())
         }
 
         // Number of self-symmetric positions does not exceed possible bound
@@ -382,7 +381,7 @@ mod tests {
         for pi in all::<three_triangles::ThreeTrianglesIndex>() {
             let (ri, sym) = rep_table.raw_index_to_sym_index(pi);
             let rep = Into::<three_triangles::ThreeTriangles>::into(pi).get_equivalent(&sym);
-            assert_eq!(rep_table.rep_index_to_perm(ri), rep)
+            assert_eq!(rep_table.rep_index_to_perm_index(ri), rep.into())
         }
 
         // Number of self-symmetric positions does not exceed possible bound
@@ -409,7 +408,7 @@ mod tests {
         for pi in all::<three_triangles::ThreeTrianglesIndex>() {
             let (ri, sym) = rep_table.raw_index_to_sym_index(pi);
             let rep = Into::<three_triangles::ThreeTriangles>::into(pi).get_equivalent(&sym);
-            assert_eq!(rep_table.rep_index_to_perm(ri), rep)
+            assert_eq!(rep_table.rep_index_to_perm_index(ri), rep.into())
         }
 
         // Number of self-symmetric positions does not exceed possible bound
@@ -436,7 +435,7 @@ mod tests {
         for pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
             let (ri, sym) = rep_table.raw_index_to_sym_index(pi);
             let rep = Into::<three_triangles::ThreeTriangles>::into(pi).get_equivalent(&sym);
-            assert_eq!(rep_table.rep_index_to_perm(ri), rep)
+            assert_eq!(rep_table.rep_index_to_perm_index(ri), rep.into())
         }
 
         // Number of self-symmetric positions does not exceed possible bound
@@ -463,7 +462,7 @@ mod tests {
         for pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
             let (ri, sym) = rep_table.raw_index_to_sym_index(pi);
             let rep = Into::<three_triangles::ThreeTriangles>::into(pi).get_equivalent(&sym);
-            assert_eq!(rep_table.rep_index_to_perm(ri), rep)
+            assert_eq!(rep_table.rep_index_to_perm_index(ri), rep.into())
         }
 
         // Number of self-symmetric positions does not exceed possible bound
@@ -490,7 +489,7 @@ mod tests {
         for pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
             let (ri, sym) = rep_table.raw_index_to_sym_index(pi);
             let rep = Into::<three_triangles::ThreeTriangles>::into(pi).get_equivalent(&sym);
-            assert_eq!(rep_table.rep_index_to_perm(ri), rep)
+            assert_eq!(rep_table.rep_index_to_perm_index(ri), rep.into())
         }
 
         // Number of self-symmetric positions does not exceed possible bound
