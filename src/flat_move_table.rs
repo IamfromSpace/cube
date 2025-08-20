@@ -2,6 +2,7 @@ use permutation_group::PermutationGroup as PG;
 use invertable::Invertable;
 use equivalence_class::EquivalenceClass;
 use representative_table::{ RepresentativeTable, RepIndex };
+use table_traits::{ TableTurn, TableRawIndexToSymIndex, TableSymIndexToRawIndex, TableRepCount };
 
 use std::sync::Arc;
 use std::convert::TryFrom;
@@ -79,6 +80,32 @@ impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sy
 
     pub fn is_self_symmetric(&self, ri: RepIndex<Sym, PermIndex>) -> bool {
         self.rep_table.is_self_symmetric(ri)
+    }
+}
+
+// TODO: Don't need as many constraints (just the specfic ones to this trait)
+// if we fully migrate to traits and the implementation is here
+impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + Into<usize> + Invertable, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>> TableTurn<Sym, RepIndex<Sym, PermIndex>, Turn> for MoveTable<Sym, PermIndex, Turn> where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
+    fn table_turn(&self, ri: RepIndex<Sym, PermIndex>, t: Turn) -> (RepIndex<Sym, PermIndex>, Sym) {
+        self.turn(ri, t)
+    }
+}
+
+impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + Into<usize> + Invertable, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>> TableRawIndexToSymIndex<Sym, PermIndex, RepIndex<Sym, PermIndex>> for MoveTable<Sym, PermIndex, Turn> where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
+    fn table_raw_index_to_sym_index(&self, pi: PermIndex) -> (RepIndex<Sym, PermIndex>, Sym) {
+        self.raw_index_to_sym_index(pi)
+    }
+}
+
+impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + Into<usize> + Invertable, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>> TableSymIndexToRawIndex<Sym, PermIndex, RepIndex<Sym, PermIndex>> for MoveTable<Sym, PermIndex, Turn> where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
+    fn table_sym_index_to_raw_index(&self, si: (RepIndex<Sym, PermIndex>, Sym)) -> PermIndex {
+        self.sym_index_to_raw_index(si)
+    }
+}
+
+impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + Into<usize> + Invertable, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>> TableRepCount for MoveTable<Sym, PermIndex, Turn> where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
+    fn table_rep_count(&self) -> usize {
+        self.len()
     }
 }
 

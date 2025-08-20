@@ -1,8 +1,8 @@
 use permutation_group::PermutationGroup as PG;
 use invertable::Invertable;
 use equivalence_class::EquivalenceClass;
-use flat_move_table::MoveTable;
 use representative_table::RepIndex;
+use table_traits::{ TableTurn, TableRawIndexToSymIndex, TableSymIndexToRawIndex, TableRepCount };
 
 use std::sync::Arc;
 use std::convert::TryFrom;
@@ -11,7 +11,7 @@ use std::collections::VecDeque;
 use enum_iterator::{all, Sequence};
 
 #[derive(Debug)]
-pub struct PruningTable<Sym, PermIndex, Turn> {
+pub struct PruningTable<Sym, PermIndex, Turn, MoveTable> {
     table: Vec<u8>,
     // TODO: We almost certainly want/need to just use some abstract T here,
     // where it will implement some sort of Turner trait.  The reason is, that
@@ -21,11 +21,12 @@ pub struct PruningTable<Sym, PermIndex, Turn> {
     // that captures all of this, we're going to be better off having a trait
     // for what a pruning table needs specifically from a stateful (or
     // stateless) Turner.
-    move_table: Arc<MoveTable<Sym, PermIndex, Turn>>,
+    move_table: MoveTable,
     goals: BTreeSet<RepIndex<Sym, PermIndex>>,
+    turns: std::marker::PhantomData<Turn>,
 }
 
-impl<Turn: Sequence + Copy + PartialEq + Into<usize> + Invertable + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + Into<usize> + Invertable + PG + Ord, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize> + std::fmt::Debug> PruningTable<Sym, PermIndex, Turn> where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
+impl<MoveTable: TableTurn<Sym, RepIndex<Sym, PermIndex>, Turn> + TableRawIndexToSymIndex<Sym, PermIndex, RepIndex<Sym, PermIndex>> + TableSymIndexToRawIndex<Sym, PermIndex, RepIndex<Sym, PermIndex>> + TableRepCount, Turn: Sequence + Copy + PartialEq + Into<usize> + Invertable + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + Into<usize> + Invertable + PG + Ord, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize> + std::fmt::Debug> PruningTable<Sym, PermIndex, Turn, MoveTable> where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
     // TODO: Hypothetically our pruning table could use a different Turn set
     // than our MoveTable.  We'd need the MoveTableTurn to be Invertable, but
     // not the PruningTableTurn.  PruningTableTurn must be From<MoveTableTurn>.
@@ -34,8 +35,8 @@ impl<Turn: Sequence + Copy + PartialEq + Into<usize> + Invertable + EquivalenceC
     // we're walking away from the solved state.  Honestly, there still may be
     // problems with this, and I don't know if non-invertable turn twisty
     // puzzles even exist.
-    pub fn new<I: Iterator<Item=PermIndex>>(move_table: Arc<MoveTable<Sym, PermIndex, Turn>>, goal_states: I) -> Self {
-        let table_size = move_table.len() / 4 + if move_table.len() % 4 == 0 { 0 } else { 1 };
+    pub fn new<I: Iterator<Item=PermIndex>>(move_table: MoveTable, goal_states: I) -> Self {
+        let table_size = move_table.table_rep_count() / 4 + if move_table.table_rep_count() % 4 == 0 { 0 } else { 1 };
         let mut table = Vec::with_capacity(table_size);
         // 0b00 means (turns left `mod` 3 = 0)
         // 0b01 means (turns left `mod` 3 = 1)
@@ -45,7 +46,7 @@ impl<Turn: Sequence + Copy + PartialEq + Into<usize> + Invertable + EquivalenceC
         let mut queue = VecDeque::new();
         let mut goals = BTreeSet::new();
         for pi in goal_states {
-            let (ri, _) = move_table.raw_index_to_sym_index(pi);
+            let (ri, _) = move_table.table_raw_index_to_sym_index(pi);
             let i: usize = ri.into();
             let was_new = set_if_new(&mut table, i, 0);
             if was_new {
@@ -61,7 +62,7 @@ impl<Turn: Sequence + Copy + PartialEq + Into<usize> + Invertable + EquivalenceC
                 None => break,
                 Some((ri, count)) => {
                     for t in all::<Turn>() {
-                        let (ri, _) = move_table.turn(ri, t);
+                        let (ri, _) = move_table.table_turn(ri, t);
                         let i: usize = ri.into();
                         let was_new = set_if_new(&mut table, i, count % 3);
                         if was_new {
@@ -76,13 +77,14 @@ impl<Turn: Sequence + Copy + PartialEq + Into<usize> + Invertable + EquivalenceC
             table,
             move_table,
             goals,
+            turns: std::marker::PhantomData,
         }
     }
 
     // For perfect pruning tables, the lower_bound _is_ the remaining turn count.
     pub fn remaining_turns_lower_bound(&self, pi: PermIndex) -> u8 {
         let mut count = 0;
-        let (mut ri, _) = self.move_table.raw_index_to_sym_index(pi);
+        let (mut ri, _) = self.move_table.table_raw_index_to_sym_index(pi);
 
         loop {
             if self.goals.contains(&ri) {
@@ -91,7 +93,7 @@ impl<Turn: Sequence + Copy + PartialEq + Into<usize> + Invertable + EquivalenceC
                 let target = (lookup(&self.table, ri.into()) + 2) % 3;
                 let mut found = false;
                 for t in all::<Turn>() {
-                    let (candidate, _) = self.move_table.turn(ri, t);
+                    let (candidate, _) = self.move_table.table_turn(ri, t);
                     if target == lookup(&self.table, candidate.into()) {
                         count += 1;
                         ri = candidate;
@@ -126,7 +128,7 @@ impl<Turn: Sequence + Copy + PartialEq + Into<usize> + Invertable + EquivalenceC
     // TODO: This only works for perfect pruning tables.
     pub fn solve(&self, pi: PermIndex) -> Vec<Turn> {
         let mut turns: Vec<Turn> = Vec::new();
-        let (mut ri, mut s) = self.move_table.raw_index_to_sym_index(pi);
+        let (mut ri, mut s) = self.move_table.table_raw_index_to_sym_index(pi);
 
         loop {
             if self.goals.contains(&ri) {
@@ -136,7 +138,7 @@ impl<Turn: Sequence + Copy + PartialEq + Into<usize> + Invertable + EquivalenceC
             let target = (lookup(&self.table, ri.into()) + 2) % 3;
 
             for turn in all::<Turn>() {
-                let (ri2, s2) = self.move_table.turn(ri, turn.get_equivalent(&s));
+                let (ri2, s2) = self.move_table.table_turn(ri, turn.get_equivalent(&s));
                 if target == lookup(&self.table, ri2.into()) {
                     turns.push(turn);
                     ri = ri2;
@@ -172,12 +174,13 @@ mod tests {
     use two_triangles::*;
     use representative_table::*;
     use enum_iterator::all;
+    use flat_move_table::MoveTable;
 
     #[test]
     fn pruning_table_is_correct_for_two_triangles_even_parity_without_symmetry() {
         let rep_table = Arc::new(RepresentativeTable::new::<TwoTriangles>());
         let move_table = Arc::new(MoveTable::new::<TwoTriangles>(rep_table));
-        let pruning_table: PruningTable<NoSymmetry, TwoTrianglesEvenIndex, Turns> = PruningTable::new(move_table, std::iter::once(TwoTriangles::identity().into()));
+        let pruning_table: PruningTable<NoSymmetry, TwoTrianglesEvenIndex, Turns, _> = PruningTable::new(move_table, std::iter::once(TwoTriangles::identity().into()));
 
         // Our simple implementation (TwoTriangles is small enough to solve naively) matches our more complex one
         let tt_table = moves_to_solve();
@@ -201,7 +204,7 @@ mod tests {
     fn pruning_table_is_correct_for_two_triangles_even_parity_with_rotational_symmetry() {
         let rep_table = Arc::new(RepresentativeTable::new::<TwoTriangles>());
         let move_table = Arc::new(MoveTable::new::<TwoTriangles>(rep_table));
-        let pruning_table: PruningTable<RotationalSymmetry, TwoTrianglesEvenIndex, Turns> = PruningTable::new(move_table.clone(), std::iter::once(TwoTriangles::identity().into()));
+        let pruning_table: PruningTable<RotationalSymmetry, TwoTrianglesEvenIndex, Turns, _> = PruningTable::new(move_table.clone(), std::iter::once(TwoTriangles::identity().into()));
 
         // Our simple implementation (TwoTriangles is small enough to solve naively) matches our more complex one
         let tt_table = moves_to_solve();
@@ -225,7 +228,7 @@ mod tests {
     fn pruning_table_is_correct_for_two_triangles_even_parity_with_full_symmetry() {
         let rep_table = Arc::new(RepresentativeTable::new::<TwoTriangles>());
         let move_table = Arc::new(MoveTable::new::<TwoTriangles>(rep_table));
-        let pruning_table: PruningTable<FullSymmetry, TwoTrianglesEvenIndex, Turns> = PruningTable::new(move_table.clone(), std::iter::once(TwoTriangles::identity().into()));
+        let pruning_table: PruningTable<FullSymmetry, TwoTrianglesEvenIndex, Turns, _> = PruningTable::new(move_table.clone(), std::iter::once(TwoTriangles::identity().into()));
 
         // Our simple implementation (TwoTriangles is small enough to solve naively) matches our more complex one
         let tt_table = moves_to_solve();
@@ -251,7 +254,7 @@ mod tests {
     fn pruning_table_is_correct_for_three_triangles_even_parity_without_symmetry() {
         let rep_table = Arc::new(RepresentativeTable::new::<three_triangles::ThreeTriangles>());
         let move_table = Arc::new(MoveTable::new::<three_triangles::ThreeTriangles>(rep_table));
-        let pruning_table: PruningTable<three_triangles::NoSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles::Turns> = PruningTable::new(move_table, std::iter::once(three_triangles::ThreeTriangles::identity().into()));
+        let pruning_table: PruningTable<three_triangles::NoSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles::Turns, _> = PruningTable::new(move_table, std::iter::once(three_triangles::ThreeTriangles::identity().into()));
 
         // Our simple implementation (three_triangles::ThreeTriangles is small enough to solve naively) matches our more complex one
         let tt_table = three_triangles::moves_to_solve();
@@ -264,7 +267,7 @@ mod tests {
     fn pruning_table_is_correct_for_three_triangles_even_parity_with_rotational_symmetry() {
         let rep_table = Arc::new(RepresentativeTable::new::<three_triangles::ThreeTriangles>());
         let move_table = Arc::new(MoveTable::new::<three_triangles::ThreeTriangles>(rep_table));
-        let pruning_table: PruningTable<three_triangles::RotationalSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles::Turns> = PruningTable::new(move_table.clone(), std::iter::once(three_triangles::ThreeTriangles::identity().into()));
+        let pruning_table: PruningTable<three_triangles::RotationalSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles::Turns, _> = PruningTable::new(move_table.clone(), std::iter::once(three_triangles::ThreeTriangles::identity().into()));
 
         // Our simple implementation (three_triangles::ThreeTriangles is small enough to solve naively) matches our more complex one
         let tt_table = three_triangles::moves_to_solve();
@@ -277,7 +280,7 @@ mod tests {
     fn pruning_table_is_correct_for_three_triangles_even_parity_with_full_symmetry() {
         let rep_table = Arc::new(RepresentativeTable::new::<three_triangles::ThreeTriangles>());
         let move_table = Arc::new(MoveTable::new::<three_triangles::ThreeTriangles>(rep_table));
-        let pruning_table: PruningTable<three_triangles::FullSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles::Turns> = PruningTable::new(move_table.clone(), std::iter::once(three_triangles::ThreeTriangles::identity().into()));
+        let pruning_table: PruningTable<three_triangles::FullSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles::Turns, _> = PruningTable::new(move_table.clone(), std::iter::once(three_triangles::ThreeTriangles::identity().into()));
 
         // Our simple implementation (three_triangles::ThreeTriangles is small enough to solve naively) matches our more complex one
         let tt_table = three_triangles::moves_to_solve();
