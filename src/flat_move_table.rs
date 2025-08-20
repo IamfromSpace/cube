@@ -8,7 +8,7 @@ use std::convert::TryFrom;
 use enum_iterator::{ Sequence, all, cardinality };
 
 #[derive(Debug)]
-pub struct MoveTable<Perm, Sym, PermIndex, Turn> {
+pub struct MoveTable<Sym, PermIndex, Turn> {
     // TODO: Not even really sure we need this Arc, probably nothing else needs
     // to access this.  There are some upsides of making this an abstract T (we
     // don't propagate all the trait bounds), but the downside is that we need
@@ -18,20 +18,19 @@ pub struct MoveTable<Perm, Sym, PermIndex, Turn> {
     turn_table: Vec<(RepIndex<Sym, PermIndex>, Sym)>,
     sym_table: Vec<PermIndex>,
     turns: std::marker::PhantomData<Turn>,
-    perms: std::marker::PhantomData<Perm>,
 }
 
-// TODO: Turn: Into<Perm> won't work for patterns (partial permutations).
-// Instead we need some sort of Turnable trait, which can automatically be
-// satisfied if Perm is a PermutationGroup, and Turn is Into<Perm> (which
-// possibly it can implement too).
 // TODO: If the PermIndex is even all Turns must be even too, and if the
 // PermIndex is odd then at least one Turn in the set must also be odd.  Can
 // this be expressed through Traits to guarantee a match?
-impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Turn: Sequence + Copy + Into<Perm> + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + Into<usize> + Invertable, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize> + Into<Perm>> MoveTable<Perm, Sym, PermIndex, Turn> where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
+impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + Into<usize> + Invertable, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>> MoveTable<Sym, PermIndex, Turn> where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
+    // TODO: Turn: Into<Perm> won't work for patterns (partial permutations).
+    // Instead we need some sort of Turnable trait, which can automatically be
+    // satisfied if Perm is a PermutationGroup, and Turn is Into<Perm> (which
+    // possibly it can implement too).
     // TODO: We can have an alterative method that automatically generates the
     // RepTable to simplify cases where it isn't shared with other MoveTables.
-    pub fn new(rep_table: Arc<RepresentativeTable<Sym, PermIndex>>) -> Self {
+    pub fn new<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>>(rep_table: Arc<RepresentativeTable<Sym, PermIndex>>) -> Self where PermIndex: Into<Perm>, Turn: Into<Perm> {
         let mut turn_table = Vec::with_capacity(rep_table.len() * cardinality::<Turn>());
         let mut sym_table = Vec::with_capacity(rep_table.len() * cardinality::<Sym>());
 
@@ -55,7 +54,6 @@ impl<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Turn: Sequence 
             turn_table,
             sym_table,
             turns: std::marker::PhantomData,
-            perms: std::marker::PhantomData,
         }
     }
 
@@ -104,7 +102,7 @@ mod tests {
         // Even though either Left + Right generates all states, MoveTables
         // should basically always include turn inverses, so that they can go
         // forward or backwards.
-        let move_table: MoveTable<TwoTriangles, NoSymmetry, TwoTrianglesIndex, Turns> = MoveTable::new(rep_table.clone());
+        let move_table: MoveTable<NoSymmetry, TwoTrianglesIndex, Turns> = MoveTable::new::<TwoTriangles>(rep_table.clone());
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
@@ -151,7 +149,7 @@ mod tests {
         // Even though just Left + Right is sufficient and symmetric,
         // MoveTables should basically always include turn inverses, so that
         // they can go forward or backwards.
-        let move_table: MoveTable<TwoTriangles, RotationalSymmetry, TwoTrianglesIndex, Turns> = MoveTable::new(rep_table.clone());
+        let move_table: MoveTable<RotationalSymmetry, TwoTrianglesIndex, Turns> = MoveTable::new::<TwoTriangles>(rep_table.clone());
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
@@ -193,7 +191,7 @@ mod tests {
     #[test]
     fn move_table_is_correct_for_two_triangles_with_full_symmetry() {
         let rep_table = Arc::new(RepresentativeTable::new::<TwoTriangles>());
-        let move_table: MoveTable<TwoTriangles, FullSymmetry, TwoTrianglesIndex, Turns> = MoveTable::new(rep_table.clone());
+        let move_table: MoveTable<FullSymmetry, TwoTrianglesIndex, Turns> = MoveTable::new::<TwoTriangles>(rep_table.clone());
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
@@ -238,7 +236,7 @@ mod tests {
         // Even though either Left + Right generates all states, MoveTables
         // should basically always include turn inverses, so that they can go
         // forward or backwards.
-        let move_table: MoveTable<TwoTriangles, NoSymmetry, TwoTrianglesEvenIndex, Turns> = MoveTable::new(rep_table.clone());
+        let move_table: MoveTable<NoSymmetry, TwoTrianglesEvenIndex, Turns> = MoveTable::new::<TwoTriangles>(rep_table.clone());
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
@@ -283,7 +281,7 @@ mod tests {
         // Even though just Left + Right is sufficient and symmetric,
         // MoveTables should basically always include turn inverses, so that
         // they can go forward or backwards.
-        let move_table: MoveTable<TwoTriangles, RotationalSymmetry, TwoTrianglesEvenIndex, Turns> = MoveTable::new(rep_table.clone());
+        let move_table: MoveTable<RotationalSymmetry, TwoTrianglesEvenIndex, Turns> = MoveTable::new::<TwoTriangles>(rep_table.clone());
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
@@ -325,7 +323,7 @@ mod tests {
     #[test]
     fn move_table_is_correct_for_two_triangles_even_parity_with_full_symmetry() {
         let rep_table = Arc::new(RepresentativeTable::new::<TwoTriangles>());
-        let move_table: MoveTable<TwoTriangles, FullSymmetry, TwoTrianglesEvenIndex, Turns> = MoveTable::new(rep_table.clone());
+        let move_table: MoveTable<FullSymmetry, TwoTrianglesEvenIndex, Turns> = MoveTable::new::<TwoTriangles>(rep_table.clone());
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
@@ -372,7 +370,7 @@ mod tests {
         // Even though either Left + Right generates all states, MoveTables
         // should basically always include turn inverses, so that they can go
         // forward or backwards.
-        let move_table: MoveTable<two_lines::TwoLines, two_lines::NoSymmetry, two_lines::TwoLinesIndex, two_lines::Turns> = MoveTable::new(rep_table.clone());
+        let move_table: MoveTable<two_lines::NoSymmetry, two_lines::TwoLinesIndex, two_lines::Turns> = MoveTable::new::<two_lines::TwoLines>(rep_table.clone());
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
@@ -416,7 +414,7 @@ mod tests {
         // Even though either Left + Right generates all states, MoveTables
         // should basically always include turn inverses, so that they can go
         // forward or backwards.
-        let move_table: MoveTable<two_lines::TwoLines, two_lines::FullSymmetry, two_lines::TwoLinesIndex, two_lines::Turns> = MoveTable::new(rep_table.clone());
+        let move_table: MoveTable<two_lines::FullSymmetry, two_lines::TwoLinesIndex, two_lines::Turns> = MoveTable::new::<two_lines::TwoLines>(rep_table.clone());
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
@@ -463,7 +461,7 @@ mod tests {
         // Even though either Left + Right generates all states, MoveTables
         // should basically always include turn inverses, so that they can go
         // forward or backwards.
-        let move_table: MoveTable<three_triangles::ThreeTriangles, three_triangles::NoSymmetry, three_triangles::ThreeTrianglesIndex, three_triangles::Turns> = MoveTable::new(rep_table.clone());
+        let move_table: MoveTable<three_triangles::NoSymmetry, three_triangles::ThreeTrianglesIndex, three_triangles::Turns> = MoveTable::new::<three_triangles::ThreeTriangles>(rep_table.clone());
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
@@ -508,7 +506,7 @@ mod tests {
         // Even though either Left + Right generates all states, MoveTables
         // should basically always include turn inverses, so that they can go
         // forward or backwards.
-        let move_table: MoveTable<three_triangles::ThreeTriangles, three_triangles::MirrorUDSymmetry, three_triangles::ThreeTrianglesIndex, three_triangles::Turns> = MoveTable::new(rep_table.clone());
+        let move_table: MoveTable<three_triangles::MirrorUDSymmetry, three_triangles::ThreeTrianglesIndex, three_triangles::Turns> = MoveTable::new::<three_triangles::ThreeTriangles>(rep_table.clone());
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
@@ -553,7 +551,7 @@ mod tests {
         // Even though either Left + Right generates all states, MoveTables
         // should basically always include turn inverses, so that they can go
         // forward or backwards.
-        let move_table: MoveTable<three_triangles::ThreeTriangles, three_triangles::RotationalSymmetry, three_triangles::ThreeTrianglesIndex, three_triangles::Turns> = MoveTable::new(rep_table.clone());
+        let move_table: MoveTable<three_triangles::RotationalSymmetry, three_triangles::ThreeTrianglesIndex, three_triangles::Turns> = MoveTable::new::<three_triangles::ThreeTriangles>(rep_table.clone());
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
@@ -598,7 +596,7 @@ mod tests {
         // Even though either Left + Right generates all states, MoveTables
         // should basically always include turn inverses, so that they can go
         // forward or backwards.
-        let move_table: MoveTable<three_triangles::ThreeTriangles, three_triangles::FullSymmetry, three_triangles::ThreeTrianglesIndex, three_triangles::Turns> = MoveTable::new(rep_table.clone());
+        let move_table: MoveTable<three_triangles::FullSymmetry, three_triangles::ThreeTrianglesIndex, three_triangles::Turns> = MoveTable::new::<three_triangles::ThreeTriangles>(rep_table.clone());
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
@@ -643,7 +641,7 @@ mod tests {
         // Even though either Left + Right generates all states, MoveTables
         // should basically always include turn inverses, so that they can go
         // forward or backwards.
-        let move_table: MoveTable<three_triangles::ThreeTriangles, three_triangles::MirrorUDSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles::Turns> = MoveTable::new(rep_table.clone());
+        let move_table: MoveTable<three_triangles::MirrorUDSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles::Turns> = MoveTable::new::<three_triangles::ThreeTriangles>(rep_table.clone());
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
@@ -688,7 +686,7 @@ mod tests {
         // Even though either Left + Right generates all states, MoveTables
         // should basically always include turn inverses, so that they can go
         // forward or backwards.
-        let move_table: MoveTable<three_triangles::ThreeTriangles, three_triangles::RotationalSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles::Turns> = MoveTable::new(rep_table.clone());
+        let move_table: MoveTable<three_triangles::RotationalSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles::Turns> = MoveTable::new::<three_triangles::ThreeTriangles>(rep_table.clone());
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
@@ -733,7 +731,7 @@ mod tests {
         // Even though either Left + Right generates all states, MoveTables
         // should basically always include turn inverses, so that they can go
         // forward or backwards.
-        let move_table: MoveTable<three_triangles::ThreeTriangles, three_triangles::NoSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles::Turns> = MoveTable::new(rep_table.clone());
+        let move_table: MoveTable<three_triangles::NoSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles::Turns> = MoveTable::new::<three_triangles::ThreeTriangles>(rep_table.clone());
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
@@ -778,7 +776,7 @@ mod tests {
         // Even though either Left + Right generates all states, MoveTables
         // should basically always include turn inverses, so that they can go
         // forward or backwards.
-        let move_table: MoveTable<three_triangles::ThreeTriangles, three_triangles::FullSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles::Turns> = MoveTable::new(rep_table.clone());
+        let move_table: MoveTable<three_triangles::FullSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles::Turns> = MoveTable::new::<three_triangles::ThreeTriangles>(rep_table.clone());
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
@@ -825,7 +823,7 @@ mod tests {
         // Even though either Left + Right generates all states, MoveTables
         // should basically always include turn inverses, so that they can go
         // forward or backwards.
-        let move_table: MoveTable<three_triangles_stack::TopThreeTriangles, three_triangles_stack::FullSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles_stack::Turns> = MoveTable::new(rep_table.clone());
+        let move_table: MoveTable<three_triangles_stack::FullSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles_stack::Turns> = MoveTable::new::<three_triangles_stack::TopThreeTriangles>(rep_table.clone());
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
@@ -870,7 +868,7 @@ mod tests {
         // Even though either Left + Right generates all states, MoveTables
         // should basically always include turn inverses, so that they can go
         // forward or backwards.
-        let move_table: MoveTable<three_triangles_stack::BottomThreeTriangles, three_triangles_stack::FullSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles_stack::Turns> = MoveTable::new(rep_table.clone());
+        let move_table: MoveTable<three_triangles_stack::FullSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles_stack::Turns> = MoveTable::new::<three_triangles_stack::BottomThreeTriangles>(rep_table.clone());
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {

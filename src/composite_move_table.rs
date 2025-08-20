@@ -21,15 +21,13 @@ impl<RepIndexA: Into<usize>, PermIndexB: Into<usize> + Sequence> Into<usize> for
 // TODO: If MoveTable had a trait, then this could compose with itself, meaning
 // we could get three+ move tables.
 // TODO: Ordering of arguments is stupid
-// TODO: It's dubious that we actually need PermA and PermB at this point, we
-// might want to consider eliminating them from the single MoveTables
-pub struct CompositeMoveTable<PermA, PermB, Sym, PermIndexA, PermIndexB, Turn> {
-    a: Arc<MoveTable<PermA, Sym, PermIndexA, Turn>>,
-    b: Arc<MoveTable<PermB, Sym, PermIndexB, Turn>>,
+pub struct CompositeMoveTable<Sym, PermIndexA, PermIndexB, Turn> {
+    a: Arc<MoveTable<Sym, PermIndexA, Turn>>,
+    b: Arc<MoveTable<Sym, PermIndexB, Turn>>,
 }
 
-impl<PermA: PG + Clone + EquivalenceClass<Sym> + Into<PermIndexA>, PermB: PG + Clone + EquivalenceClass<Sym> + Into<PermIndexB>, Turn: Sequence + Copy + Into<PermA> + Into<PermB> + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + Into<usize> + Invertable + PG, PermIndexA: Sequence + Copy + Ord + TryFrom<usize> + Into<usize> + Into<PermA>, PermIndexB: Sequence + Copy + Ord + TryFrom<usize> + Into<usize> + Into<PermB>> CompositeMoveTable<PermA, PermB, Sym, PermIndexA, PermIndexB, Turn> where <PermIndexA as TryFrom<usize>>::Error: std::fmt::Debug, <PermIndexB as TryFrom<usize>>::Error: std::fmt::Debug {
-    pub fn new(a: Arc<MoveTable<PermA, Sym, PermIndexA, Turn>>, b: Arc<MoveTable<PermB, Sym, PermIndexB, Turn>>) -> Self {
+impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + Into<usize> + Invertable + PG, PermIndexA: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>, PermIndexB: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>> CompositeMoveTable<Sym, PermIndexA, PermIndexB, Turn> where <PermIndexA as TryFrom<usize>>::Error: std::fmt::Debug, <PermIndexB as TryFrom<usize>>::Error: std::fmt::Debug {
+    pub fn new(a: Arc<MoveTable<Sym, PermIndexA, Turn>>, b: Arc<MoveTable<Sym, PermIndexB, Turn>>) -> Self {
         CompositeMoveTable { a, b }
     }
 
@@ -208,7 +206,7 @@ mod tests {
         // but a decent sanity check.
 
         let rep_table = Arc::new(RepresentativeTable::new::<three_triangles::ThreeTriangles>());
-        let tt_move_table: Arc<MoveTable<three_triangles::ThreeTriangles, three_triangles::FullSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles::Turns>> = Arc::new(MoveTable::new(rep_table.clone()));
+        let tt_move_table: Arc<MoveTable<three_triangles::FullSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles::Turns>> = Arc::new(MoveTable::new::<three_triangles::ThreeTriangles>(rep_table.clone()));
 
         let move_table = CompositeMoveTable::new(tt_move_table.clone(), tt_move_table.clone());
 
@@ -261,10 +259,10 @@ mod tests {
     fn composite_move_table_is_correct_for_three_triangles_stack_even_parity_with_no_symmetry() {
         // TODO: Ideally these use the same move table!
         let top_rep_table = Arc::new(RepresentativeTable::new::<TopThreeTriangles>());
-        let top_move_table: MoveTable<TopThreeTriangles, NoSymmetry, three_triangles::ThreeTrianglesEvenIndex, Turns> = MoveTable::new(top_rep_table.clone());
+        let top_move_table: MoveTable<NoSymmetry, three_triangles::ThreeTrianglesEvenIndex, Turns> = MoveTable::new::<TopThreeTriangles>(top_rep_table.clone());
 
         let bottom_rep_table = Arc::new(RepresentativeTable::new::<BottomThreeTriangles>());
-        let bottom_move_table: MoveTable<BottomThreeTriangles, NoSymmetry, three_triangles::ThreeTrianglesEvenIndex, Turns> = MoveTable::new(bottom_rep_table.clone());
+        let bottom_move_table: MoveTable<NoSymmetry, three_triangles::ThreeTrianglesEvenIndex, Turns> = MoveTable::new::<BottomThreeTriangles>(bottom_rep_table.clone());
         let move_table = CompositeMoveTable::new(Arc::new(top_move_table), Arc::new(bottom_move_table));
 
         // Raw to sym and sym to raw functions round trip
@@ -318,10 +316,10 @@ mod tests {
     fn composite_move_table_is_correct_for_three_triangles_stack_even_parity_with_mirror_ud_symmetry() {
         // TODO: Ideally these use the same move table!
         let top_rep_table = Arc::new(RepresentativeTable::new::<TopThreeTriangles>());
-        let top_move_table: MoveTable<TopThreeTriangles, MirrorUDSymmetry, three_triangles::ThreeTrianglesEvenIndex, Turns> = MoveTable::new(top_rep_table.clone());
+        let top_move_table: MoveTable<MirrorUDSymmetry, three_triangles::ThreeTrianglesEvenIndex, Turns> = MoveTable::new::<TopThreeTriangles>(top_rep_table.clone());
 
         let bottom_rep_table = Arc::new(RepresentativeTable::new::<BottomThreeTriangles>());
-        let bottom_move_table: MoveTable<BottomThreeTriangles, MirrorUDSymmetry, three_triangles::ThreeTrianglesEvenIndex, Turns> = MoveTable::new(bottom_rep_table.clone());
+        let bottom_move_table: MoveTable<MirrorUDSymmetry, three_triangles::ThreeTrianglesEvenIndex, Turns> = MoveTable::new::<BottomThreeTriangles>(bottom_rep_table.clone());
         let move_table = CompositeMoveTable::new(Arc::new(top_move_table), Arc::new(bottom_move_table));
 
         // Raw to sym and sym to raw functions round trip
@@ -378,10 +376,10 @@ mod tests {
     fn composite_move_table_is_correct_for_three_triangles_stack_even_parity_with_rotational_symmetry() {
         // TODO: Ideally these use the same move table!
         let top_rep_table = Arc::new(RepresentativeTable::new::<TopThreeTriangles>());
-        let top_move_table: MoveTable<TopThreeTriangles, RotationalSymmetry, three_triangles::ThreeTrianglesEvenIndex, Turns> = MoveTable::new(top_rep_table.clone());
+        let top_move_table: MoveTable<RotationalSymmetry, three_triangles::ThreeTrianglesEvenIndex, Turns> = MoveTable::new::<TopThreeTriangles>(top_rep_table.clone());
 
         let bottom_rep_table = Arc::new(RepresentativeTable::new::<BottomThreeTriangles>());
-        let bottom_move_table: MoveTable<BottomThreeTriangles, RotationalSymmetry, three_triangles::ThreeTrianglesEvenIndex, Turns> = MoveTable::new(bottom_rep_table.clone());
+        let bottom_move_table: MoveTable<RotationalSymmetry, three_triangles::ThreeTrianglesEvenIndex, Turns> = MoveTable::new::<BottomThreeTriangles>(bottom_rep_table.clone());
         let move_table = CompositeMoveTable::new(Arc::new(top_move_table), Arc::new(bottom_move_table));
 
         // Raw to sym and sym to raw functions round trip
@@ -435,10 +433,10 @@ mod tests {
     fn composite_move_table_is_correct_for_three_triangles_stack_even_parity_with_full_symmetry() {
         // TODO: Ideally these use the same move table!
         let top_rep_table = Arc::new(RepresentativeTable::new::<TopThreeTriangles>());
-        let top_move_table: MoveTable<TopThreeTriangles, FullSymmetry, three_triangles::ThreeTrianglesEvenIndex, Turns> = MoveTable::new(top_rep_table.clone());
+        let top_move_table: MoveTable<FullSymmetry, three_triangles::ThreeTrianglesEvenIndex, Turns> = MoveTable::new::<TopThreeTriangles>(top_rep_table.clone());
 
         let bottom_rep_table = Arc::new(RepresentativeTable::new::<BottomThreeTriangles>());
-        let bottom_move_table: MoveTable<BottomThreeTriangles, FullSymmetry, three_triangles::ThreeTrianglesEvenIndex, Turns> = MoveTable::new(bottom_rep_table.clone());
+        let bottom_move_table: MoveTable<FullSymmetry, three_triangles::ThreeTrianglesEvenIndex, Turns> = MoveTable::new::<BottomThreeTriangles>(bottom_rep_table.clone());
         let move_table = CompositeMoveTable::new(Arc::new(top_move_table), Arc::new(bottom_move_table));
 
         // Raw to sym and sym to raw functions round trip
