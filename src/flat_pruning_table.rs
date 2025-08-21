@@ -1,7 +1,7 @@
 use permutation_group::PermutationGroup as PG;
 use invertable::Invertable;
 use equivalence_class::EquivalenceClass;
-use table_traits::{ TableTurn, TableRawIndexToSymIndex, TableSymIndexToRawIndex, TableRepCount };
+use table_traits::{ TableTurn, TableRawIndexToSymIndex, TableRepCount };
 
 use std::sync::Arc;
 use std::collections::BTreeSet;
@@ -18,7 +18,7 @@ pub struct PruningTable<Sym, PermIndex, RepIndex, Turn, MoveTable> {
     perm_index: std::marker::PhantomData<PermIndex>,
 }
 
-impl<MoveTable: TableTurn<Sym, RepIndex, Turn> + TableRawIndexToSymIndex<Sym, PermIndex, RepIndex> + TableSymIndexToRawIndex<Sym, PermIndex, RepIndex> + TableRepCount, Turn: Sequence + Copy + Invertable + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + PG, PermIndex: Sequence + Copy + Ord, RepIndex: Copy + Ord + Into<usize>> PruningTable<Sym, PermIndex, RepIndex, Turn, MoveTable> {
+impl<MoveTable: TableTurn<Sym, RepIndex, Turn> + TableRawIndexToSymIndex<Sym, PermIndex, RepIndex> + TableRepCount, Turn: Sequence + Copy + Invertable + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + PG, PermIndex: Sequence + Copy + Ord, RepIndex: Copy + Ord + Into<usize>> PruningTable<Sym, PermIndex, RepIndex, Turn, MoveTable> {
     // TODO: Hypothetically our pruning table could use a different Turn set
     // than our MoveTable.  We'd need the MoveTableTurn to be Invertable, but
     // not the PruningTableTurn.  PruningTableTurn must be From<MoveTableTurn>.
