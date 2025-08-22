@@ -698,17 +698,17 @@ impl Into<three_triangles::ThreeTrianglesEvenIndex> for BottomThreeTriangles {
     }
 }
 
-pub fn moves_to_solve() -> BTreeMap<(TopThreeTriangles, BottomThreeTriangles), usize> {
+pub fn moves_to_solve() -> BTreeMap<(TopThreeTriangles, BottomThreeTriangles), Vec<Turns>> {
     let mut queue = VecDeque::new();
     let mut map = BTreeMap::new();
 
-    map.insert((TopThreeTriangles::identity().into(), BottomThreeTriangles::identity().into()), 0);
-    queue.push_back(((TopThreeTriangles::identity(), BottomThreeTriangles::identity()), 1));
+    map.insert((TopThreeTriangles::identity().into(), BottomThreeTriangles::identity().into()), Vec::new());
+    queue.push_back(((TopThreeTriangles::identity(), BottomThreeTriangles::identity()), Vec::new()));
 
     loop {
         match queue.pop_front() {
             None => break,
-            Some(((top, bottom), count)) => {
+            Some(((top, bottom), turns)) => {
                 for t in all::<Turns>() {
                     let top_turned = top.clone().permute(t.into());
                     let bottom_turned = bottom.clone().permute(t.into());
@@ -716,8 +716,11 @@ pub fn moves_to_solve() -> BTreeMap<(TopThreeTriangles, BottomThreeTriangles), u
                     let queue_turned = (top_turned, bottom_turned);
                     match map.get(&map_turned) {
                         None => {
-                            map.insert(map_turned, count);
-                            queue.push_back((queue_turned, count + 1))
+                            let mut turns2 = turns.clone();
+                            turns2.push(t);
+                            let solve = turns2.clone().iter().map(|t| t.invert()).rev().collect();
+                            map.insert(map_turned, solve);
+                            queue.push_back((queue_turned, turns2))
                         },
                         Some(_) => (),
                     }
@@ -1039,6 +1042,23 @@ mod tests {
                     let as_sym = p.permute(s0.permute(s1).into());
                     assert_eq!(as_tt, as_sym);
                 }
+            }
+        }
+    }
+
+    #[test]
+    fn moves_to_solve_does_solve() {
+        let solve_table = moves_to_solve();
+        for top_pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+            for bottom_pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+                let mut top_p: TopThreeTriangles = top_pi.into();
+                let mut bottom_p: BottomThreeTriangles = bottom_pi.into();
+                for t in solve_table.get(&(top_p, bottom_p)).unwrap() {
+                    top_p = top_p.permute((*t).into());
+                    bottom_p = bottom_p.permute((*t).into());
+                }
+                assert_eq!(top_p, TopThreeTriangles::identity());
+                assert_eq!(bottom_p, BottomThreeTriangles::identity());
             }
         }
     }

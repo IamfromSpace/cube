@@ -352,7 +352,7 @@ mod tests {
             for bottom_pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
                 let pi = (top_pi, bottom_pi);
                 let p = (top_pi.into(), bottom_pi.into());
-                assert_eq!(*tt_table.get(&p).unwrap(), pruning_table.remaining_turns_lower_bound(pi) as usize);
+                assert_eq!(tt_table.get(&p).unwrap().len(), pruning_table.remaining_turns_lower_bound(pi) as usize);
             }
         }
 
@@ -390,7 +390,7 @@ mod tests {
             for bottom_pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
                 let pi = (top_pi, bottom_pi);
                 let p = (top_pi.into(), bottom_pi.into());
-                assert_eq!(*tt_table.get(&p).unwrap(), pruning_table.remaining_turns_lower_bound(pi) as usize);
+                assert_eq!(tt_table.get(&p).unwrap().len(), pruning_table.remaining_turns_lower_bound(pi) as usize);
             }
         }
 
@@ -428,7 +428,7 @@ mod tests {
             for bottom_pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
                 let pi = (top_pi, bottom_pi);
                 let p = (top_pi.into(), bottom_pi.into());
-                assert_eq!(*tt_table.get(&p).unwrap(), pruning_table.remaining_turns_lower_bound(pi) as usize);
+                assert_eq!(tt_table.get(&p).unwrap().len(), pruning_table.remaining_turns_lower_bound(pi) as usize);
             }
         }
 
