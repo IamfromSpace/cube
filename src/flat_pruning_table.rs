@@ -8,6 +8,25 @@ use std::collections::BTreeSet;
 use std::collections::VecDeque;
 use enum_iterator::{all, Sequence};
 
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
+// Opaque type to prevent accidental misuse
+// NOTE: I don't think we need PermIndex to prevent possible confusions?
+pub struct LowerBoundToken<Index, Turn>(u8, Index, std::marker::PhantomData<Turn>);
+
+impl<Index: Copy, Turn> LowerBoundToken<Index, Turn> {
+    pub fn new(i: Index, n: u8) -> Self {
+        Self(n, i, std::marker::PhantomData)
+    }
+
+    pub fn get_index(&self) -> Index {
+        self.1
+    }
+
+    pub fn get_lower_bound(&self) -> u8 {
+        self.0
+    }
+}
+
 #[derive(Debug)]
 pub struct PruningTable<Sym, PermIndex, RepIndex, Turn, MoveTable> {
     table: Vec<u8>,
@@ -76,13 +95,14 @@ impl<MoveTable: TableTurn<Sym, RepIndex, Turn> + TableRawIndexToSymIndex<Sym, Pe
     }
 
     // For perfect pruning tables, the lower_bound _is_ the remaining turn count.
-    pub fn remaining_turns_lower_bound(&self, pi: PermIndex) -> u8 {
+    pub fn start_search(&self, pi: PermIndex) -> LowerBoundToken<(RepIndex, Sym), Turn> {
         let mut count = 0;
-        let (mut ri, _) = self.move_table.table_raw_index_to_sym_index(pi);
+        let (ri0, s0) = self.move_table.table_raw_index_to_sym_index(pi);
+        let mut ri = ri0;
 
         loop {
             if self.goals.contains(&ri) {
-                break count;
+                break;
             } else {
                 let target = (lookup(&self.table, ri.into()) + 2) % 3;
                 let mut found = false;
@@ -100,6 +120,31 @@ impl<MoveTable: TableTurn<Sym, RepIndex, Turn> + TableRawIndexToSymIndex<Sym, Pe
                 }
             }
         }
+        LowerBoundToken::new((ri0, s0), count)
+    }
+
+    pub fn continue_search(&self, lbt: LowerBoundToken<(RepIndex, Sym), Turn>, t: Turn) -> LowerBoundToken<(RepIndex, Sym), Turn> {
+        let prev_lower_bound = lbt.get_lower_bound();
+        let prev_m3 = prev_lower_bound % 3;
+        let (ri0, s0) = lbt.get_index();
+        let (ri1, s1) = self.move_table.table_turn(ri0, t.get_equivalent(&s0));
+        let next_m3 = lookup(&self.table, ri1.into());
+
+        let next_lower_bound = match (prev_m3, next_m3) {
+            // Repetition avoids casting to i8
+            (0, 0) => prev_lower_bound,
+            (0, 1) => prev_lower_bound + 1,
+            (0, 2) => prev_lower_bound - 1,
+            (1, 0) => prev_lower_bound - 1,
+            (1, 1) => prev_lower_bound,
+            (1, 2) => prev_lower_bound + 1,
+            (2, 0) => prev_lower_bound + 1,
+            (2, 1) => prev_lower_bound - 1,
+            (2, 2) => prev_lower_bound,
+            (_, _) => unreachable!("Invariant violation: Pruning table values were not mod 3."),
+        };
+
+        LowerBoundToken::new((ri1, s0.permute(s1)), next_lower_bound)
     }
 
     /*
@@ -122,24 +167,19 @@ impl<MoveTable: TableTurn<Sym, RepIndex, Turn> + TableRawIndexToSymIndex<Sym, Pe
     // TODO: This only works for perfect pruning tables.
     pub fn solve(&self, pi: PermIndex) -> Vec<Turn> {
         let mut turns: Vec<Turn> = Vec::new();
-        let (mut ri, mut s) = self.move_table.table_raw_index_to_sym_index(pi);
+        let mut lbt = self.start_search(pi);
 
         loop {
-            if self.goals.contains(&ri) {
+            if lbt.get_lower_bound() == 0 {
                 break turns;
             }
 
-            let target = (lookup(&self.table, ri.into()) + 2) % 3;
-
             for turn in all::<Turn>() {
-                let (ri2, s2) = self.move_table.table_turn(ri, turn.get_equivalent(&s));
-                if target == lookup(&self.table, ri2.into()) {
+                let lbt2 = self.continue_search(lbt, turn);
+                if lbt2.get_lower_bound() < lbt.get_lower_bound() {
                     turns.push(turn);
-                    ri = ri2;
-                    // TODO: We should probably wait to correct our turns until
-                    // the end, so we only permute the symmetries that actually
-                    // solve the cube, but this is just so much simpler.
-                    s = s.permute(s2);
+                    lbt = lbt2;
+                    break;
                 }
             }
         }
@@ -174,12 +214,18 @@ mod tests {
     fn pruning_table_is_correct_for_two_triangles_even_parity_without_symmetry() {
         let rep_table = Arc::new(RepresentativeTable::new::<TwoTriangles>());
         let move_table = Arc::new(MoveTable::new::<TwoTriangles>(rep_table));
-        let pruning_table: PruningTable<NoSymmetry, TwoTrianglesEvenIndex, _, Turns, _> = PruningTable::new(move_table, std::iter::once(TwoTriangles::identity().into()));
+        let pruning_table: PruningTable<NoSymmetry, TwoTrianglesEvenIndex, _, Turns, _> = PruningTable::new(move_table.clone(), std::iter::once(TwoTriangles::identity().into()));
 
         // Our simple implementation (TwoTriangles is small enough to solve naively) matches our more complex one
         let tt_table = moves_to_solve();
         for pi in all::<TwoTrianglesEvenIndex>() {
-            assert_eq!(*tt_table.get(&pi).unwrap(), pruning_table.remaining_turns_lower_bound(pi) as usize);
+            let lbt = pruning_table.start_search(pi);
+            assert_eq!(*tt_table.get(&pi).unwrap(), lbt.get_lower_bound() as usize);
+            for t in all::<Turns>() {
+                let p: TwoTriangles = pi.into();
+                let turned = p.permute(t.into()).into();
+                assert_eq!(*tt_table.get(&turned).unwrap(), pruning_table.continue_search(lbt, t).get_lower_bound() as usize);
+            }
         }
 
         // Solves the puzzle
@@ -203,7 +249,13 @@ mod tests {
         // Our simple implementation (TwoTriangles is small enough to solve naively) matches our more complex one
         let tt_table = moves_to_solve();
         for pi in all::<TwoTrianglesEvenIndex>() {
-            assert_eq!(*tt_table.get(&pi).unwrap(), pruning_table.remaining_turns_lower_bound(pi) as usize);
+            let lbt = pruning_table.start_search(pi);
+            assert_eq!(*tt_table.get(&pi).unwrap(), lbt.get_lower_bound() as usize);
+            for t in all::<Turns>() {
+                let p: TwoTriangles = pi.into();
+                let turned = p.permute(t.into()).into();
+                assert_eq!(*tt_table.get(&turned).unwrap(), pruning_table.continue_search(lbt, t).get_lower_bound() as usize);
+            }
         }
 
         // Solves the puzzle
@@ -227,7 +279,13 @@ mod tests {
         // Our simple implementation (TwoTriangles is small enough to solve naively) matches our more complex one
         let tt_table = moves_to_solve();
         for pi in all::<TwoTrianglesEvenIndex>() {
-            assert_eq!(*tt_table.get(&pi).unwrap(), pruning_table.remaining_turns_lower_bound(pi) as usize);
+            let lbt = pruning_table.start_search(pi);
+            assert_eq!(*tt_table.get(&pi).unwrap(), lbt.get_lower_bound() as usize);
+            for t in all::<Turns>() {
+                let p: TwoTriangles = pi.into();
+                let turned = p.permute(t.into()).into();
+                assert_eq!(*tt_table.get(&turned).unwrap(), pruning_table.continue_search(lbt, t).get_lower_bound() as usize);
+            }
         }
 
         // Solves the puzzle
@@ -248,12 +306,18 @@ mod tests {
     fn pruning_table_is_correct_for_three_triangles_even_parity_without_symmetry() {
         let rep_table = Arc::new(RepresentativeTable::new::<three_triangles::ThreeTriangles>());
         let move_table = Arc::new(MoveTable::new::<three_triangles::ThreeTriangles>(rep_table));
-        let pruning_table: PruningTable<three_triangles::NoSymmetry, three_triangles::ThreeTrianglesEvenIndex, _, three_triangles::Turns, _> = PruningTable::new(move_table, std::iter::once(three_triangles::ThreeTriangles::identity().into()));
+        let pruning_table: PruningTable<three_triangles::NoSymmetry, three_triangles::ThreeTrianglesEvenIndex, _, three_triangles::Turns, _> = PruningTable::new(move_table.clone(), std::iter::once(three_triangles::ThreeTriangles::identity().into()));
 
         // Our simple implementation (three_triangles::ThreeTriangles is small enough to solve naively) matches our more complex one
         let tt_table = three_triangles::moves_to_solve();
         for pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
-            assert_eq!(*tt_table.get(&pi).unwrap(), pruning_table.remaining_turns_lower_bound(pi) as usize);
+            let lbt = pruning_table.start_search(pi);
+            assert_eq!(*tt_table.get(&pi).unwrap(), lbt.get_lower_bound() as usize);
+            for t in all::<three_triangles::Turns>() {
+                let p: three_triangles::ThreeTriangles = pi.into();
+                let turned = p.permute(t.into()).into();
+                assert_eq!(*tt_table.get(&turned).unwrap(), pruning_table.continue_search(lbt, t).get_lower_bound() as usize);
+            }
         }
     }
 
@@ -266,7 +330,13 @@ mod tests {
         // Our simple implementation (three_triangles::ThreeTriangles is small enough to solve naively) matches our more complex one
         let tt_table = three_triangles::moves_to_solve();
         for pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
-            assert_eq!(*tt_table.get(&pi).unwrap(), pruning_table.remaining_turns_lower_bound(pi) as usize);
+            let lbt = pruning_table.start_search(pi);
+            assert_eq!(*tt_table.get(&pi).unwrap(), lbt.get_lower_bound() as usize);
+            for t in all::<three_triangles::Turns>() {
+                let p: three_triangles::ThreeTriangles = pi.into();
+                let turned = p.permute(t.into()).into();
+                assert_eq!(*tt_table.get(&turned).unwrap(), pruning_table.continue_search(lbt, t).get_lower_bound() as usize);
+            }
         }
     }
 
@@ -279,7 +349,13 @@ mod tests {
         // Our simple implementation (three_triangles::ThreeTriangles is small enough to solve naively) matches our more complex one
         let tt_table = three_triangles::moves_to_solve();
         for pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
-            assert_eq!(*tt_table.get(&pi).unwrap(), pruning_table.remaining_turns_lower_bound(pi) as usize);
+            let lbt = pruning_table.start_search(pi);
+            assert_eq!(*tt_table.get(&pi).unwrap(), lbt.get_lower_bound() as usize);
+            for t in all::<three_triangles::Turns>() {
+                let p: three_triangles::ThreeTriangles = pi.into();
+                let turned = p.permute(t.into()).into();
+                assert_eq!(*tt_table.get(&turned).unwrap(), pruning_table.continue_search(lbt, t).get_lower_bound() as usize);
+            }
         }
 
         // Solves the puzzle
@@ -305,8 +381,8 @@ mod tests {
 
         let bottom_rep_table = Arc::new(RepresentativeTable::new::<three_triangles_stack::BottomThreeTriangles>());
         let bottom_move_table: MoveTable<three_triangles_stack::NoSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles_stack::Turns> = MoveTable::new::<three_triangles_stack::BottomThreeTriangles>(bottom_rep_table.clone());
-        let move_table = CompositeMoveTable::new(Arc::new(top_move_table), Arc::new(bottom_move_table));
-        let pruning_table: PruningTable<three_triangles_stack::NoSymmetry, (three_triangles::ThreeTrianglesEvenIndex, three_triangles::ThreeTrianglesEvenIndex), _, three_triangles_stack::Turns, _> = PruningTable::new(move_table, std::iter::once((three_triangles::ThreeTriangles::identity().into(), three_triangles::ThreeTriangles::identity().into())));
+        let move_table = Arc::new(CompositeMoveTable::new(Arc::new(top_move_table), Arc::new(bottom_move_table)));
+        let pruning_table: PruningTable<three_triangles_stack::NoSymmetry, (three_triangles::ThreeTrianglesEvenIndex, three_triangles::ThreeTrianglesEvenIndex), _, three_triangles_stack::Turns, _> = PruningTable::new(move_table.clone(), std::iter::once((three_triangles::ThreeTriangles::identity().into(), three_triangles::ThreeTriangles::identity().into())));
 
         // Our simple implementation (three_triangles_stack is small enough to solve naively) matches our more complex one
         let tt_table = three_triangles_stack::moves_to_solve();
@@ -314,7 +390,14 @@ mod tests {
             for bottom_pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
                 let pi = (top_pi, bottom_pi);
                 let p = (top_pi.into(), bottom_pi.into());
-                assert_eq!(*tt_table.get(&p).unwrap(), pruning_table.remaining_turns_lower_bound(pi) as usize);
+                let lbt = pruning_table.start_search(pi);
+                assert_eq!(tt_table.get(&p).unwrap().len(), lbt.get_lower_bound() as usize);
+                for t in all::<three_triangles_stack::Turns>() {
+                    let top_turned = p.0.permute(t.into());
+                    let bottom_turned = p.1.permute(t.into());
+                    let turned = (top_turned.into(), bottom_turned.into());
+                    assert_eq!(tt_table.get(&turned).unwrap().len(), pruning_table.continue_search(lbt, t).get_lower_bound() as usize);
+                }
             }
         }
 
@@ -343,8 +426,8 @@ mod tests {
 
         let bottom_rep_table = Arc::new(RepresentativeTable::new::<three_triangles_stack::BottomThreeTriangles>());
         let bottom_move_table: MoveTable<three_triangles_stack::MirrorUDSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles_stack::Turns> = MoveTable::new::<three_triangles_stack::BottomThreeTriangles>(bottom_rep_table.clone());
-        let move_table = CompositeMoveTable::new(Arc::new(top_move_table), Arc::new(bottom_move_table));
-        let pruning_table: PruningTable<three_triangles_stack::MirrorUDSymmetry, (three_triangles::ThreeTrianglesEvenIndex, three_triangles::ThreeTrianglesEvenIndex), _, three_triangles_stack::Turns, _> = PruningTable::new(move_table, std::iter::once((three_triangles::ThreeTriangles::identity().into(), three_triangles::ThreeTriangles::identity().into())));
+        let move_table = Arc::new(CompositeMoveTable::new(Arc::new(top_move_table), Arc::new(bottom_move_table)));
+        let pruning_table: PruningTable<three_triangles_stack::MirrorUDSymmetry, (three_triangles::ThreeTrianglesEvenIndex, three_triangles::ThreeTrianglesEvenIndex), _, three_triangles_stack::Turns, _> = PruningTable::new(move_table.clone(), std::iter::once((three_triangles::ThreeTriangles::identity().into(), three_triangles::ThreeTriangles::identity().into())));
 
         // Our simple implementation (three_triangles_stack is small enough to solve naively) matches our more complex one
         let tt_table = three_triangles_stack::moves_to_solve();
@@ -352,7 +435,14 @@ mod tests {
             for bottom_pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
                 let pi = (top_pi, bottom_pi);
                 let p = (top_pi.into(), bottom_pi.into());
-                assert_eq!(tt_table.get(&p).unwrap().len(), pruning_table.remaining_turns_lower_bound(pi) as usize);
+                let lbt = pruning_table.start_search(pi);
+                assert_eq!(tt_table.get(&p).unwrap().len(), lbt.get_lower_bound() as usize);
+                for t in all::<three_triangles_stack::Turns>() {
+                    let top_turned = p.0.permute(t.into());
+                    let bottom_turned = p.1.permute(t.into());
+                    let turned = (top_turned.into(), bottom_turned.into());
+                    assert_eq!(tt_table.get(&turned).unwrap().len(), pruning_table.continue_search(lbt, t).get_lower_bound() as usize);
+                }
             }
         }
 
@@ -381,8 +471,8 @@ mod tests {
 
         let bottom_rep_table = Arc::new(RepresentativeTable::new::<three_triangles_stack::BottomThreeTriangles>());
         let bottom_move_table: MoveTable<three_triangles_stack::RotationalSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles_stack::Turns> = MoveTable::new::<three_triangles_stack::BottomThreeTriangles>(bottom_rep_table.clone());
-        let move_table = CompositeMoveTable::new(Arc::new(top_move_table), Arc::new(bottom_move_table));
-        let pruning_table: PruningTable<three_triangles_stack::RotationalSymmetry, (three_triangles::ThreeTrianglesEvenIndex, three_triangles::ThreeTrianglesEvenIndex), _, three_triangles_stack::Turns, _> = PruningTable::new(move_table, std::iter::once((three_triangles::ThreeTriangles::identity().into(), three_triangles::ThreeTriangles::identity().into())));
+        let move_table = Arc::new(CompositeMoveTable::new(Arc::new(top_move_table), Arc::new(bottom_move_table)));
+        let pruning_table: PruningTable<three_triangles_stack::RotationalSymmetry, (three_triangles::ThreeTrianglesEvenIndex, three_triangles::ThreeTrianglesEvenIndex), _, three_triangles_stack::Turns, _> = PruningTable::new(move_table.clone(), std::iter::once((three_triangles::ThreeTriangles::identity().into(), three_triangles::ThreeTriangles::identity().into())));
 
         // Our simple implementation (three_triangles_stack is small enough to solve naively) matches our more complex one
         let tt_table = three_triangles_stack::moves_to_solve();
@@ -390,7 +480,14 @@ mod tests {
             for bottom_pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
                 let pi = (top_pi, bottom_pi);
                 let p = (top_pi.into(), bottom_pi.into());
-                assert_eq!(tt_table.get(&p).unwrap().len(), pruning_table.remaining_turns_lower_bound(pi) as usize);
+                let lbt = pruning_table.start_search(pi);
+                assert_eq!(tt_table.get(&p).unwrap().len(), lbt.get_lower_bound() as usize);
+                for t in all::<three_triangles_stack::Turns>() {
+                    let top_turned = p.0.permute(t.into());
+                    let bottom_turned = p.1.permute(t.into());
+                    let turned = (top_turned.into(), bottom_turned.into());
+                    assert_eq!(tt_table.get(&turned).unwrap().len(), pruning_table.continue_search(lbt, t).get_lower_bound() as usize);
+                }
             }
         }
 
@@ -419,8 +516,8 @@ mod tests {
 
         let bottom_rep_table = Arc::new(RepresentativeTable::new::<three_triangles_stack::BottomThreeTriangles>());
         let bottom_move_table: MoveTable<three_triangles_stack::FullSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles_stack::Turns> = MoveTable::new::<three_triangles_stack::BottomThreeTriangles>(bottom_rep_table.clone());
-        let move_table = CompositeMoveTable::new(Arc::new(top_move_table), Arc::new(bottom_move_table));
-        let pruning_table: PruningTable<three_triangles_stack::FullSymmetry, (three_triangles::ThreeTrianglesEvenIndex, three_triangles::ThreeTrianglesEvenIndex), _, three_triangles_stack::Turns, _> = PruningTable::new(move_table, std::iter::once((three_triangles::ThreeTriangles::identity().into(), three_triangles::ThreeTriangles::identity().into())));
+        let move_table = Arc::new(CompositeMoveTable::new(Arc::new(top_move_table), Arc::new(bottom_move_table)));
+        let pruning_table: PruningTable<three_triangles_stack::FullSymmetry, (three_triangles::ThreeTrianglesEvenIndex, three_triangles::ThreeTrianglesEvenIndex), _, three_triangles_stack::Turns, _> = PruningTable::new(move_table.clone(), std::iter::once((three_triangles::ThreeTriangles::identity().into(), three_triangles::ThreeTriangles::identity().into())));
 
         // Our simple implementation (three_triangles_stack is small enough to solve naively) matches our more complex one
         let tt_table = three_triangles_stack::moves_to_solve();
@@ -428,7 +525,14 @@ mod tests {
             for bottom_pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
                 let pi = (top_pi, bottom_pi);
                 let p = (top_pi.into(), bottom_pi.into());
-                assert_eq!(tt_table.get(&p).unwrap().len(), pruning_table.remaining_turns_lower_bound(pi) as usize);
+                let lbt = pruning_table.start_search(pi);
+                assert_eq!(tt_table.get(&p).unwrap().len(), lbt.get_lower_bound() as usize);
+                for t in all::<three_triangles_stack::Turns>() {
+                    let top_turned = p.0.permute(t.into());
+                    let bottom_turned = p.1.permute(t.into());
+                    let turned = (top_turned.into(), bottom_turned.into());
+                    assert_eq!(tt_table.get(&turned).unwrap().len(), pruning_table.continue_search(lbt, t).get_lower_bound() as usize);
+                }
             }
         }
 
