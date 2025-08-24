@@ -114,27 +114,25 @@ mod tests {
     use super::*;
     use two_triangles::*;
 
-    // TODO: Time to parameterize these tests
-    #[test]
-    fn move_table_is_correct_for_two_triangles_without_symmetry() {
-        let rep_table = Arc::new(RepresentativeTable::new::<TwoTriangles>());
+    fn test<Sym: PartialEq + Sequence + Copy + Clone + Into<usize> + Invertable, PermIndex: std::fmt::Debug + Sequence + Copy + Ord + TryFrom<usize> + Into<usize>, Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Perm: std::fmt::Debug + Eq + PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>>() where PermIndex: Into<Perm>, Turn: Into<Perm>, <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
+        let rep_table = Arc::new(RepresentativeTable::new::<Perm>());
         // Even though either Left + Right generates all states, MoveTables
         // should basically always include turn inverses, so that they can go
         // forward or backwards.
-        let move_table: MoveTable<NoSymmetry, TwoTrianglesIndex, Turns> = MoveTable::new::<TwoTriangles>(rep_table.clone());
+        let move_table: MoveTable<Sym, PermIndex, Turn> = MoveTable::new::<Perm>(rep_table.clone());
 
         // Applying move_table moves is identical to applying permutations
         for ri in rep_table.rep_indexes() {
-            let p: TwoTriangles = rep_table.rep_index_to_perm_index(ri).into();
-            for t in all::<Turns>() {
-                let by_perm = p.permute(t.into());
+            let p: Perm = rep_table.rep_index_to_perm_index(ri).into();
+            for t in all::<Turn>() {
+                let by_perm = p.clone().permute(t.into());
                 let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
                 assert_eq!(by_perm, by_table);
             }
         }
 
         // Raw to sym and sym to raw functions round trip
-        for pi in all::<TwoTrianglesIndex>() {
+        for pi in all::<PermIndex>() {
             let pi_rt = move_table.sym_index_to_raw_index(move_table.raw_index_to_sym_index(pi));
             assert_eq!(pi_rt, pi);
         }
@@ -143,12 +141,12 @@ mod tests {
         // turn set also have an inverse in the turn set).  If there's a move
         // that can put you in state b from a, then there must exist an inverse
         // turn that puts you from state a to state b.
-        for pi in all::<TwoTrianglesIndex>() {
-            for t in all::<Turns>() {
+        for pi in all::<PermIndex>() {
+            for t in all::<Turn>() {
                 let (ri_a, _) = move_table.raw_index_to_sym_index(pi);
                 let (ri_b, _) = move_table.turn(ri_a, t);
                 let mut found = false;
-                for t in all::<Turns>() {
+                for t in all::<Turn>() {
                     let (ri_rt, _ ) = move_table.turn(ri_b, t);
                     if ri_a == ri_rt {
                         found = true;
@@ -158,680 +156,91 @@ mod tests {
                 assert_eq!(found, true);
             }
         }
+    }
+
+    #[test]
+    fn move_table_is_correct_for_two_triangles_without_symmetry() {
+        test::<NoSymmetry, TwoTrianglesIndex, Turns, TwoTriangles>();
     }
 
     // TODO: There are many more valid combinations of turns and symmetries if
     // we only use one symmetry.
     #[test]
     fn move_table_is_correct_for_two_triangles_with_rotational_symmetry() {
-        let rep_table = Arc::new(RepresentativeTable::new::<TwoTriangles>());
-        // Even though just Left + Right is sufficient and symmetric,
-        // MoveTables should basically always include turn inverses, so that
-        // they can go forward or backwards.
-        let move_table: MoveTable<RotationalSymmetry, TwoTrianglesIndex, Turns> = MoveTable::new::<TwoTriangles>(rep_table.clone());
-
-        // Applying move_table moves is identical to applying permutations
-        for ri in rep_table.rep_indexes() {
-            let p: TwoTriangles = rep_table.rep_index_to_perm_index(ri).into();
-            for t in all::<Turns>() {
-                let by_perm = p.permute(t.into());
-                let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
-                assert_eq!(by_perm, by_table);
-            }
-        }
-
-        // Raw to sym and sym to raw functions round trip
-        for pi in all::<TwoTrianglesIndex>() {
-            let pi_rt = move_table.sym_index_to_raw_index(move_table.raw_index_to_sym_index(pi));
-            assert_eq!(pi_rt, pi);
-        }
-
-        // All entries are bi-directional (this holds because all turns in the
-        // turn set also have an inverse in the turn set).  If there's a move
-        // that can put you in state b from a, then there must exist an inverse
-        // turn that puts you from state a to state b.
-        for pi in all::<TwoTrianglesIndex>() {
-            for t in all::<Turns>() {
-                let (ri_a, _) = move_table.raw_index_to_sym_index(pi);
-                let (ri_b, _) = move_table.turn(ri_a, t);
-                let mut found = false;
-                for t in all::<Turns>() {
-                    let (ri_rt, _ ) = move_table.turn(ri_b, t);
-                    if ri_a == ri_rt {
-                        found = true;
-                        break;
-                    }
-                }
-                assert_eq!(found, true);
-            }
-        }
+        test::<RotationalSymmetry, TwoTrianglesIndex, Turns, TwoTriangles>();
     }
 
     #[test]
     fn move_table_is_correct_for_two_triangles_with_full_symmetry() {
-        let rep_table = Arc::new(RepresentativeTable::new::<TwoTriangles>());
-        let move_table: MoveTable<FullSymmetry, TwoTrianglesIndex, Turns> = MoveTable::new::<TwoTriangles>(rep_table.clone());
-
-        // Applying move_table moves is identical to applying permutations
-        for ri in rep_table.rep_indexes() {
-            let p: TwoTriangles = rep_table.rep_index_to_perm_index(ri).into();
-            for t in all::<Turns>() {
-                let by_perm = p.permute(t.into());
-                let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
-                assert_eq!(by_perm, by_table);
-            }
-        }
-
-        // Raw to sym and sym to raw functions round trip
-        for pi in all::<TwoTrianglesIndex>() {
-            let pi_rt = move_table.sym_index_to_raw_index(move_table.raw_index_to_sym_index(pi));
-            assert_eq!(pi_rt, pi);
-        }
-
-        // All entries are bi-directional (this holds because all turns in the
-        // turn set also have an inverse in the turn set).  If there's a move
-        // that can put you in state b from a, then there must exist an inverse
-        // turn that puts you from state a to state b.
-        for pi in all::<TwoTrianglesIndex>() {
-            for t in all::<Turns>() {
-                let (ri_a, _) = move_table.raw_index_to_sym_index(pi);
-                let (ri_b, _) = move_table.turn(ri_a, t);
-                let mut found = false;
-                for t in all::<Turns>() {
-                    let (ri_rt, _ ) = move_table.turn(ri_b, t);
-                    if ri_a == ri_rt {
-                        found = true;
-                        break;
-                    }
-                }
-                assert_eq!(found, true);
-            }
-        }
+        test::<FullSymmetry, TwoTrianglesIndex, Turns, TwoTriangles>();
     }
 
     #[test]
     fn move_table_is_correct_for_two_triangles_even_parity_without_symmetry() {
-        let rep_table = Arc::new(RepresentativeTable::new::<TwoTriangles>());
-        // Even though either Left + Right generates all states, MoveTables
-        // should basically always include turn inverses, so that they can go
-        // forward or backwards.
-        let move_table: MoveTable<NoSymmetry, TwoTrianglesEvenIndex, Turns> = MoveTable::new::<TwoTriangles>(rep_table.clone());
-
-        // Applying move_table moves is identical to applying permutations
-        for ri in rep_table.rep_indexes() {
-            let p: TwoTriangles = rep_table.rep_index_to_perm_index(ri).into();
-            for t in all::<Turns>() {
-                let by_perm = p.permute(t.into());
-                let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
-                assert_eq!(by_perm, by_table);
-            }
-        }
-
-        // Raw to sym and sym to raw functions round trip
-        for pi in all::<TwoTrianglesEvenIndex>() {
-            let pi_rt = move_table.sym_index_to_raw_index(move_table.raw_index_to_sym_index(pi));
-            assert_eq!(pi_rt, pi);
-        }
-
-        // All entries are bi-directional (this holds because all turns in the
-        // turn set also have an inverse in the turn set).  If there's a move
-        // that can put you in state b from a, then there must exist an inverse
-        // turn that puts you from state a to state b.
-        for pi in all::<TwoTrianglesEvenIndex>() {
-            for t in all::<Turns>() {
-                let (ri_a, _) = move_table.raw_index_to_sym_index(pi);
-                let (ri_b, _) = move_table.turn(ri_a, t);
-                let mut found = false;
-                for t in all::<Turns>() {
-                    let (ri_rt, _ ) = move_table.turn(ri_b, t);
-                    if ri_a == ri_rt {
-                        found = true;
-                        break;
-                    }
-                }
-                assert_eq!(found, true);
-            }
-        }
+        test::<NoSymmetry, TwoTrianglesEvenIndex, Turns, TwoTriangles>();
     }
 
     #[test]
     fn move_table_is_correct_for_two_triangles_even_parity_with_rotational_symmetry() {
-        let rep_table = Arc::new(RepresentativeTable::new::<TwoTriangles>());
-        // Even though just Left + Right is sufficient and symmetric,
-        // MoveTables should basically always include turn inverses, so that
-        // they can go forward or backwards.
-        let move_table: MoveTable<RotationalSymmetry, TwoTrianglesEvenIndex, Turns> = MoveTable::new::<TwoTriangles>(rep_table.clone());
-
-        // Applying move_table moves is identical to applying permutations
-        for ri in rep_table.rep_indexes() {
-            let p: TwoTriangles = rep_table.rep_index_to_perm_index(ri).into();
-            for t in all::<Turns>() {
-                let by_perm = p.permute(t.into());
-                let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
-                assert_eq!(by_perm, by_table);
-            }
-        }
-
-        // Raw to sym and sym to raw functions round trip
-        for pi in all::<TwoTrianglesEvenIndex>() {
-            let pi_rt = move_table.sym_index_to_raw_index(move_table.raw_index_to_sym_index(pi));
-            assert_eq!(pi_rt, pi);
-        }
-
-        // All entries are bi-directional (this holds because all turns in the
-        // turn set also have an inverse in the turn set).  If there's a move
-        // that can put you in state b from a, then there must exist an inverse
-        // turn that puts you from state a to state b.
-        for pi in all::<TwoTrianglesEvenIndex>() {
-            for t in all::<Turns>() {
-                let (ri_a, _) = move_table.raw_index_to_sym_index(pi);
-                let (ri_b, _) = move_table.turn(ri_a, t);
-                let mut found = false;
-                for t in all::<Turns>() {
-                    let (ri_rt, _ ) = move_table.turn(ri_b, t);
-                    if ri_a == ri_rt {
-                        found = true;
-                        break;
-                    }
-                }
-                assert_eq!(found, true);
-            }
-        }
+        test::<RotationalSymmetry, TwoTrianglesEvenIndex, Turns, TwoTriangles>();
     }
 
     #[test]
     fn move_table_is_correct_for_two_triangles_even_parity_with_full_symmetry() {
-        let rep_table = Arc::new(RepresentativeTable::new::<TwoTriangles>());
-        let move_table: MoveTable<FullSymmetry, TwoTrianglesEvenIndex, Turns> = MoveTable::new::<TwoTriangles>(rep_table.clone());
-
-        // Applying move_table moves is identical to applying permutations
-        for ri in rep_table.rep_indexes() {
-            let p: TwoTriangles = rep_table.rep_index_to_perm_index(ri).into();
-            for t in all::<Turns>() {
-                let by_perm = p.permute(t.into());
-                let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
-                assert_eq!(by_perm, by_table);
-            }
-        }
-
-        // Raw to sym and sym to raw functions round trip
-        for pi in all::<TwoTrianglesEvenIndex>() {
-            let pi_rt = move_table.sym_index_to_raw_index(move_table.raw_index_to_sym_index(pi));
-            assert_eq!(pi_rt, pi);
-        }
-
-        // All entries are bi-directional (this holds because all turns in the
-        // turn set also have an inverse in the turn set).  If there's a move
-        // that can put you in state b from a, then there must exist an inverse
-        // turn that puts you from state a to state b.
-        for pi in all::<TwoTrianglesEvenIndex>() {
-            for t in all::<Turns>() {
-                let (ri_a, _) = move_table.raw_index_to_sym_index(pi);
-                let (ri_b, _) = move_table.turn(ri_a, t);
-                let mut found = false;
-                for t in all::<Turns>() {
-                    let (ri_rt, _ ) = move_table.turn(ri_b, t);
-                    if ri_a == ri_rt {
-                        found = true;
-                        break;
-                    }
-                }
-                assert_eq!(found, true);
-            }
-        }
+        test::<FullSymmetry, TwoTrianglesEvenIndex, Turns, TwoTriangles>();
     }
 
     use two_lines;
 
     #[test]
     fn move_table_is_correct_for_two_lines_without_symmetry() {
-        let rep_table = Arc::new(RepresentativeTable::new::<two_lines::TwoLines>());
-        // Even though either Left + Right generates all states, MoveTables
-        // should basically always include turn inverses, so that they can go
-        // forward or backwards.
-        let move_table: MoveTable<two_lines::NoSymmetry, two_lines::TwoLinesIndex, two_lines::Turns> = MoveTable::new::<two_lines::TwoLines>(rep_table.clone());
-
-        // Applying move_table moves is identical to applying permutations
-        for ri in rep_table.rep_indexes() {
-            let p: two_lines::TwoLines = rep_table.rep_index_to_perm_index(ri).into();
-            for t in all::<two_lines::Turns>() {
-                let by_perm = p.permute(t.into());
-                let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
-                assert_eq!(by_perm, by_table);
-            }
-        }
-
-        // Raw to sym and sym to raw functions round trip
-        for pi in all::<two_lines::TwoLinesIndex>() {
-            let pi_rt = move_table.sym_index_to_raw_index(move_table.raw_index_to_sym_index(pi));
-            assert_eq!(pi_rt, pi);
-        }
-
-        // All entries are bi-directional (this holds because all turns in the
-        // turn set also have an inverse in the turn set).  If there's a move
-        // that can put you in state b from a, then there must exist an inverse
-        // turn that puts you from state a to state b.
-        for pi in all::<two_lines::TwoLinesIndex>() {
-            for t in all::<two_lines::Turns>() {
-                let (ri_a, _) = move_table.raw_index_to_sym_index(pi);
-                let (ri_b, _) = move_table.turn(ri_a, t);
-                let mut found = false;
-                for t in all::<two_lines::Turns>() {
-                    let (ri_rt, _ ) = move_table.turn(ri_b, t);
-                    if ri_a == ri_rt {
-                        found = true;
-                        break;
-                    }
-                }
-                assert_eq!(found, true);
-            }
-        }
+        test::<two_lines::NoSymmetry, two_lines::TwoLinesIndex, two_lines::Turns, two_lines::TwoLines>();
     }
     #[test]
     fn move_table_is_correct_for_two_lines_with_symmetry() {
-        let rep_table = Arc::new(RepresentativeTable::new::<two_lines::TwoLines>());
-        // Even though either Left + Right generates all states, MoveTables
-        // should basically always include turn inverses, so that they can go
-        // forward or backwards.
-        let move_table: MoveTable<two_lines::FullSymmetry, two_lines::TwoLinesIndex, two_lines::Turns> = MoveTable::new::<two_lines::TwoLines>(rep_table.clone());
-
-        // Applying move_table moves is identical to applying permutations
-        for ri in rep_table.rep_indexes() {
-            let p: two_lines::TwoLines = rep_table.rep_index_to_perm_index(ri).into();
-            for t in all::<two_lines::Turns>() {
-                let by_perm = p.permute(t.into());
-                let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
-                assert_eq!(by_perm, by_table);
-            }
-        }
-
-        // Raw to sym and sym to raw functions round trip
-        for pi in all::<two_lines::TwoLinesIndex>() {
-            let pi_rt = move_table.sym_index_to_raw_index(move_table.raw_index_to_sym_index(pi));
-            assert_eq!(pi_rt, pi);
-        }
-
-        // All entries are bi-directional (this holds because all turns in the
-        // turn set also have an inverse in the turn set).  If there's a move
-        // that can put you in state b from a, then there must exist an inverse
-        // turn that puts you from state a to state b.
-        for pi in all::<two_lines::TwoLinesIndex>() {
-            for t in all::<two_lines::Turns>() {
-                let (ri_a, _) = move_table.raw_index_to_sym_index(pi);
-                let (ri_b, _) = move_table.turn(ri_a, t);
-                let mut found = false;
-                for t in all::<two_lines::Turns>() {
-                    let (ri_rt, _ ) = move_table.turn(ri_b, t);
-                    if ri_a == ri_rt {
-                        found = true;
-                        break;
-                    }
-                }
-                assert_eq!(found, true);
-            }
-        }
+        test::<two_lines::FullSymmetry, two_lines::TwoLinesIndex, two_lines::Turns, two_lines::TwoLines>();
     }
 
     use three_triangles;
 
     #[test]
     fn move_table_is_correct_for_three_triangles_without_symmetry() {
-        let rep_table = Arc::new(RepresentativeTable::new::<three_triangles::ThreeTriangles>());
-        // Even though either Left + Right generates all states, MoveTables
-        // should basically always include turn inverses, so that they can go
-        // forward or backwards.
-        let move_table: MoveTable<three_triangles::NoSymmetry, three_triangles::ThreeTrianglesIndex, three_triangles::Turns> = MoveTable::new::<three_triangles::ThreeTriangles>(rep_table.clone());
-
-        // Applying move_table moves is identical to applying permutations
-        for ri in rep_table.rep_indexes() {
-            let p: three_triangles::ThreeTriangles = rep_table.rep_index_to_perm_index(ri).into();
-            for t in all::<three_triangles::Turns>() {
-                let by_perm = p.permute(t.into());
-                let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
-                assert_eq!(by_perm, by_table);
-            }
-        }
-
-        // Raw to sym and sym to raw functions round trip
-        for pi in all::<three_triangles::ThreeTrianglesIndex>() {
-            let pi_rt = move_table.sym_index_to_raw_index(move_table.raw_index_to_sym_index(pi));
-            assert_eq!(pi_rt, pi);
-        }
-
-        // All entries are bi-directional (this holds because all turns in the
-        // turn set also have an inverse in the turn set).  If there's a move
-        // that can put you in state b from a, then there must exist an inverse
-        // turn that puts you from state a to state b.
-        for pi in all::<three_triangles::ThreeTrianglesIndex>() {
-            for t in all::<three_triangles::Turns>() {
-                let (ri_a, _) = move_table.raw_index_to_sym_index(pi);
-                let (ri_b, _) = move_table.turn(ri_a, t);
-                let mut found = false;
-                for t in all::<three_triangles::Turns>() {
-                    let (ri_rt, _ ) = move_table.turn(ri_b, t);
-                    if ri_a == ri_rt {
-                        found = true;
-                        break;
-                    }
-                }
-                assert_eq!(found, true);
-            }
-        }
+        test::<three_triangles::NoSymmetry, three_triangles::ThreeTrianglesIndex, three_triangles::Turns, three_triangles::ThreeTriangles>();
     }
 
     #[test]
     fn move_table_is_correct_for_three_triangles_with_mirror_ud_symmetry() {
-        let rep_table = Arc::new(RepresentativeTable::new::<three_triangles::ThreeTriangles>());
-        // Even though either Left + Right generates all states, MoveTables
-        // should basically always include turn inverses, so that they can go
-        // forward or backwards.
-        let move_table: MoveTable<three_triangles::MirrorUDSymmetry, three_triangles::ThreeTrianglesIndex, three_triangles::Turns> = MoveTable::new::<three_triangles::ThreeTriangles>(rep_table.clone());
-
-        // Applying move_table moves is identical to applying permutations
-        for ri in rep_table.rep_indexes() {
-            let p: three_triangles::ThreeTriangles = rep_table.rep_index_to_perm_index(ri).into();
-            for t in all::<three_triangles::Turns>() {
-                let by_perm = p.permute(t.into());
-                let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
-                assert_eq!(by_perm, by_table);
-            }
-        }
-
-        // Raw to sym and sym to raw functions round trip
-        for pi in all::<three_triangles::ThreeTrianglesIndex>() {
-            let pi_rt = move_table.sym_index_to_raw_index(move_table.raw_index_to_sym_index(pi));
-            assert_eq!(pi_rt, pi);
-        }
-
-        // All entries are bi-directional (this holds because all turns in the
-        // turn set also have an inverse in the turn set).  If there's a move
-        // that can put you in state b from a, then there must exist an inverse
-        // turn that puts you from state a to state b.
-        for pi in all::<three_triangles::ThreeTrianglesIndex>() {
-            for t in all::<three_triangles::Turns>() {
-                let (ri_a, _) = move_table.raw_index_to_sym_index(pi);
-                let (ri_b, _) = move_table.turn(ri_a, t);
-                let mut found = false;
-                for t in all::<three_triangles::Turns>() {
-                    let (ri_rt, _ ) = move_table.turn(ri_b, t);
-                    if ri_a == ri_rt {
-                        found = true;
-                        break;
-                    }
-                }
-                assert_eq!(found, true);
-            }
-        }
+        test::<three_triangles::MirrorUDSymmetry, three_triangles::ThreeTrianglesIndex, three_triangles::Turns, three_triangles::ThreeTriangles>();
     }
 
     #[test]
     fn move_table_is_correct_for_three_triangles_with_rotational_symmetry() {
-        let rep_table = Arc::new(RepresentativeTable::new::<three_triangles::ThreeTriangles>());
-        // Even though either Left + Right generates all states, MoveTables
-        // should basically always include turn inverses, so that they can go
-        // forward or backwards.
-        let move_table: MoveTable<three_triangles::RotationalSymmetry, three_triangles::ThreeTrianglesIndex, three_triangles::Turns> = MoveTable::new::<three_triangles::ThreeTriangles>(rep_table.clone());
-
-        // Applying move_table moves is identical to applying permutations
-        for ri in rep_table.rep_indexes() {
-            let p: three_triangles::ThreeTriangles = rep_table.rep_index_to_perm_index(ri).into();
-            for t in all::<three_triangles::Turns>() {
-                let by_perm = p.permute(t.into());
-                let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
-                assert_eq!(by_perm, by_table);
-            }
-        }
-
-        // Raw to sym and sym to raw functions round trip
-        for pi in all::<three_triangles::ThreeTrianglesIndex>() {
-            let pi_rt = move_table.sym_index_to_raw_index(move_table.raw_index_to_sym_index(pi));
-            assert_eq!(pi_rt, pi);
-        }
-
-        // All entries are bi-directional (this holds because all turns in the
-        // turn set also have an inverse in the turn set).  If there's a move
-        // that can put you in state b from a, then there must exist an inverse
-        // turn that puts you from state a to state b.
-        for pi in all::<three_triangles::ThreeTrianglesIndex>() {
-            for t in all::<three_triangles::Turns>() {
-                let (ri_a, _) = move_table.raw_index_to_sym_index(pi);
-                let (ri_b, _) = move_table.turn(ri_a, t);
-                let mut found = false;
-                for t in all::<three_triangles::Turns>() {
-                    let (ri_rt, _ ) = move_table.turn(ri_b, t);
-                    if ri_a == ri_rt {
-                        found = true;
-                        break;
-                    }
-                }
-                assert_eq!(found, true);
-            }
-        }
+        test::<three_triangles::RotationalSymmetry, three_triangles::ThreeTrianglesIndex, three_triangles::Turns, three_triangles::ThreeTriangles>();
     }
 
     #[test]
     fn move_table_is_correct_for_three_triangles_with_full_symmetry() {
-        let rep_table = Arc::new(RepresentativeTable::new::<three_triangles::ThreeTriangles>());
-        // Even though either Left + Right generates all states, MoveTables
-        // should basically always include turn inverses, so that they can go
-        // forward or backwards.
-        let move_table: MoveTable<three_triangles::FullSymmetry, three_triangles::ThreeTrianglesIndex, three_triangles::Turns> = MoveTable::new::<three_triangles::ThreeTriangles>(rep_table.clone());
-
-        // Applying move_table moves is identical to applying permutations
-        for ri in rep_table.rep_indexes() {
-            let p: three_triangles::ThreeTriangles = rep_table.rep_index_to_perm_index(ri).into();
-            for t in all::<three_triangles::Turns>() {
-                let by_perm = p.permute(t.into());
-                let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
-                assert_eq!(by_perm, by_table);
-            }
-        }
-
-        // Raw to sym and sym to raw functions round trip
-        for pi in all::<three_triangles::ThreeTrianglesIndex>() {
-            let pi_rt = move_table.sym_index_to_raw_index(move_table.raw_index_to_sym_index(pi));
-            assert_eq!(pi_rt, pi);
-        }
-
-        // All entries are bi-directional (this holds because all turns in the
-        // turn set also have an inverse in the turn set).  If there's a move
-        // that can put you in state b from a, then there must exist an inverse
-        // turn that puts you from state a to state b.
-        for pi in all::<three_triangles::ThreeTrianglesIndex>() {
-            for t in all::<three_triangles::Turns>() {
-                let (ri_a, _) = move_table.raw_index_to_sym_index(pi);
-                let (ri_b, _) = move_table.turn(ri_a, t);
-                let mut found = false;
-                for t in all::<three_triangles::Turns>() {
-                    let (ri_rt, _ ) = move_table.turn(ri_b, t);
-                    if ri_a == ri_rt {
-                        found = true;
-                        break;
-                    }
-                }
-                assert_eq!(found, true);
-            }
-        }
-    }
-
-    #[test]
-    fn move_table_is_correct_for_three_triangles_even_parity_with_mirror_ud_symmetry() {
-        let rep_table = Arc::new(RepresentativeTable::new::<three_triangles::ThreeTriangles>());
-        // Even though either Left + Right generates all states, MoveTables
-        // should basically always include turn inverses, so that they can go
-        // forward or backwards.
-        let move_table: MoveTable<three_triangles::MirrorUDSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles::Turns> = MoveTable::new::<three_triangles::ThreeTriangles>(rep_table.clone());
-
-        // Applying move_table moves is identical to applying permutations
-        for ri in rep_table.rep_indexes() {
-            let p: three_triangles::ThreeTriangles = rep_table.rep_index_to_perm_index(ri).into();
-            for t in all::<three_triangles::Turns>() {
-                let by_perm = p.permute(t.into());
-                let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
-                assert_eq!(by_perm, by_table);
-            }
-        }
-
-        // Raw to sym and sym to raw functions round trip
-        for pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
-            let pi_rt = move_table.sym_index_to_raw_index(move_table.raw_index_to_sym_index(pi));
-            assert_eq!(pi_rt, pi);
-        }
-
-        // All entries are bi-directional (this holds because all turns in the
-        // turn set also have an inverse in the turn set).  If there's a move
-        // that can put you in state b from a, then there must exist an inverse
-        // turn that puts you from state a to state b.
-        for pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
-            for t in all::<three_triangles::Turns>() {
-                let (ri_a, _) = move_table.raw_index_to_sym_index(pi);
-                let (ri_b, _) = move_table.turn(ri_a, t);
-                let mut found = false;
-                for t in all::<three_triangles::Turns>() {
-                    let (ri_rt, _ ) = move_table.turn(ri_b, t);
-                    if ri_a == ri_rt {
-                        found = true;
-                        break;
-                    }
-                }
-                assert_eq!(found, true);
-            }
-        }
-    }
-
-    #[test]
-    fn move_table_is_correct_for_three_triangles_even_parity_with_rotational_symmetry() {
-        let rep_table = Arc::new(RepresentativeTable::new::<three_triangles::ThreeTriangles>());
-        // Even though either Left + Right generates all states, MoveTables
-        // should basically always include turn inverses, so that they can go
-        // forward or backwards.
-        let move_table: MoveTable<three_triangles::RotationalSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles::Turns> = MoveTable::new::<three_triangles::ThreeTriangles>(rep_table.clone());
-
-        // Applying move_table moves is identical to applying permutations
-        for ri in rep_table.rep_indexes() {
-            let p: three_triangles::ThreeTriangles = rep_table.rep_index_to_perm_index(ri).into();
-            for t in all::<three_triangles::Turns>() {
-                let by_perm = p.permute(t.into());
-                let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
-                assert_eq!(by_perm, by_table);
-            }
-        }
-
-        // Raw to sym and sym to raw functions round trip
-        for pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
-            let pi_rt = move_table.sym_index_to_raw_index(move_table.raw_index_to_sym_index(pi));
-            assert_eq!(pi_rt, pi);
-        }
-
-        // All entries are bi-directional (this holds because all turns in the
-        // turn set also have an inverse in the turn set).  If there's a move
-        // that can put you in state b from a, then there must exist an inverse
-        // turn that puts you from state a to state b.
-        for pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
-            for t in all::<three_triangles::Turns>() {
-                let (ri_a, _) = move_table.raw_index_to_sym_index(pi);
-                let (ri_b, _) = move_table.turn(ri_a, t);
-                let mut found = false;
-                for t in all::<three_triangles::Turns>() {
-                    let (ri_rt, _ ) = move_table.turn(ri_b, t);
-                    if ri_a == ri_rt {
-                        found = true;
-                        break;
-                    }
-                }
-                assert_eq!(found, true);
-            }
-        }
+        test::<three_triangles::FullSymmetry, three_triangles::ThreeTrianglesIndex, three_triangles::Turns, three_triangles::ThreeTriangles>();
     }
 
     #[test]
     fn move_table_is_correct_for_three_triangles_even_parity_without_symmetry() {
-        let rep_table = Arc::new(RepresentativeTable::new::<three_triangles::ThreeTriangles>());
-        // Even though either Left + Right generates all states, MoveTables
-        // should basically always include turn inverses, so that they can go
-        // forward or backwards.
-        let move_table: MoveTable<three_triangles::NoSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles::Turns> = MoveTable::new::<three_triangles::ThreeTriangles>(rep_table.clone());
+        test::<three_triangles::NoSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles::Turns, three_triangles::ThreeTriangles>();
+    }
 
-        // Applying move_table moves is identical to applying permutations
-        for ri in rep_table.rep_indexes() {
-            let p: three_triangles::ThreeTriangles = rep_table.rep_index_to_perm_index(ri).into();
-            for t in all::<three_triangles::Turns>() {
-                let by_perm = p.permute(t.into());
-                let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
-                assert_eq!(by_perm, by_table);
-            }
-        }
+    #[test]
+    fn move_table_is_correct_for_three_triangles_even_parity_with_mirror_ud_symmetry() {
+        test::<three_triangles::MirrorUDSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles::Turns, three_triangles::ThreeTriangles>();
+    }
 
-        // Raw to sym and sym to raw functions round trip
-        for pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
-            let pi_rt = move_table.sym_index_to_raw_index(move_table.raw_index_to_sym_index(pi));
-            assert_eq!(pi_rt, pi);
-        }
-
-        // All entries are bi-directional (this holds because all turns in the
-        // turn set also have an inverse in the turn set).  If there's a move
-        // that can put you in state b from a, then there must exist an inverse
-        // turn that puts you from state a to state b.
-        for pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
-            for t in all::<three_triangles::Turns>() {
-                let (ri_a, _) = move_table.raw_index_to_sym_index(pi);
-                let (ri_b, _) = move_table.turn(ri_a, t);
-                let mut found = false;
-                for t in all::<three_triangles::Turns>() {
-                    let (ri_rt, _ ) = move_table.turn(ri_b, t);
-                    if ri_a == ri_rt {
-                        found = true;
-                        break;
-                    }
-                }
-                assert_eq!(found, true);
-            }
-        }
+    #[test]
+    fn move_table_is_correct_for_three_triangles_even_parity_with_rotational_symmetry() {
+        test::<three_triangles::RotationalSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles::Turns, three_triangles::ThreeTriangles>();
     }
 
     #[test]
     fn move_table_is_correct_for_three_triangles_even_parity_with_full_symmetry() {
-        let rep_table = Arc::new(RepresentativeTable::new::<three_triangles::ThreeTriangles>());
-        // Even though either Left + Right generates all states, MoveTables
-        // should basically always include turn inverses, so that they can go
-        // forward or backwards.
-        let move_table: MoveTable<three_triangles::FullSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles::Turns> = MoveTable::new::<three_triangles::ThreeTriangles>(rep_table.clone());
-
-        // Applying move_table moves is identical to applying permutations
-        for ri in rep_table.rep_indexes() {
-            let p: three_triangles::ThreeTriangles = rep_table.rep_index_to_perm_index(ri).into();
-            for t in all::<three_triangles::Turns>() {
-                let by_perm = p.permute(t.into());
-                let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
-                assert_eq!(by_perm, by_table);
-            }
-        }
-
-        // Raw to sym and sym to raw functions round trip
-        for pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
-            let pi_rt = move_table.sym_index_to_raw_index(move_table.raw_index_to_sym_index(pi));
-            assert_eq!(pi_rt, pi);
-        }
-
-        // All entries are bi-directional (this holds because all turns in the
-        // turn set also have an inverse in the turn set).  If there's a move
-        // that can put you in state b from a, then there must exist an inverse
-        // turn that puts you from state a to state b.
-        for pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
-            for t in all::<three_triangles::Turns>() {
-                let (ri_a, _) = move_table.raw_index_to_sym_index(pi);
-                let (ri_b, _) = move_table.turn(ri_a, t);
-                let mut found = false;
-                for t in all::<three_triangles::Turns>() {
-                    let (ri_rt, _ ) = move_table.turn(ri_b, t);
-                    if ri_a == ri_rt {
-                        found = true;
-                        break;
-                    }
-                }
-                assert_eq!(found, true);
-            }
-        }
+        test::<three_triangles::FullSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles::Turns, three_triangles::ThreeTriangles>();
     }
 
     use three_triangles_stack;
