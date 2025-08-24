@@ -171,12 +171,11 @@ mod tests {
     use two_triangles::*;
     use enum_iterator::cardinality;
 
-    #[test]
-    fn representative_table_is_correct_for_two_triangles_without_symmetry() {
-        let rep_table: RepresentativeTable<NoSymmetry, TwoTrianglesIndex> = RepresentativeTable::new::<TwoTriangles>();
+    fn test<Sym: Sequence + Clone, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize> + Into<Perm> + std::fmt::Debug, Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>>(len: usize) where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
+        let rep_table: RepresentativeTable<Sym, PermIndex> = RepresentativeTable::new::<Perm>();
 
         // Finds the expected number
-        assert_eq!(rep_table.table.len(), 120);
+        assert_eq!(rep_table.table.len(), len);
 
         // Is ordered without duplicates
         for i in 1..rep_table.table.len() {
@@ -184,316 +183,74 @@ mod tests {
         }
 
         // raw_index_to_sym_index round trips
-        for pi in all::<TwoTrianglesIndex>() {
+        for pi in all::<PermIndex>() {
             let (ri, sym) = rep_table.raw_index_to_sym_index(pi);
-            let rep = Into::<TwoTriangles>::into(pi).get_equivalent(&sym);
+            let rep = Into::<Perm>::into(pi).get_equivalent(&sym);
             assert_eq!(rep_table.rep_index_to_perm_index(ri), rep.into())
         }
 
         // Number of self-symmetric positions does not exceed possible bound
         let mut count = 0;
         for ri in rep_table.rep_indexes() {
-            count += cardinality::<NoSymmetry>() - (if rep_table.is_self_symmetric(ri) { 1 } else { 0 });
+            count += cardinality::<Sym>() - (if rep_table.is_self_symmetric(ri) { 1 } else { 0 });
         }
-        assert_eq!(count >= cardinality::<TwoTrianglesIndex>(), true);
+        assert_eq!(count >= cardinality::<PermIndex>(), true);
+    }
+
+    #[test]
+    fn representative_table_is_correct_for_two_triangles_without_symmetry() {
+        test::<NoSymmetry, TwoTrianglesIndex, TwoTriangles>(120);
     }
 
     #[test]
     fn representative_table_is_correct_for_two_triangles_with_rotational_symmetry() {
-        let rep_table: RepresentativeTable<RotationalSymmetry, TwoTrianglesIndex> = RepresentativeTable::new::<TwoTriangles>();
-
-        // Finds the expected number
-        assert_eq!(rep_table.table.len(), 64);
-
-        // Is ordered without duplicates
-        for i in 1..rep_table.table.len() {
-            assert_eq!(rep_table.table[i - 1] < rep_table.table[i], true);
-        }
-
-        // raw_index_to_sym_index round trips
-        for pi in all::<TwoTrianglesIndex>() {
-            let (ri, sym) = rep_table.raw_index_to_sym_index(pi);
-            let rep = Into::<TwoTriangles>::into(pi).get_equivalent(&sym);
-            assert_eq!(rep_table.rep_index_to_perm_index(ri), rep.into())
-        }
-
-        // Number of self-symmetric positions does not exceed possible bound
-        let mut count = 0;
-        for ri in rep_table.rep_indexes() {
-            count += cardinality::<RotationalSymmetry>() - (if rep_table.is_self_symmetric(ri) { 1 } else { 0 });
-        }
-        assert_eq!(count >= cardinality::<TwoTrianglesIndex>(), true);
-    }
-
-    #[test]
-    fn representative_table_is_correct_for_two_triangles_with_full_symmetry() {
-        let rep_table: RepresentativeTable<FullSymmetry, TwoTrianglesIndex> = RepresentativeTable::new::<TwoTriangles>();
-
-        // Finds the expected number
-        assert_eq!(rep_table.table.len(), 36);
-
-        // Is ordered without duplicates
-        for i in 1..rep_table.table.len() {
-            assert_eq!(rep_table.table[i - 1] < rep_table.table[i], true);
-        }
-
-        // raw_index_to_sym_index round trips
-        for pi in all::<TwoTrianglesIndex>() {
-            let (ri, sym) = rep_table.raw_index_to_sym_index(pi);
-            let rep = Into::<TwoTriangles>::into(pi).get_equivalent(&sym);
-            assert_eq!(rep_table.rep_index_to_perm_index(ri), rep.into())
-        }
-
-        // Number of self-symmetric positions does not exceed possible bound
-        let mut count = 0;
-        for ri in rep_table.rep_indexes() {
-            count += cardinality::<FullSymmetry>() - (if rep_table.is_self_symmetric(ri) { 1 } else { 0 });
-        }
-        assert_eq!(count >= cardinality::<TwoTrianglesIndex>(), true);
+        test::<RotationalSymmetry, TwoTrianglesIndex, TwoTriangles>(64);
     }
 
     #[test]
     fn representative_table_is_correct_for_two_triangles_even_perms_without_symmetry() {
-        let rep_table: RepresentativeTable<NoSymmetry, TwoTrianglesEvenIndex> = RepresentativeTable::new::<TwoTriangles>();
-
-        // Finds the expected number
-        assert_eq!(rep_table.table.len(), 60);
-
-        // Is ordered without duplicates
-        for i in 1..rep_table.table.len() {
-            assert_eq!(rep_table.table[i - 1] < rep_table.table[i], true);
-        }
-
-        // raw_index_to_sym_index round trips
-        for pi in all::<TwoTrianglesEvenIndex>() {
-            let (ri, sym) = rep_table.raw_index_to_sym_index(pi);
-            let rep = Into::<TwoTriangles>::into(pi).get_equivalent(&sym);
-            assert_eq!(rep_table.rep_index_to_perm_index(ri), rep.into())
-        }
-
-        // Number of self-symmetric positions does not exceed possible bound
-        let mut count = 0;
-        for ri in rep_table.rep_indexes() {
-            count += cardinality::<NoSymmetry>() - (if rep_table.is_self_symmetric(ri) { 1 } else { 0 });
-        }
-        assert_eq!(count >= cardinality::<TwoTrianglesEvenIndex>(), true);
+        test::<NoSymmetry, TwoTrianglesEvenIndex, TwoTriangles>(60);
     }
 
     #[test]
     fn representative_table_is_correct_for_two_triangles_even_perms_with_rotational_symmetry() {
-        let rep_table: RepresentativeTable<RotationalSymmetry, TwoTrianglesEvenIndex> = RepresentativeTable::new::<TwoTriangles>();
-
-        // Finds the expected number
-        assert_eq!(rep_table.table.len(), 32);
-
-        // Is ordered without duplicates
-        for i in 1..rep_table.table.len() {
-            assert_eq!(rep_table.table[i - 1] < rep_table.table[i], true);
-        }
-
-        // raw_index_to_sym_index round trips
-        for pi in all::<TwoTrianglesEvenIndex>() {
-            let (ri, sym) = rep_table.raw_index_to_sym_index(pi);
-            let rep = Into::<TwoTriangles>::into(pi).get_equivalent(&sym);
-            assert_eq!(rep_table.rep_index_to_perm_index(ri), rep.into())
-        }
-
-        // Number of self-symmetric positions does not exceed possible bound
-        let mut count = 0;
-        for ri in rep_table.rep_indexes() {
-            count += cardinality::<RotationalSymmetry>() - (if rep_table.is_self_symmetric(ri) { 1 } else { 0 });
-        }
-        assert_eq!(count >= cardinality::<TwoTrianglesEvenIndex>(), true);
+        test::<RotationalSymmetry, TwoTrianglesEvenIndex, TwoTriangles>(32);
     }
 
     #[test]
     fn representative_table_is_correct_for_two_triangles_even_perms_with_full_symmetry() {
-        let rep_table: RepresentativeTable<FullSymmetry, TwoTrianglesEvenIndex> = RepresentativeTable::new::<TwoTriangles>();
-
-        // Finds the expected number
-        assert_eq!(rep_table.table.len(), 18);
-
-        // Is ordered without duplicates
-        for i in 1..rep_table.table.len() {
-            assert_eq!(rep_table.table[i - 1] < rep_table.table[i], true);
-        }
-
-        // raw_index_to_sym_index round trips
-        for pi in all::<TwoTrianglesEvenIndex>() {
-            let (ri, sym) = rep_table.raw_index_to_sym_index(pi);
-            let rep = Into::<TwoTriangles>::into(pi).get_equivalent(&sym);
-            assert_eq!(rep_table.rep_index_to_perm_index(ri), rep.into())
-        }
-
-        // Number of self-symmetric positions does not exceed possible bound
-        let mut count = 0;
-        for ri in rep_table.rep_indexes() {
-            count += cardinality::<FullSymmetry>() - (if rep_table.is_self_symmetric(ri) { 1 } else { 0 });
-        }
-        assert_eq!(count >= cardinality::<TwoTrianglesEvenIndex>(), true);
+        test::<FullSymmetry, TwoTrianglesEvenIndex, TwoTriangles>(18);
     }
 
     use three_triangles;
 
     #[test]
     fn representative_table_is_correct_for_three_triangles_without_symmetry() {
-        let rep_table: RepresentativeTable<three_triangles::NoSymmetry, three_triangles::ThreeTrianglesIndex> = RepresentativeTable::new::<three_triangles::ThreeTriangles>();
-
-        // Finds the expected number
-        assert_eq!(rep_table.table.len(), 24);
-
-        // Is ordered without duplicates
-        for i in 1..rep_table.table.len() {
-            assert_eq!(rep_table.table[i - 1] < rep_table.table[i], true);
-        }
-
-        // raw_index_to_sym_index round trips
-        for pi in all::<three_triangles::ThreeTrianglesIndex>() {
-            let (ri, sym) = rep_table.raw_index_to_sym_index(pi);
-            let rep = Into::<three_triangles::ThreeTriangles>::into(pi).get_equivalent(&sym);
-            assert_eq!(rep_table.rep_index_to_perm_index(ri), rep.into())
-        }
-
-        // Number of self-symmetric positions does not exceed possible bound
-        let mut count = 0;
-        for ri in rep_table.rep_indexes() {
-            count += cardinality::<three_triangles::NoSymmetry>() - (if rep_table.is_self_symmetric(ri) { 1 } else { 0 });
-        }
-        assert_eq!(count >= cardinality::<three_triangles::ThreeTrianglesIndex>(), true);
+        test::<three_triangles::NoSymmetry, three_triangles::ThreeTrianglesIndex, three_triangles::ThreeTriangles>(24);
     }
 
     #[test]
     fn representative_table_is_correct_for_three_triangles_with_rotational_symmetry() {
-        let rep_table: RepresentativeTable<three_triangles::RotationalSymmetry, three_triangles::ThreeTrianglesIndex> = RepresentativeTable::new::<three_triangles::ThreeTriangles>();
-
-        // Finds the expected number
-        assert_eq!(rep_table.table.len(), 10);
-
-        // Is ordered without duplicates
-        for i in 1..rep_table.table.len() {
-            assert_eq!(rep_table.table[i - 1] < rep_table.table[i], true);
-        }
-
-        // raw_index_to_sym_index round trips
-        for pi in all::<three_triangles::ThreeTrianglesIndex>() {
-            let (ri, sym) = rep_table.raw_index_to_sym_index(pi);
-            let rep = Into::<three_triangles::ThreeTriangles>::into(pi).get_equivalent(&sym);
-            assert_eq!(rep_table.rep_index_to_perm_index(ri), rep.into())
-        }
-
-        // Number of self-symmetric positions does not exceed possible bound
-        let mut count = 0;
-        for ri in rep_table.rep_indexes() {
-            count += cardinality::<three_triangles::RotationalSymmetry>() - (if rep_table.is_self_symmetric(ri) { 1 } else { 0 });
-        }
-        assert_eq!(count >= cardinality::<three_triangles::ThreeTrianglesIndex>(), true);
+        test::<three_triangles::RotationalSymmetry, three_triangles::ThreeTrianglesIndex, three_triangles::ThreeTriangles>(10);
     }
 
     #[test]
     fn representative_table_is_correct_for_three_triangles_with_full_symmetry() {
-        let rep_table: RepresentativeTable<three_triangles::FullSymmetry, three_triangles::ThreeTrianglesIndex> = RepresentativeTable::new::<three_triangles::ThreeTriangles>();
-
-        // Finds the expected number
-        assert_eq!(rep_table.table.len(), 7);
-
-        // Is ordered without duplicates
-        for i in 1..rep_table.table.len() {
-            assert_eq!(rep_table.table[i - 1] < rep_table.table[i], true);
-        }
-
-        // raw_index_to_sym_index round trips
-        for pi in all::<three_triangles::ThreeTrianglesIndex>() {
-            let (ri, sym) = rep_table.raw_index_to_sym_index(pi);
-            let rep = Into::<three_triangles::ThreeTriangles>::into(pi).get_equivalent(&sym);
-            assert_eq!(rep_table.rep_index_to_perm_index(ri), rep.into())
-        }
-
-        // Number of self-symmetric positions does not exceed possible bound
-        let mut count = 0;
-        for ri in rep_table.rep_indexes() {
-            count += cardinality::<three_triangles::FullSymmetry>() - (if rep_table.is_self_symmetric(ri) { 1 } else { 0 });
-        }
-        assert_eq!(count >= cardinality::<three_triangles::ThreeTrianglesIndex>(), true);
+        test::<three_triangles::FullSymmetry, three_triangles::ThreeTrianglesIndex, three_triangles::ThreeTriangles>(7);
     }
 
     #[test]
     fn representative_table_is_correct_for_three_triangles_even_perms_without_symmetry() {
-        let rep_table: RepresentativeTable<three_triangles::NoSymmetry, three_triangles::ThreeTrianglesEvenIndex> = RepresentativeTable::new::<three_triangles::ThreeTriangles>();
-
-        // Finds the expected number
-        assert_eq!(rep_table.table.len(), 12);
-
-        // Is ordered without duplicates
-        for i in 1..rep_table.table.len() {
-            assert_eq!(rep_table.table[i - 1] < rep_table.table[i], true);
-        }
-
-        // raw_index_to_sym_index round trips
-        for pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
-            let (ri, sym) = rep_table.raw_index_to_sym_index(pi);
-            let rep = Into::<three_triangles::ThreeTriangles>::into(pi).get_equivalent(&sym);
-            assert_eq!(rep_table.rep_index_to_perm_index(ri), rep.into())
-        }
-
-        // Number of self-symmetric positions does not exceed possible bound
-        let mut count = 0;
-        for ri in rep_table.rep_indexes() {
-            count += cardinality::<three_triangles::NoSymmetry>() - (if rep_table.is_self_symmetric(ri) { 1 } else { 0 });
-        }
-        assert_eq!(count >= cardinality::<three_triangles::ThreeTrianglesEvenIndex>(), true);
+        test::<three_triangles::NoSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles::ThreeTriangles>(12);
     }
 
     #[test]
     fn representative_table_is_correct_for_three_triangles_even_perms_with_rotational_symmetry() {
-        let rep_table: RepresentativeTable<three_triangles::RotationalSymmetry, three_triangles::ThreeTrianglesEvenIndex> = RepresentativeTable::new::<three_triangles::ThreeTriangles>();
-
-        // Finds the expected number
-        assert_eq!(rep_table.table.len(), 6);
-
-        // Is ordered without duplicates
-        for i in 1..rep_table.table.len() {
-            assert_eq!(rep_table.table[i - 1] < rep_table.table[i], true);
-        }
-
-        // raw_index_to_sym_index round trips
-        for pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
-            let (ri, sym) = rep_table.raw_index_to_sym_index(pi);
-            let rep = Into::<three_triangles::ThreeTriangles>::into(pi).get_equivalent(&sym);
-            assert_eq!(rep_table.rep_index_to_perm_index(ri), rep.into())
-        }
-
-        // Number of self-symmetric positions does not exceed possible bound
-        let mut count = 0;
-        for ri in rep_table.rep_indexes() {
-            count += cardinality::<three_triangles::RotationalSymmetry>() - (if rep_table.is_self_symmetric(ri) { 1 } else { 0 });
-        }
-        assert_eq!(count >= cardinality::<three_triangles::ThreeTrianglesEvenIndex>(), true);
+        test::<three_triangles::RotationalSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles::ThreeTriangles>(6);
     }
 
     #[test]
     fn representative_table_is_correct_for_three_triangles_even_perms_with_full_symmetry() {
-        let rep_table: RepresentativeTable<three_triangles::FullSymmetry, three_triangles::ThreeTrianglesEvenIndex> = RepresentativeTable::new::<three_triangles::ThreeTriangles>();
-
-        // Finds the expected number
-        assert_eq!(rep_table.table.len(), 4);
-
-        // Is ordered without duplicates
-        for i in 1..rep_table.table.len() {
-            assert_eq!(rep_table.table[i - 1] < rep_table.table[i], true);
-        }
-
-        // raw_index_to_sym_index round trips
-        for pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
-            let (ri, sym) = rep_table.raw_index_to_sym_index(pi);
-            let rep = Into::<three_triangles::ThreeTriangles>::into(pi).get_equivalent(&sym);
-            assert_eq!(rep_table.rep_index_to_perm_index(ri), rep.into())
-        }
-
-        // Number of self-symmetric positions does not exceed possible bound
-        let mut count = 0;
-        for ri in rep_table.rep_indexes() {
-            count += cardinality::<three_triangles::FullSymmetry>() - (if rep_table.is_self_symmetric(ri) { 1 } else { 0 });
-        }
-        assert_eq!(count >= cardinality::<three_triangles::ThreeTrianglesEvenIndex>(), true);
+        test::<three_triangles::FullSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles::ThreeTriangles>(4);
     }
 }
