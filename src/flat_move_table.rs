@@ -334,4 +334,26 @@ mod tests {
             }
         }
     }
+
+    use three_trapezoids;
+
+    #[test]
+    fn move_table_is_correct_for_three_trapezoids_without_symmetry() {
+        test::<three_trapezoids::NoSymmetry, three_trapezoids::ThreeTrapezoidsIndex, three_trapezoids::Turns, three_trapezoids::ThreeTrapezoids>();
+    }
+
+    #[test]
+    fn move_table_is_correct_for_three_trapezoids_with_mirror_ud_symmetry() {
+        test::<three_trapezoids::MirrorUDSymmetry, three_trapezoids::ThreeTrapezoidsIndex, three_trapezoids::Turns, three_trapezoids::ThreeTrapezoids>();
+    }
+
+    #[test]
+    fn move_table_is_correct_for_three_trapezoids_with_rotational_symmetry() {
+        test::<three_trapezoids::RotationalSymmetry, three_trapezoids::ThreeTrapezoidsIndex, three_trapezoids::Turns, three_trapezoids::ThreeTrapezoids>();
+    }
+
+    #[test]
+    fn move_table_is_correct_for_three_trapezoids_with_full_symmetry() {
+        test::<three_trapezoids::FullSymmetry, three_trapezoids::ThreeTrapezoidsIndex, three_trapezoids::Turns, three_trapezoids::ThreeTrapezoids>();
+    }
 }

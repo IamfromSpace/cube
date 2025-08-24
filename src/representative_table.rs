@@ -253,4 +253,29 @@ mod tests {
     fn representative_table_is_correct_for_three_triangles_even_perms_with_full_symmetry() {
         test::<three_triangles::FullSymmetry, three_triangles::ThreeTrianglesEvenIndex, three_triangles::ThreeTriangles>(4);
     }
+
+    use three_trapezoids;
+
+    #[test]
+    fn representative_table_is_correct_for_three_trapezoids_without_symmetry() {
+        test::<three_trapezoids::NoSymmetry, three_trapezoids::ThreeTrapezoidsIndex, three_trapezoids::ThreeTrapezoids>(720);
+    }
+
+    #[test]
+    fn representative_table_is_correct_for_three_trapezoids_with_mirror_ud_symmetry() {
+        // TODO: Never really validated the count, but it at least make senses
+        test::<three_trapezoids::MirrorUDSymmetry, three_trapezoids::ThreeTrapezoidsIndex, three_trapezoids::ThreeTrapezoids>(368);
+    }
+
+    #[test]
+    fn representative_table_is_correct_for_three_trapezoids_with_rotational_symmetry() {
+        // TODO: Never really validated the count, but it at least make senses
+        test::<three_trapezoids::RotationalSymmetry, three_trapezoids::ThreeTrapezoidsIndex, three_trapezoids::ThreeTrapezoids>(252);
+    }
+
+    #[test]
+    fn representative_table_is_correct_for_three_trapezoids_with_full_symmetry() {
+        // TODO: Never really validated the count, but it at least make senses
+        test::<three_trapezoids::FullSymmetry, three_trapezoids::ThreeTrapezoidsIndex, three_trapezoids::ThreeTrapezoids>(134);
+    }
 }

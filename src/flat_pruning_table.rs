@@ -370,6 +370,128 @@ mod tests {
         }
     }
 
+    use three_trapezoids;
+
+    #[test]
+    fn pruning_table_is_correct_for_three_trapezoids_parity_with_no_symmetry() {
+        let rep_table = Arc::new(RepresentativeTable::new::<three_trapezoids::ThreeTrapezoids>());
+        let move_table = Arc::new(MoveTable::new::<three_trapezoids::ThreeTrapezoids>(rep_table));
+        let pruning_table: PruningTable<three_trapezoids::NoSymmetry, three_trapezoids::ThreeTrapezoidsIndex, _, three_trapezoids::Turns, _> = PruningTable::new(move_table.clone(), std::iter::once(three_trapezoids::ThreeTrapezoids::identity().into()));
+
+        // Our simple implementation (three_trapezoids::ThreeTrapezoids is small enough to solve naively) matches our more complex one
+        let tt_table = three_trapezoids::moves_to_solve();
+        for pi in all::<three_trapezoids::ThreeTrapezoidsIndex>() {
+            let lbt = pruning_table.start_search(pi);
+            assert_eq!(*tt_table.get(&pi).unwrap(), lbt.get_lower_bound() as usize);
+            for t in all::<three_trapezoids::Turns>() {
+                let p: three_trapezoids::ThreeTrapezoids = pi.into();
+                let turned = p.permute(t.into()).into();
+                assert_eq!(*tt_table.get(&turned).unwrap(), pruning_table.continue_search(lbt, t).get_lower_bound() as usize);
+            }
+        }
+
+        // Solves the puzzle
+        for pi in all::<three_trapezoids::ThreeTrapezoidsIndex>() {
+            let mut turns = pruning_table.solve(pi);
+            turns.reverse();
+            let mut p = three_trapezoids::ThreeTrapezoids::identity();
+            for t in turns {
+                p = p.permute(t.invert().into());
+            }
+            assert_eq!(pi, p.into());
+        }
+    }
+
+    #[test]
+    fn pruning_table_is_correct_for_three_trapezoids_parity_with_mirror_ud_symmetry() {
+        let rep_table = Arc::new(RepresentativeTable::new::<three_trapezoids::ThreeTrapezoids>());
+        let move_table = Arc::new(MoveTable::new::<three_trapezoids::ThreeTrapezoids>(rep_table));
+        let pruning_table: PruningTable<three_trapezoids::MirrorUDSymmetry, three_trapezoids::ThreeTrapezoidsIndex, _, three_trapezoids::Turns, _> = PruningTable::new(move_table.clone(), std::iter::once(three_trapezoids::ThreeTrapezoids::identity().into()));
+
+        // Our simple implementation (three_trapezoids::ThreeTrapezoids is small enough to solve naively) matches our more complex one
+        let tt_table = three_trapezoids::moves_to_solve();
+        for pi in all::<three_trapezoids::ThreeTrapezoidsIndex>() {
+            let lbt = pruning_table.start_search(pi);
+            assert_eq!(*tt_table.get(&pi).unwrap(), lbt.get_lower_bound() as usize);
+            for t in all::<three_trapezoids::Turns>() {
+                let p: three_trapezoids::ThreeTrapezoids = pi.into();
+                let turned = p.permute(t.into()).into();
+                assert_eq!(*tt_table.get(&turned).unwrap(), pruning_table.continue_search(lbt, t).get_lower_bound() as usize);
+            }
+        }
+
+        // Solves the puzzle
+        for pi in all::<three_trapezoids::ThreeTrapezoidsIndex>() {
+            let mut turns = pruning_table.solve(pi);
+            turns.reverse();
+            let mut p = three_trapezoids::ThreeTrapezoids::identity();
+            for t in turns {
+                p = p.permute(t.invert().into());
+            }
+            assert_eq!(pi, p.into());
+        }
+    }
+
+    #[test]
+    fn pruning_table_is_correct_for_three_trapezoids_parity_with_rotational_symmetry() {
+        let rep_table = Arc::new(RepresentativeTable::new::<three_trapezoids::ThreeTrapezoids>());
+        let move_table = Arc::new(MoveTable::new::<three_trapezoids::ThreeTrapezoids>(rep_table));
+        let pruning_table: PruningTable<three_trapezoids::RotationalSymmetry, three_trapezoids::ThreeTrapezoidsIndex, _, three_trapezoids::Turns, _> = PruningTable::new(move_table.clone(), std::iter::once(three_trapezoids::ThreeTrapezoids::identity().into()));
+
+        // Our simple implementation (three_trapezoids::ThreeTrapezoids is small enough to solve naively) matches our more complex one
+        let tt_table = three_trapezoids::moves_to_solve();
+        for pi in all::<three_trapezoids::ThreeTrapezoidsIndex>() {
+            let lbt = pruning_table.start_search(pi);
+            assert_eq!(*tt_table.get(&pi).unwrap(), lbt.get_lower_bound() as usize);
+            for t in all::<three_trapezoids::Turns>() {
+                let p: three_trapezoids::ThreeTrapezoids = pi.into();
+                let turned = p.permute(t.into()).into();
+                assert_eq!(*tt_table.get(&turned).unwrap(), pruning_table.continue_search(lbt, t).get_lower_bound() as usize);
+            }
+        }
+
+        // Solves the puzzle
+        for pi in all::<three_trapezoids::ThreeTrapezoidsIndex>() {
+            let mut turns = pruning_table.solve(pi);
+            turns.reverse();
+            let mut p = three_trapezoids::ThreeTrapezoids::identity();
+            for t in turns {
+                p = p.permute(t.invert().into());
+            }
+            assert_eq!(pi, p.into());
+        }
+    }
+
+    #[test]
+    fn pruning_table_is_correct_for_three_trapezoids_parity_with_full_symmetry() {
+        let rep_table = Arc::new(RepresentativeTable::new::<three_trapezoids::ThreeTrapezoids>());
+        let move_table = Arc::new(MoveTable::new::<three_trapezoids::ThreeTrapezoids>(rep_table));
+        let pruning_table: PruningTable<three_trapezoids::FullSymmetry, three_trapezoids::ThreeTrapezoidsIndex, _, three_trapezoids::Turns, _> = PruningTable::new(move_table.clone(), std::iter::once(three_trapezoids::ThreeTrapezoids::identity().into()));
+
+        // Our simple implementation (three_trapezoids::ThreeTrapezoids is small enough to solve naively) matches our more complex one
+        let tt_table = three_trapezoids::moves_to_solve();
+        for pi in all::<three_trapezoids::ThreeTrapezoidsIndex>() {
+            let lbt = pruning_table.start_search(pi);
+            assert_eq!(*tt_table.get(&pi).unwrap(), lbt.get_lower_bound() as usize);
+            for t in all::<three_trapezoids::Turns>() {
+                let p: three_trapezoids::ThreeTrapezoids = pi.into();
+                let turned = p.permute(t.into()).into();
+                assert_eq!(*tt_table.get(&turned).unwrap(), pruning_table.continue_search(lbt, t).get_lower_bound() as usize);
+            }
+        }
+
+        // Solves the puzzle
+        for pi in all::<three_trapezoids::ThreeTrapezoidsIndex>() {
+            let mut turns = pruning_table.solve(pi);
+            turns.reverse();
+            let mut p = three_trapezoids::ThreeTrapezoids::identity();
+            for t in turns {
+                p = p.permute(t.invert().into());
+            }
+            assert_eq!(pi, p.into());
+        }
+    }
+
     use three_triangles_stack;
     use composite_move_table::CompositeMoveTable;
 
