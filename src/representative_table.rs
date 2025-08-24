@@ -1,4 +1,3 @@
-use permutation_group::PermutationGroup as PG;
 use equivalence_class::EquivalenceClass;
 
 use std::collections::BTreeMap;
@@ -25,7 +24,7 @@ pub struct RepresentativeTable<Sym, PermIndex> {
 }
 
 impl<Sym: Sequence + Clone, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>> RepresentativeTable<Sym, PermIndex> where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
-    pub fn new<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>>() -> Self where PermIndex: Into<Perm> {
+    pub fn new<Perm: Clone + EquivalenceClass<Sym> + Into<PermIndex>>() -> Self where PermIndex: Into<Perm> {
         let mut discovered = BTreeMap::new();
         let mut self_symmetric_table = Vec::new();
         let mut table = Vec::new();
@@ -132,7 +131,7 @@ impl<Sym: Sequence + Clone, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + 
 // reduction, or if there are other valid options.  Since self-symmetric cases
 // are rare, this allows us to skip searching through all valid symmetries in
 // the cases where we need to consider them all, like composite move tables.
-fn smallest_equivalence<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>, Sym: Sequence, PermIndex: Ord>(perm: &Perm) -> (PermIndex, Sym, bool) {
+fn smallest_equivalence<Perm: Clone + EquivalenceClass<Sym> + Into<PermIndex>, Sym: Sequence, PermIndex: Ord>(perm: &Perm) -> (PermIndex, Sym, bool) {
     let mut smallest: Option<PermIndex> = None;
     let mut sym: Option<Sym> = None;
     let mut is_self_symmetric = false;
@@ -171,7 +170,7 @@ mod tests {
     use two_triangles::*;
     use enum_iterator::cardinality;
 
-    fn test<Sym: Sequence + Clone, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize> + Into<Perm> + std::fmt::Debug, Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>>(len: usize) where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
+    fn test<Sym: Sequence + Clone, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize> + Into<Perm> + std::fmt::Debug, Perm: Clone + EquivalenceClass<Sym> + Into<PermIndex>>(len: usize) where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
         let rep_table: RepresentativeTable<Sym, PermIndex> = RepresentativeTable::new::<Perm>();
 
         // Finds the expected number
