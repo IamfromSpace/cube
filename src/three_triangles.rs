@@ -810,6 +810,21 @@ mod tests {
     }
 
     #[test]
+    fn permutation_is_associative() {
+        // Typically we need to use quickcheck here, but we can be exhaustive for a puzzle this size
+        for pi_0 in all::<ThreeTrianglesIndex>() {
+            let p_0: ThreeTriangles = pi_0.into();
+            for pi_1 in all::<ThreeTrianglesIndex>() {
+                let p_1: ThreeTriangles = pi_1.into();
+                for pi_2 in all::<ThreeTrianglesIndex>() {
+                    let p_2: ThreeTriangles = pi_2.into();
+                    assert_eq!(p_0.permute(p_1).permute(p_2), p_0.permute(p_1.permute(p_2)));
+                }
+            }
+        }
+    }
+
+    #[test]
     fn perm_and_turns_and_sym_invert_round_trips() {
         // Typically we need to use quickcheck here, but we can be exhaustive for a puzzle this size
         for pi in all::<ThreeTrianglesIndex>() {

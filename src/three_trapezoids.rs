@@ -630,13 +630,31 @@ pub fn moves_to_solve() -> BTreeMap<ThreeTrapezoidsIndex, usize> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use enum_iterator::all;
+    use enum_iterator::{all, cardinality};
+    use quickcheck::Gen;
+    use rand::Rng;
+
+    impl quickcheck::Arbitrary for ThreeTrapezoidsIndex {
+        fn arbitrary<G: Gen>(g: &mut G) -> ThreeTrapezoidsIndex {
+            ThreeTrapezoidsIndex(*g.choose(&(0..cardinality::<ThreeTrapezoidsIndex>() as u16).collect::<Vec<_>>()).unwrap())
+        }
+    }
 
     #[test]
     fn all_odd_lehmer_codes_round_trip() {
         for i in 0..720u16 {
             let t: ThreeTrapezoids = from_lehmer(i);
             assert_eq!(i, to_lehmer(t));
+        }
+    }
+
+    // Even thugh this puzzle is quite small, it's still too big for exhaustive checking
+    quickcheck! {
+        fn permutation_is_associative(pi_0: ThreeTrapezoidsIndex, pi_1: ThreeTrapezoidsIndex, pi_2: ThreeTrapezoidsIndex) -> bool {
+            let p_0: ThreeTrapezoids = pi_0.into();
+            let p_1: ThreeTrapezoids = pi_1.into();
+            let p_2: ThreeTrapezoids = pi_2.into();
+            p_0.permute(p_1).permute(p_2) == p_0.permute(p_1.permute(p_2))
         }
     }
 

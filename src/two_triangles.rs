@@ -676,6 +676,21 @@ mod tests {
     }
 
     #[test]
+    fn permutation_is_associative() {
+        // Typically we need to use quickcheck here, but we can be exhaustive for a puzzle this size
+        for pi_0 in all::<TwoTrianglesIndex>() {
+            let p_0: TwoTriangles = pi_0.into();
+            for pi_1 in all::<TwoTrianglesIndex>() {
+                let p_1: TwoTriangles = pi_1.into();
+                for pi_2 in all::<TwoTrianglesIndex>() {
+                    let p_2: TwoTriangles = pi_2.into();
+                    assert_eq!(p_0.permute(p_1).permute(p_2), p_0.permute(p_1.permute(p_2)));
+                }
+            }
+        }
+    }
+
+    #[test]
     fn perm_and_turn_no_symmetries_are_equivalent() {
         // Typically we need to use quickcheck here, but we can be exhaustive for a puzzle this size
         for s in all::<NoSymmetry>() {
