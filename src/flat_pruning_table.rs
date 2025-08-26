@@ -373,7 +373,7 @@ mod tests {
     use three_trapezoids;
 
     #[test]
-    fn pruning_table_is_correct_for_three_trapezoids_parity_with_no_symmetry() {
+    fn pruning_table_is_correct_for_three_trapezoids_with_no_symmetry() {
         let rep_table = Arc::new(RepresentativeTable::new::<three_trapezoids::ThreeTrapezoids>());
         let move_table = Arc::new(MoveTable::new::<three_trapezoids::ThreeTrapezoids>(rep_table));
         let pruning_table: PruningTable<three_trapezoids::NoSymmetry, three_trapezoids::ThreeTrapezoidsIndex, _, three_trapezoids::Turns, _> = PruningTable::new(move_table.clone(), std::iter::once(three_trapezoids::ThreeTrapezoids::identity().into()));
@@ -403,7 +403,7 @@ mod tests {
     }
 
     #[test]
-    fn pruning_table_is_correct_for_three_trapezoids_parity_with_mirror_ud_symmetry() {
+    fn pruning_table_is_correct_for_three_trapezoids_with_mirror_ud_symmetry() {
         let rep_table = Arc::new(RepresentativeTable::new::<three_trapezoids::ThreeTrapezoids>());
         let move_table = Arc::new(MoveTable::new::<three_trapezoids::ThreeTrapezoids>(rep_table));
         let pruning_table: PruningTable<three_trapezoids::MirrorUDSymmetry, three_trapezoids::ThreeTrapezoidsIndex, _, three_trapezoids::Turns, _> = PruningTable::new(move_table.clone(), std::iter::once(three_trapezoids::ThreeTrapezoids::identity().into()));
@@ -433,7 +433,7 @@ mod tests {
     }
 
     #[test]
-    fn pruning_table_is_correct_for_three_trapezoids_parity_with_rotational_symmetry() {
+    fn pruning_table_is_correct_for_three_trapezoids_with_rotational_symmetry() {
         let rep_table = Arc::new(RepresentativeTable::new::<three_trapezoids::ThreeTrapezoids>());
         let move_table = Arc::new(MoveTable::new::<three_trapezoids::ThreeTrapezoids>(rep_table));
         let pruning_table: PruningTable<three_trapezoids::RotationalSymmetry, three_trapezoids::ThreeTrapezoidsIndex, _, three_trapezoids::Turns, _> = PruningTable::new(move_table.clone(), std::iter::once(three_trapezoids::ThreeTrapezoids::identity().into()));
@@ -463,7 +463,7 @@ mod tests {
     }
 
     #[test]
-    fn pruning_table_is_correct_for_three_trapezoids_parity_with_full_symmetry() {
+    fn pruning_table_is_correct_for_three_trapezoids_with_full_symmetry() {
         let rep_table = Arc::new(RepresentativeTable::new::<three_trapezoids::ThreeTrapezoids>());
         let move_table = Arc::new(MoveTable::new::<three_trapezoids::ThreeTrapezoids>(rep_table));
         let pruning_table: PruningTable<three_trapezoids::FullSymmetry, three_trapezoids::ThreeTrapezoidsIndex, _, three_trapezoids::Turns, _> = PruningTable::new(move_table.clone(), std::iter::once(three_trapezoids::ThreeTrapezoids::identity().into()));
