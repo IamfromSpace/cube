@@ -1,6 +1,7 @@
 use permutation_group::PermutationGroup as PG;
 use invertable::Invertable;
 use equivalence_class::EquivalenceClass;
+use algebraic_actions::GroupAction;
 use representative_table::{ RepresentativeTable, RepIndex };
 use table_traits::{ TableTurn, TableRawIndexToSymIndex, TableSymIndexToRawIndex, TableRepCount };
 
@@ -32,13 +33,18 @@ impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sy
     // TODO: We can have an alterative method that automatically generates the
     // RepTable to simplify cases where it isn't shared with other MoveTables.
     pub fn new<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>>(rep_table: Arc<RepresentativeTable<Sym, PermIndex>>) -> Self where PermIndex: Into<Perm>, Turn: Into<Perm> {
+        Self::new_on_pattern::<Perm, Perm>(rep_table)
+    }
+
+    pub fn new_on_pattern<FullPerm: PG, Perm: GroupAction<FullPerm> + Clone + EquivalenceClass<Sym> + Into<PermIndex>>(rep_table: Arc<RepresentativeTable<Sym, PermIndex>>) -> Self where PermIndex: Into<Perm>, Turn: Into<FullPerm> {
         let mut turn_table = Vec::with_capacity(rep_table.len() * cardinality::<Turn>());
         let mut sym_table = Vec::with_capacity(rep_table.len() * cardinality::<Sym>());
 
         for ri in rep_table.rep_indexes() {
             let p: Perm = rep_table.rep_index_to_perm_index(ri).into();
             for t in all::<Turn>() {
-                let turned: Perm = p.clone().permute(<Turn as Into<Perm>>::into(t));
+                let turn: FullPerm = t.into();
+                let turned: Perm = p.clone().act(turn);
                 turn_table.push(rep_table.raw_index_to_sym_index(turned.into()));
             }
 
@@ -355,5 +361,70 @@ mod tests {
     #[test]
     fn move_table_is_correct_for_three_trapezoids_with_full_symmetry() {
         test::<three_trapezoids::FullSymmetry, three_trapezoids::ThreeTrapezoidsIndex, three_trapezoids::Turns, three_trapezoids::ThreeTrapezoids>();
+    }
+
+    fn test_on_pattern<Sym: PartialEq + Sequence + Copy + Clone + Into<usize> + Invertable, PatternIndex: std::fmt::Debug + Sequence + Copy + Ord + TryFrom<usize> + Into<usize>, Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym> + Into<Perm>, Perm: PG, Pattern: GroupAction<Perm> + std::fmt::Debug + Eq + Clone + EquivalenceClass<Sym> + Into<PatternIndex>>() where PatternIndex: Into<Pattern>, <PatternIndex as TryFrom<usize>>::Error: std::fmt::Debug {
+        let rep_table = Arc::new(RepresentativeTable::new::<Pattern>());
+        // Even though either Left + Right generates all states, MoveTables
+        // should basically always include turn inverses, so that they can go
+        // forward or backwards.
+        let move_table: MoveTable<Sym, PatternIndex, Turn> = MoveTable::new_on_pattern::<Perm, Pattern>(rep_table.clone());
+
+        // Applying move_table moves is identical to applying permutations
+        for ri in rep_table.rep_indexes() {
+            let p: Pattern = rep_table.rep_index_to_perm_index(ri).into();
+            for t in all::<Turn>() {
+                let turn: Perm = t.into();
+                let by_perm = p.clone().act(turn);
+                let by_table = move_table.sym_index_to_raw_index(move_table.turn(ri, t)).into();
+                assert_eq!(by_perm, by_table);
+            }
+        }
+
+        // Raw to sym and sym to raw functions round trip
+        for pi in all::<PatternIndex>() {
+            let pi_rt = move_table.sym_index_to_raw_index(move_table.raw_index_to_sym_index(pi));
+            assert_eq!(pi_rt, pi);
+        }
+
+        // All entries are bi-directional (this holds because all turns in the
+        // turn set also have an inverse in the turn set).  If there's a move
+        // that can put you in state b from a, then there must exist an inverse
+        // turn that puts you from state a to state b.
+        for pi in all::<PatternIndex>() {
+            for t in all::<Turn>() {
+                let (ri_a, _) = move_table.raw_index_to_sym_index(pi);
+                let (ri_b, _) = move_table.turn(ri_a, t);
+                let mut found = false;
+                for t in all::<Turn>() {
+                    let (ri_rt, _ ) = move_table.turn(ri_b, t);
+                    if ri_a == ri_rt {
+                        found = true;
+                        break;
+                    }
+                }
+                assert_eq!(found, true);
+            }
+        }
+    }
+
+    #[test]
+    fn move_table_is_correct_for_three_trapezoids_inner_with_no_symmetry() {
+        test_on_pattern::<three_trapezoids::NoSymmetry, three_trapezoids::inner::ThreeTrapezoidsInnerIndex, three_trapezoids::Turns, three_trapezoids::ThreeTrapezoids, three_trapezoids::inner::ThreeTrapezoidsInner>();
+    }
+
+    #[test]
+    fn move_table_is_correct_for_three_trapezoids_inner_with_mirror_ud_symmetry() {
+        test_on_pattern::<three_trapezoids::MirrorUDSymmetry, three_trapezoids::inner::ThreeTrapezoidsInnerIndex, three_trapezoids::Turns, three_trapezoids::ThreeTrapezoids, three_trapezoids::inner::ThreeTrapezoidsInner>();
+    }
+
+    #[test]
+    fn move_table_is_correct_for_three_trapezoids_inner_with_rotational_symmetry() {
+        test_on_pattern::<three_trapezoids::RotationalSymmetry, three_trapezoids::inner::ThreeTrapezoidsInnerIndex, three_trapezoids::Turns, three_trapezoids::ThreeTrapezoids, three_trapezoids::inner::ThreeTrapezoidsInner>();
+    }
+
+    #[test]
+    fn move_table_is_correct_for_three_trapezoids_inner_with_full_symmetry() {
+        test_on_pattern::<three_trapezoids::FullSymmetry, three_trapezoids::inner::ThreeTrapezoidsInnerIndex, three_trapezoids::Turns, three_trapezoids::ThreeTrapezoids, three_trapezoids::inner::ThreeTrapezoidsInner>();
     }
 }
