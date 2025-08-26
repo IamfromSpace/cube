@@ -33,23 +33,23 @@ impl<IndexA: Copy, IndexB: Copy, Turn> CompositeLowerBoundToken<IndexA, IndexB, 
 }
 
 #[derive(Debug)]
-pub struct CompositePruningTable<Sym, PermIndexA, PermIndexB, RepIndexA, RepIndexB, Turn, MoveTableA, MoveTableB> {
-    a: PruningTable<Sym, PermIndexA, RepIndexA, Turn, MoveTableA>,
-    b: PruningTable<Sym, PermIndexB, RepIndexB, Turn, MoveTableB>,
+pub struct CompositePruningTable<SymA, SymB, PermIndexA, PermIndexB, RepIndexA, RepIndexB, Turn, MoveTableA, MoveTableB> {
+    a: PruningTable<SymA, PermIndexA, RepIndexA, Turn, MoveTableA>,
+    b: PruningTable<SymB, PermIndexB, RepIndexB, Turn, MoveTableB>,
 }
 
-impl<MoveTableA: TableTurn<Sym, RepIndexA, Turn> + TableRawIndexToSymIndex<Sym, PermIndexA, RepIndexA> + TableRepCount, MoveTableB: TableTurn<Sym, RepIndexB, Turn> + TableRawIndexToSymIndex<Sym, PermIndexB, RepIndexB> + TableRepCount, Turn: std::fmt::Debug + Sequence + Copy + Invertable + EquivalenceClass<Sym> + Ord, Sym: std::fmt::Debug + Sequence + Copy + Clone + PG + Ord, PermIndexA: Sequence + Copy + Ord, PermIndexB: Sequence + Copy + Ord, RepIndexA: std::fmt::Debug + Copy + Ord + Into<usize>, RepIndexB: std::fmt::Debug + Copy + Ord + Into<usize>> CompositePruningTable<Sym, PermIndexA, PermIndexB, RepIndexA, RepIndexB, Turn, MoveTableA, MoveTableB> {
-    pub fn new(a: PruningTable<Sym, PermIndexA, RepIndexA, Turn, MoveTableA>, b: PruningTable<Sym, PermIndexB, RepIndexB, Turn, MoveTableB>) -> Self {
+impl<MoveTableA: TableTurn<SymA, RepIndexA, Turn> + TableRawIndexToSymIndex<SymA, PermIndexA, RepIndexA> + TableRepCount, MoveTableB: TableTurn<SymB, RepIndexB, Turn> + TableRawIndexToSymIndex<SymB, PermIndexB, RepIndexB> + TableRepCount, Turn: std::fmt::Debug + Sequence + Copy + Invertable + EquivalenceClass<SymA> + EquivalenceClass<SymB> + Ord, SymA: std::fmt::Debug + Sequence + Copy + Clone + PG + Ord, SymB: std::fmt::Debug + Sequence + Copy + Clone + PG + Ord, PermIndexA: Sequence + Copy + Ord, PermIndexB: Sequence + Copy + Ord, RepIndexA: std::fmt::Debug + Copy + Ord + Into<usize>, RepIndexB: std::fmt::Debug + Copy + Ord + Into<usize>> CompositePruningTable<SymA, SymB, PermIndexA, PermIndexB, RepIndexA, RepIndexB, Turn, MoveTableA, MoveTableB> {
+    pub fn new(a: PruningTable<SymA, PermIndexA, RepIndexA, Turn, MoveTableA>, b: PruningTable<SymB, PermIndexB, RepIndexB, Turn, MoveTableB>) -> Self {
         CompositePruningTable { a, b }
     }
 
-    pub fn start_search(&self, (pi_a, pi_b): (PermIndexA, PermIndexB)) -> CompositeLowerBoundToken<(RepIndexA, Sym), (RepIndexB, Sym), Turn> {
+    pub fn start_search(&self, (pi_a, pi_b): (PermIndexA, PermIndexB)) -> CompositeLowerBoundToken<(RepIndexA, SymA), (RepIndexB, SymB), Turn> {
         let lbt_a = self.a.start_search(pi_a);
         let lbt_b = self.b.start_search(pi_b);
         CompositeLowerBoundToken::new(lbt_a, lbt_b)
     }
 
-    pub fn continue_search(&self, lbt: CompositeLowerBoundToken<(RepIndexA, Sym), (RepIndexB, Sym), Turn>, t: Turn) -> CompositeLowerBoundToken<(RepIndexA, Sym), (RepIndexB, Sym), Turn> {
+    pub fn continue_search(&self, lbt: CompositeLowerBoundToken<(RepIndexA, SymA), (RepIndexB, SymB), Turn>, t: Turn) -> CompositeLowerBoundToken<(RepIndexA, SymA), (RepIndexB, SymB), Turn> {
         let (token_a, token_b) = lbt.get_tokens();
         let lbt_a = self.a.continue_search(token_a, t);
         let lbt_b = self.b.continue_search(token_b, t);
@@ -184,6 +184,29 @@ mod tests {
         let bottom_rep_table = Arc::new(RepresentativeTable::new::<BottomThreeTriangles>());
         let bottom_move_table: MoveTable<FullSymmetry, three_triangles::ThreeTrianglesEvenIndex, Turns> = MoveTable::new::<BottomThreeTriangles>(bottom_rep_table.clone());
         let bottom_pruning_table: PruningTable<FullSymmetry, three_triangles::ThreeTrianglesEvenIndex, _, Turns, _> = PruningTable::new(bottom_move_table, std::iter::once(three_triangles::ThreeTriangles::identity().into()));
+        let pruning_table = CompositePruningTable::new(top_pruning_table, bottom_pruning_table);
+
+        // Our simple implementation (s small enough to solve naively) matches our more complex one
+        let tt_table = moves_to_solve();
+        for top_pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+            for bottom_pi in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+                let pi = (top_pi, bottom_pi);
+                let p = (top_pi.into(), bottom_pi.into());
+                assert_eq!(tt_table.get(&p).unwrap().len(), pruning_table.solve(pi).len());
+            }
+        }
+    }
+
+    #[test]
+    fn pruning_table_is_correct_for_three_triangles_stack_even_parity_with_distinct_symmetry_via_composite() {
+        // TODO: Ideally these use the same move table!
+        let top_rep_table = Arc::new(RepresentativeTable::new::<TopThreeTriangles>());
+        let top_move_table: MoveTable<MirrorUDSymmetry, three_triangles::ThreeTrianglesEvenIndex, Turns> = MoveTable::new::<TopThreeTriangles>(top_rep_table.clone());
+        let top_pruning_table: PruningTable<MirrorUDSymmetry, three_triangles::ThreeTrianglesEvenIndex, _, Turns, _> = PruningTable::new(top_move_table, std::iter::once(three_triangles::ThreeTriangles::identity().into()));
+
+        let bottom_rep_table = Arc::new(RepresentativeTable::new::<BottomThreeTriangles>());
+        let bottom_move_table: MoveTable<RotationalSymmetry, three_triangles::ThreeTrianglesEvenIndex, Turns> = MoveTable::new::<BottomThreeTriangles>(bottom_rep_table.clone());
+        let bottom_pruning_table: PruningTable<RotationalSymmetry, three_triangles::ThreeTrianglesEvenIndex, _, Turns, _> = PruningTable::new(bottom_move_table, std::iter::once(three_triangles::ThreeTriangles::identity().into()));
         let pruning_table = CompositePruningTable::new(top_pruning_table, bottom_pruning_table);
 
         // Our simple implementation (s small enough to solve naively) matches our more complex one
