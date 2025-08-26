@@ -11,6 +11,7 @@ use std::hash::Hash;
 mod invertable;
 mod permutation_group;
 mod equivalence_class;
+mod algebraic_actions;
 mod table_traits;
 mod facelet_cube;
 mod facelet_wing_edges;
