@@ -34,21 +34,21 @@ impl<Sym: Sequence + Clone, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + 
             let perm: Perm = pi.into();
             let (pi2, sym, is_self_symmetric): (PermIndex, Sym, bool) = smallest_equivalence(&perm);
 
-            // Extend on self_symmetry table when necessary
-            let byte_index = discovered.len() % 8;
-            if byte_index == 0 {
-                self_symmetric_table.push(0);
-            }
-            // If the position is self symmetric, set its bit flag
-            if is_self_symmetric {
-                let i = self_symmetric_table.len() - 1;
-                let new = self_symmetric_table[i] | (1 << byte_index);
-                self_symmetric_table[i] = new;
-            }
-
             let mut ri = discovered.len();
             match discovered.get(&pi2) {
                 None => {
+                    // Extend on self_symmetry table when necessary
+                    let byte_index = discovered.len() % 8;
+                    if byte_index == 0 {
+                        self_symmetric_table.push(0);
+                    }
+                    // If the position is self symmetric, set its bit flag
+                    if is_self_symmetric {
+                        let i = self_symmetric_table.len() - 1;
+                        let new = self_symmetric_table[i] | (1 << byte_index);
+                        self_symmetric_table[i] = new;
+                    }
+
                     discovered.insert(pi2, ri);
                     table.push(pi2);
                 },
