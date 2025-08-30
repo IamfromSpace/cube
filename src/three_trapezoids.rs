@@ -8,6 +8,7 @@ use std::convert::{TryInto, TryFrom};
 use enum_iterator::{all, Sequence};
 
 pub mod inner;
+pub mod outer;
 
 // We have a simple little puzzle with three trapezoidal "faces" that all share
 // a middle and each share an edge.  we can rotate either clockwise or

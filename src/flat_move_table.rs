@@ -448,4 +448,26 @@ mod tests {
     fn move_table_is_correct_for_three_trapezoids_inner_with_full_symmetry() {
         test_on_pattern::<three_trapezoids::FullSymmetry, three_trapezoids::inner::ThreeTrapezoidsInnerIndex, three_trapezoids::Turns, three_trapezoids::ThreeTrapezoids, three_trapezoids::inner::ThreeTrapezoidsInner>();
     }
+
+    use three_trapezoids::outer;
+
+    #[test]
+    fn move_table_is_correct_for_three_trapezoids_outer_with_no_symmetry() {
+        test_on_pattern::<three_trapezoids::NoSymmetry, three_trapezoids::outer::ThreeTrapezoidsOuterIndex, three_trapezoids::Turns, three_trapezoids::ThreeTrapezoids, three_trapezoids::outer::ThreeTrapezoidsOuter>();
+    }
+
+    #[test]
+    fn move_table_is_correct_for_three_trapezoids_outer_with_mirror_ud_symmetry() {
+        test_on_pattern::<three_trapezoids::MirrorUDSymmetry, three_trapezoids::outer::ThreeTrapezoidsOuterIndex, three_trapezoids::Turns, three_trapezoids::ThreeTrapezoids, three_trapezoids::outer::ThreeTrapezoidsOuter>();
+    }
+
+    #[test]
+    fn move_table_is_correct_for_three_trapezoids_outer_with_rotational_symmetry() {
+        test_on_pattern::<three_trapezoids::RotationalSymmetry, three_trapezoids::outer::ThreeTrapezoidsOuterIndex, three_trapezoids::Turns, three_trapezoids::ThreeTrapezoids, three_trapezoids::outer::ThreeTrapezoidsOuter>();
+    }
+
+    #[test]
+    fn move_table_is_correct_for_three_trapezoids_outer_with_full_symmetry() {
+        test_on_pattern::<three_trapezoids::FullSymmetry, three_trapezoids::outer::ThreeTrapezoidsOuterIndex, three_trapezoids::Turns, three_trapezoids::ThreeTrapezoids, three_trapezoids::outer::ThreeTrapezoidsOuter>();
+    }
 }
