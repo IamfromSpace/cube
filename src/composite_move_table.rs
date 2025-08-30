@@ -117,6 +117,20 @@ impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sy
         (CompositeIndex(a_rep_1, smallest), sym)
     }
 
+    // TODO: Need to determine the right long term strategy for this.  Is this
+    // a convenience function for testing, or is it the preferred way to do a
+    // turn?  The upside is that it is easier to use because it keeps things
+    // straight for you automatically, but the downside is that it can't be
+    // used universally, because it's not as performant.  But in some places
+    // (like in composite pruning tables), we must retain symmetries through
+    // our operations anyway.
+    // Preserves symmetry
+    pub fn sym_turn(&self, (ri0, s0): (CompositeIndex<RepIndex<Sym, PermIndexA>, PermIndexB>, Sym), t: Turn) -> (CompositeIndex<RepIndex<Sym, PermIndexA>, PermIndexB>, Sym) {
+        let (ri1, s1) = self.turn(ri0, t.get_equivalent(&s0));
+        (ri1, s0.permute(s1))
+    }
+
+
     pub fn len(&self) -> usize {
         self.a.len() * cardinality::<PermIndexB>()
     }
