@@ -279,8 +279,9 @@ pub fn moves_to_solve() -> BTreeMap<ThreeTrapezoidsInnerIndex, usize> {
     let mut queue = VecDeque::new();
     let mut map = BTreeMap::new();
 
-    map.insert(ThreeTrapezoidsInner([0, 1, 2]).into(), 0);
-    queue.push_back((ThreeTrapezoidsInner([0, 1, 2]), 1));
+    let identity: ThreeTrapezoidsInner = ThreeTrapezoids::identity().into();
+    map.insert(identity.clone().into(), 0);
+    queue.push_back((identity, 1));
 
     loop {
         match queue.pop_front() {
