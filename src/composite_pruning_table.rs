@@ -219,4 +219,100 @@ mod tests {
             }
         }
     }
+
+    use three_trapezoids as tt;
+    use three_trapezoids::inner as tt_inner;
+    use three_trapezoids::outer as tt_outer;
+
+    #[test]
+    fn pruning_table_is_correct_for_three_trapezoids_inner_and_outer_with_no_symmetry_via_composite() {
+        let inner_rep_table = Arc::new(RepresentativeTable::new::<tt_inner::ThreeTrapezoidsInner>());
+        let inner_move_table: MoveTable<tt::NoSymmetry, tt_inner::ThreeTrapezoidsInnerIndex, tt::Turns> = MoveTable::new_on_pattern::<tt::ThreeTrapezoids, tt_inner::ThreeTrapezoidsInner>(inner_rep_table.clone());
+        let inner_pruning_table: PruningTable<tt::NoSymmetry, tt_inner::ThreeTrapezoidsInnerIndex, _, tt::Turns, _> = PruningTable::new(inner_move_table, std::iter::once(tt_inner::ThreeTrapezoidsInner::from(tt::ThreeTrapezoids::identity()).into()));
+
+        let outer_rep_table = Arc::new(RepresentativeTable::new::<tt_outer::ThreeTrapezoidsOuter>());
+        let outer_move_table: MoveTable<tt::NoSymmetry, tt_outer::ThreeTrapezoidsOuterIndex, tt::Turns> = MoveTable::new_on_pattern::<tt::ThreeTrapezoids, tt_outer::ThreeTrapezoidsOuter>(outer_rep_table.clone());
+        let outer_pruning_table: PruningTable<tt::NoSymmetry, tt_outer::ThreeTrapezoidsOuterIndex, _, tt::Turns, _> = PruningTable::new(outer_move_table, std::iter::once(tt_outer::ThreeTrapezoidsOuter::from(tt::ThreeTrapezoids::identity()).into()));
+        let pruning_table = CompositePruningTable::new(inner_pruning_table, outer_pruning_table);
+
+        // Our simple implementation (small enough to solve naively) matches our more complex one
+        // NOTE: we can still expect the optimal solve here!
+        let tt_table = tt::moves_to_solve();
+        for pi in all::<tt::ThreeTrapezoidsIndex>() {
+            let p: tt::ThreeTrapezoids = pi.into();
+            let inner_pi: tt_inner::ThreeTrapezoidsInner = p.into();
+            let outer_pi: tt_outer::ThreeTrapezoidsOuter = p.into();
+            let cpi = (inner_pi.into(), outer_pi.into());
+            assert_eq!(*tt_table.get(&pi).unwrap(), pruning_table.solve(cpi).len());
+        }
+    }
+
+    #[test]
+    fn pruning_table_is_correct_for_three_trapezoids_inner_and_outer_with_mirror_ud_symmetry_via_composite() {
+        let inner_rep_table = Arc::new(RepresentativeTable::new::<tt_inner::ThreeTrapezoidsInner>());
+        let inner_move_table: MoveTable<tt::MirrorUDSymmetry, tt_inner::ThreeTrapezoidsInnerIndex, tt::Turns> = MoveTable::new_on_pattern::<tt::ThreeTrapezoids, tt_inner::ThreeTrapezoidsInner>(inner_rep_table.clone());
+        let inner_pruning_table: PruningTable<tt::MirrorUDSymmetry, tt_inner::ThreeTrapezoidsInnerIndex, _, tt::Turns, _> = PruningTable::new(inner_move_table, std::iter::once(tt_inner::ThreeTrapezoidsInner::from(tt::ThreeTrapezoids::identity()).into()));
+
+        let outer_rep_table = Arc::new(RepresentativeTable::new::<tt_outer::ThreeTrapezoidsOuter>());
+        let outer_move_table: MoveTable<tt::MirrorUDSymmetry, tt_outer::ThreeTrapezoidsOuterIndex, tt::Turns> = MoveTable::new_on_pattern::<tt::ThreeTrapezoids, tt_outer::ThreeTrapezoidsOuter>(outer_rep_table.clone());
+        let outer_pruning_table: PruningTable<tt::MirrorUDSymmetry, tt_outer::ThreeTrapezoidsOuterIndex, _, tt::Turns, _> = PruningTable::new(outer_move_table, std::iter::once(tt_outer::ThreeTrapezoidsOuter::from(tt::ThreeTrapezoids::identity()).into()));
+        let pruning_table = CompositePruningTable::new(inner_pruning_table, outer_pruning_table);
+
+        // Our simple implementation (small enough to solve naively) matches our more complex one
+        // NOTE: we can still expect the optimal solve here!
+        let tt_table = tt::moves_to_solve();
+        for pi in all::<tt::ThreeTrapezoidsIndex>() {
+            let p: tt::ThreeTrapezoids = pi.into();
+            let inner_pi: tt_inner::ThreeTrapezoidsInner = p.into();
+            let outer_pi: tt_outer::ThreeTrapezoidsOuter = p.into();
+            let cpi = (inner_pi.into(), outer_pi.into());
+            assert_eq!(*tt_table.get(&pi).unwrap(), pruning_table.solve(cpi).len());
+        }
+    }
+
+    #[test]
+    fn pruning_table_is_correct_for_three_trapezoids_inner_and_outer_with_rotational_symmetry_via_composite() {
+        let inner_rep_table = Arc::new(RepresentativeTable::new::<tt_inner::ThreeTrapezoidsInner>());
+        let inner_move_table: MoveTable<tt::RotationalSymmetry, tt_inner::ThreeTrapezoidsInnerIndex, tt::Turns> = MoveTable::new_on_pattern::<tt::ThreeTrapezoids, tt_inner::ThreeTrapezoidsInner>(inner_rep_table.clone());
+        let inner_pruning_table: PruningTable<tt::RotationalSymmetry, tt_inner::ThreeTrapezoidsInnerIndex, _, tt::Turns, _> = PruningTable::new(inner_move_table, std::iter::once(tt_inner::ThreeTrapezoidsInner::from(tt::ThreeTrapezoids::identity()).into()));
+
+        let outer_rep_table = Arc::new(RepresentativeTable::new::<tt_outer::ThreeTrapezoidsOuter>());
+        let outer_move_table: MoveTable<tt::RotationalSymmetry, tt_outer::ThreeTrapezoidsOuterIndex, tt::Turns> = MoveTable::new_on_pattern::<tt::ThreeTrapezoids, tt_outer::ThreeTrapezoidsOuter>(outer_rep_table.clone());
+        let outer_pruning_table: PruningTable<tt::RotationalSymmetry, tt_outer::ThreeTrapezoidsOuterIndex, _, tt::Turns, _> = PruningTable::new(outer_move_table, std::iter::once(tt_outer::ThreeTrapezoidsOuter::from(tt::ThreeTrapezoids::identity()).into()));
+        let pruning_table = CompositePruningTable::new(inner_pruning_table, outer_pruning_table);
+
+        // Our simple implementation (small enough to solve naively) matches our more complex one
+        // NOTE: we can still expect the optimal solve here!
+        let tt_table = tt::moves_to_solve();
+        for pi in all::<tt::ThreeTrapezoidsIndex>() {
+            let p: tt::ThreeTrapezoids = pi.into();
+            let inner_pi: tt_inner::ThreeTrapezoidsInner = p.into();
+            let outer_pi: tt_outer::ThreeTrapezoidsOuter = p.into();
+            let cpi = (inner_pi.into(), outer_pi.into());
+            assert_eq!(*tt_table.get(&pi).unwrap(), pruning_table.solve(cpi).len());
+        }
+    }
+
+    #[test]
+    fn pruning_table_is_correct_for_three_trapezoids_inner_and_outer_with_full_symmetry_via_composite() {
+        let inner_rep_table = Arc::new(RepresentativeTable::new::<tt_inner::ThreeTrapezoidsInner>());
+        let inner_move_table: MoveTable<tt::FullSymmetry, tt_inner::ThreeTrapezoidsInnerIndex, tt::Turns> = MoveTable::new_on_pattern::<tt::ThreeTrapezoids, tt_inner::ThreeTrapezoidsInner>(inner_rep_table.clone());
+        let inner_pruning_table: PruningTable<tt::FullSymmetry, tt_inner::ThreeTrapezoidsInnerIndex, _, tt::Turns, _> = PruningTable::new(inner_move_table, std::iter::once(tt_inner::ThreeTrapezoidsInner::from(tt::ThreeTrapezoids::identity()).into()));
+
+        let outer_rep_table = Arc::new(RepresentativeTable::new::<tt_outer::ThreeTrapezoidsOuter>());
+        let outer_move_table: MoveTable<tt::FullSymmetry, tt_outer::ThreeTrapezoidsOuterIndex, tt::Turns> = MoveTable::new_on_pattern::<tt::ThreeTrapezoids, tt_outer::ThreeTrapezoidsOuter>(outer_rep_table.clone());
+        let outer_pruning_table: PruningTable<tt::FullSymmetry, tt_outer::ThreeTrapezoidsOuterIndex, _, tt::Turns, _> = PruningTable::new(outer_move_table, std::iter::once(tt_outer::ThreeTrapezoidsOuter::from(tt::ThreeTrapezoids::identity()).into()));
+        let pruning_table = CompositePruningTable::new(inner_pruning_table, outer_pruning_table);
+
+        // Our simple implementation (small enough to solve naively) matches our more complex one
+        // NOTE: we can still expect the optimal solve here!
+        let tt_table = tt::moves_to_solve();
+        for pi in all::<tt::ThreeTrapezoidsIndex>() {
+            let p: tt::ThreeTrapezoids = pi.into();
+            let inner_pi: tt_inner::ThreeTrapezoidsInner = p.into();
+            let outer_pi: tt_outer::ThreeTrapezoidsOuter = p.into();
+            let cpi = (inner_pi.into(), outer_pi.into());
+            assert_eq!(*tt_table.get(&pi).unwrap(), pruning_table.solve(cpi).len());
+        }
+    }
 }

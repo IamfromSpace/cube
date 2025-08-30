@@ -239,6 +239,7 @@ mod tests {
     use super::*;
     use three_triangles;
     use three_triangles_stack::*;
+    use algebraic_actions::MagmaAction;
  
     #[test]
     fn composite_move_table_is_correct_for_double_three_triangles_even_parity_with_full_symmetry() {
@@ -563,6 +564,282 @@ mod tests {
                     let (ri_rt, _ ) = move_table.turn(ri_b, t.invert().get_equivalent(&s));
                     assert_eq!(ri_a, ri_rt);
                 }
+            }
+        }
+    }
+
+    use three_trapezoids as tt;
+    use three_trapezoids::inner as tt_inner;
+    use three_trapezoids::outer as tt_outer;
+
+    #[test]
+    fn composite_move_table_is_correct_for_inner_and_outer_three_trapezoids_with_no_symmetry() {
+        let inner_rep_table = Arc::new(RepresentativeTable::new::<tt_inner::ThreeTrapezoidsInner>());
+        let inner_move_table: Arc<MoveTable<tt::NoSymmetry, tt_inner::ThreeTrapezoidsInnerIndex, tt::Turns>> = Arc::new(MoveTable::new_on_pattern::<tt::ThreeTrapezoids, tt_inner::ThreeTrapezoidsInner>(inner_rep_table.clone()));
+
+        let outer_rep_table = Arc::new(RepresentativeTable::new::<tt_outer::ThreeTrapezoidsOuter>());
+        let outer_move_table: MoveTable<tt::NoSymmetry, tt_outer::ThreeTrapezoidsOuterIndex, tt::Turns> = MoveTable::new_on_pattern::<tt::ThreeTrapezoids, tt_outer::ThreeTrapezoidsOuter>(outer_rep_table.clone());
+        let move_table = CompositeMoveTable::new(inner_move_table.clone(), Arc::new(outer_move_table));
+
+        // Raw to sym and sym to raw functions round trip
+        for inner_perm_index in all::<tt_inner::ThreeTrapezoidsInnerIndex>() {
+            for outer_perm_index in all::<tt_outer::ThreeTrapezoidsOuterIndex>() {
+                let (inner_perm_index_rt, outer_perm_index_rt) = move_table.sym_index_to_raw_index(move_table.raw_index_to_sym_index((inner_perm_index, outer_perm_index)));
+                assert_eq!(inner_perm_index_rt, inner_perm_index);
+                assert_eq!(outer_perm_index_rt, outer_perm_index);
+            }
+        }
+
+        // Applying move_table moves is identical to applying permutations
+        for pi in all::<tt::ThreeTrapezoidsIndex>() {
+            let p: tt::ThreeTrapezoids = pi.into();
+            let p_inner: tt_inner::ThreeTrapezoidsInner = p.into();
+            let p_outer: tt_outer::ThreeTrapezoidsOuter = p.into();
+            let pi_inner: tt_inner::ThreeTrapezoidsInnerIndex = p_inner.into();
+            let pi_outer: tt_outer::ThreeTrapezoidsOuterIndex = p_outer.into();
+            for t in all::<tt::Turns>() {
+                let turn: tt::ThreeTrapezoids = t.into();
+                let inner_by_perm = p_inner.act(turn);
+                let outer_by_perm = p_outer.act(turn);
+                let (inner_by_table, outer_by_table) = move_table.sym_index_to_raw_index(move_table.sym_turn(move_table.raw_index_to_sym_index((pi_inner, pi_outer)), t));
+                assert_eq!(inner_by_perm, inner_by_table.into());
+                assert_eq!(outer_by_perm, outer_by_table.into());
+            }
+        }
+
+        // All routes to a permutation result in the same representative
+        for pi0 in all::<tt::ThreeTrapezoidsIndex>() {
+            let p0: tt::ThreeTrapezoids = pi0.into();
+            let p0_inner: tt_inner::ThreeTrapezoidsInner = p0.into();
+            let p0_outer: tt_outer::ThreeTrapezoidsOuter = p0.into();
+            let si0 = move_table.raw_index_to_sym_index((p0_inner.into(), p0_outer.into()));
+            for t in all::<tt::Turns>() {
+                let p1 = p0.permute(t.into());
+                let p1_inner: tt_inner::ThreeTrapezoidsInner = p1.into();
+                let p1_outer: tt_outer::ThreeTrapezoidsOuter = p1.into();
+                let si1 = move_table.raw_index_to_sym_index((p1_inner.into(), p1_outer.into()));
+                let si_rt = move_table.sym_turn(si1, t.invert());
+                assert_eq!(si0.0, si_rt.0);
+            }
+        }
+
+        // All entries are bi-directional (this holds because all turns in the
+        // turn set also have an inverse in the turn set).  If there's a move
+        // that can put you in state b from a, then there must exist an inverse
+        // turn that puts you from state a to state b.
+        for pi in all::<tt::ThreeTrapezoidsIndex>() {
+            let p: tt::ThreeTrapezoids = pi.into();
+            let p_inner: tt_inner::ThreeTrapezoidsInner = p.into();
+            let p_outer: tt_outer::ThreeTrapezoidsOuter = p.into();
+            for t in all::<tt::Turns>() {
+                let si0 = move_table.raw_index_to_sym_index((p_inner.into(), p_outer.into()));
+                let si1 = move_table.sym_turn(si0, t);
+                let si_rt = move_table.sym_turn(si1, t.invert());
+                assert_eq!(si0.0, si_rt.0);
+            }
+        }
+    }
+
+    #[test]
+    fn composite_move_table_is_correct_for_inner_and_outer_three_trapezoids_with_mirror_ud_symmetry() {
+        let inner_rep_table = Arc::new(RepresentativeTable::new::<tt_inner::ThreeTrapezoidsInner>());
+        let inner_move_table: Arc<MoveTable<tt::MirrorUDSymmetry, tt_inner::ThreeTrapezoidsInnerIndex, tt::Turns>> = Arc::new(MoveTable::new_on_pattern::<tt::ThreeTrapezoids, tt_inner::ThreeTrapezoidsInner>(inner_rep_table.clone()));
+
+        let outer_rep_table = Arc::new(RepresentativeTable::new::<tt_outer::ThreeTrapezoidsOuter>());
+        let outer_move_table: MoveTable<tt::MirrorUDSymmetry, tt_outer::ThreeTrapezoidsOuterIndex, tt::Turns> = MoveTable::new_on_pattern::<tt::ThreeTrapezoids, tt_outer::ThreeTrapezoidsOuter>(outer_rep_table.clone());
+        let move_table = CompositeMoveTable::new(inner_move_table.clone(), Arc::new(outer_move_table));
+
+        // Raw to sym and sym to raw functions round trip
+        for inner_perm_index in all::<tt_inner::ThreeTrapezoidsInnerIndex>() {
+            for outer_perm_index in all::<tt_outer::ThreeTrapezoidsOuterIndex>() {
+                let (inner_perm_index_rt, outer_perm_index_rt) = move_table.sym_index_to_raw_index(move_table.raw_index_to_sym_index((inner_perm_index, outer_perm_index)));
+                assert_eq!(inner_perm_index_rt, inner_perm_index);
+                assert_eq!(outer_perm_index_rt, outer_perm_index);
+            }
+        }
+
+        // Applying move_table moves is identical to applying permutations
+        for pi in all::<tt::ThreeTrapezoidsIndex>() {
+            let p: tt::ThreeTrapezoids = pi.into();
+            let p_inner: tt_inner::ThreeTrapezoidsInner = p.into();
+            let p_outer: tt_outer::ThreeTrapezoidsOuter = p.into();
+            let pi_inner: tt_inner::ThreeTrapezoidsInnerIndex = p_inner.into();
+            let pi_outer: tt_outer::ThreeTrapezoidsOuterIndex = p_outer.into();
+            for t in all::<tt::Turns>() {
+                let turn: tt::ThreeTrapezoids = t.into();
+                let inner_by_perm = p_inner.act(turn);
+                let outer_by_perm = p_outer.act(turn);
+                let (inner_by_table, outer_by_table) = move_table.sym_index_to_raw_index(move_table.sym_turn(move_table.raw_index_to_sym_index((pi_inner, pi_outer)), t));
+                assert_eq!(inner_by_perm, inner_by_table.into());
+                assert_eq!(outer_by_perm, outer_by_table.into());
+            }
+        }
+
+        // All routes to a permutation result in the same representative
+        for pi0 in all::<tt::ThreeTrapezoidsIndex>() {
+            let p0: tt::ThreeTrapezoids = pi0.into();
+            let p0_inner: tt_inner::ThreeTrapezoidsInner = p0.into();
+            let p0_outer: tt_outer::ThreeTrapezoidsOuter = p0.into();
+            let si0 = move_table.raw_index_to_sym_index((p0_inner.into(), p0_outer.into()));
+            for t in all::<tt::Turns>() {
+                let p1 = p0.permute(t.into());
+                let p1_inner: tt_inner::ThreeTrapezoidsInner = p1.into();
+                let p1_outer: tt_outer::ThreeTrapezoidsOuter = p1.into();
+                let si1 = move_table.raw_index_to_sym_index((p1_inner.into(), p1_outer.into()));
+                let si_rt = move_table.sym_turn(si1, t.invert());
+                assert_eq!(si0.0, si_rt.0);
+            }
+        }
+
+        // All entries are bi-directional (this holds because all turns in the
+        // turn set also have an inverse in the turn set).  If there's a move
+        // that can put you in state b from a, then there must exist an inverse
+        // turn that puts you from state a to state b.
+        for pi in all::<tt::ThreeTrapezoidsIndex>() {
+            let p: tt::ThreeTrapezoids = pi.into();
+            let p_inner: tt_inner::ThreeTrapezoidsInner = p.into();
+            let p_outer: tt_outer::ThreeTrapezoidsOuter = p.into();
+            for t in all::<tt::Turns>() {
+                let si0 = move_table.raw_index_to_sym_index((p_inner.into(), p_outer.into()));
+                let si1 = move_table.sym_turn(si0, t);
+                let si_rt = move_table.sym_turn(si1, t.invert());
+                assert_eq!(si0.0, si_rt.0);
+            }
+        }
+    }
+
+    #[test]
+    fn composite_move_table_is_correct_for_inner_and_outer_three_trapezoids_with_rotational_symmetry() {
+        let inner_rep_table = Arc::new(RepresentativeTable::new::<tt_inner::ThreeTrapezoidsInner>());
+        let inner_move_table: Arc<MoveTable<tt::RotationalSymmetry, tt_inner::ThreeTrapezoidsInnerIndex, tt::Turns>> = Arc::new(MoveTable::new_on_pattern::<tt::ThreeTrapezoids, tt_inner::ThreeTrapezoidsInner>(inner_rep_table.clone()));
+
+        let outer_rep_table = Arc::new(RepresentativeTable::new::<tt_outer::ThreeTrapezoidsOuter>());
+        let outer_move_table: MoveTable<tt::RotationalSymmetry, tt_outer::ThreeTrapezoidsOuterIndex, tt::Turns> = MoveTable::new_on_pattern::<tt::ThreeTrapezoids, tt_outer::ThreeTrapezoidsOuter>(outer_rep_table.clone());
+        let move_table = CompositeMoveTable::new(inner_move_table.clone(), Arc::new(outer_move_table));
+
+        // Raw to sym and sym to raw functions round trip
+        for inner_perm_index in all::<tt_inner::ThreeTrapezoidsInnerIndex>() {
+            for outer_perm_index in all::<tt_outer::ThreeTrapezoidsOuterIndex>() {
+                let (inner_perm_index_rt, outer_perm_index_rt) = move_table.sym_index_to_raw_index(move_table.raw_index_to_sym_index((inner_perm_index, outer_perm_index)));
+                assert_eq!(inner_perm_index_rt, inner_perm_index);
+                assert_eq!(outer_perm_index_rt, outer_perm_index);
+            }
+        }
+
+        // Applying move_table moves is identical to applying permutations
+        for pi in all::<tt::ThreeTrapezoidsIndex>() {
+            let p: tt::ThreeTrapezoids = pi.into();
+            let p_inner: tt_inner::ThreeTrapezoidsInner = p.into();
+            let p_outer: tt_outer::ThreeTrapezoidsOuter = p.into();
+            let pi_inner: tt_inner::ThreeTrapezoidsInnerIndex = p_inner.into();
+            let pi_outer: tt_outer::ThreeTrapezoidsOuterIndex = p_outer.into();
+            for t in all::<tt::Turns>() {
+                let turn: tt::ThreeTrapezoids = t.into();
+                let inner_by_perm = p_inner.act(turn);
+                let outer_by_perm = p_outer.act(turn);
+                let (inner_by_table, outer_by_table) = move_table.sym_index_to_raw_index(move_table.sym_turn(move_table.raw_index_to_sym_index((pi_inner, pi_outer)), t));
+                assert_eq!(inner_by_perm, inner_by_table.into());
+                assert_eq!(outer_by_perm, outer_by_table.into());
+            }
+        }
+
+        // All routes to a permutation result in the same representative
+        for pi0 in all::<tt::ThreeTrapezoidsIndex>() {
+            let p0: tt::ThreeTrapezoids = pi0.into();
+            let p0_inner: tt_inner::ThreeTrapezoidsInner = p0.into();
+            let p0_outer: tt_outer::ThreeTrapezoidsOuter = p0.into();
+            let si0 = move_table.raw_index_to_sym_index((p0_inner.into(), p0_outer.into()));
+            for t in all::<tt::Turns>() {
+                let p1 = p0.permute(t.into());
+                let p1_inner: tt_inner::ThreeTrapezoidsInner = p1.into();
+                let p1_outer: tt_outer::ThreeTrapezoidsOuter = p1.into();
+                let si1 = move_table.raw_index_to_sym_index((p1_inner.into(), p1_outer.into()));
+                let si_rt = move_table.sym_turn(si1, t.invert());
+                assert_eq!(si0.0, si_rt.0);
+            }
+        }
+
+        // All entries are bi-directional (this holds because all turns in the
+        // turn set also have an inverse in the turn set).  If there's a move
+        // that can put you in state b from a, then there must exist an inverse
+        // turn that puts you from state a to state b.
+        for pi in all::<tt::ThreeTrapezoidsIndex>() {
+            let p: tt::ThreeTrapezoids = pi.into();
+            let p_inner: tt_inner::ThreeTrapezoidsInner = p.into();
+            let p_outer: tt_outer::ThreeTrapezoidsOuter = p.into();
+            for t in all::<tt::Turns>() {
+                let si0 = move_table.raw_index_to_sym_index((p_inner.into(), p_outer.into()));
+                let si1 = move_table.sym_turn(si0, t);
+                let si_rt = move_table.sym_turn(si1, t.invert());
+                assert_eq!(si0.0, si_rt.0);
+            }
+        }
+    }
+
+    #[test]
+    fn composite_move_table_is_correct_for_inner_and_outer_three_trapezoids_with_full_symmetry() {
+        let inner_rep_table = Arc::new(RepresentativeTable::new::<tt_inner::ThreeTrapezoidsInner>());
+        let inner_move_table: Arc<MoveTable<tt::FullSymmetry, tt_inner::ThreeTrapezoidsInnerIndex, tt::Turns>> = Arc::new(MoveTable::new_on_pattern::<tt::ThreeTrapezoids, tt_inner::ThreeTrapezoidsInner>(inner_rep_table.clone()));
+
+        let outer_rep_table = Arc::new(RepresentativeTable::new::<tt_outer::ThreeTrapezoidsOuter>());
+        let outer_move_table: MoveTable<tt::FullSymmetry, tt_outer::ThreeTrapezoidsOuterIndex, tt::Turns> = MoveTable::new_on_pattern::<tt::ThreeTrapezoids, tt_outer::ThreeTrapezoidsOuter>(outer_rep_table.clone());
+        let move_table = CompositeMoveTable::new(inner_move_table.clone(), Arc::new(outer_move_table));
+
+        // Raw to sym and sym to raw functions round trip
+        for inner_perm_index in all::<tt_inner::ThreeTrapezoidsInnerIndex>() {
+            for outer_perm_index in all::<tt_outer::ThreeTrapezoidsOuterIndex>() {
+                let (inner_perm_index_rt, outer_perm_index_rt) = move_table.sym_index_to_raw_index(move_table.raw_index_to_sym_index((inner_perm_index, outer_perm_index)));
+                assert_eq!(inner_perm_index_rt, inner_perm_index);
+                assert_eq!(outer_perm_index_rt, outer_perm_index);
+            }
+        }
+
+        // Applying move_table moves is identical to applying permutations
+        for pi in all::<tt::ThreeTrapezoidsIndex>() {
+            let p: tt::ThreeTrapezoids = pi.into();
+            let p_inner: tt_inner::ThreeTrapezoidsInner = p.into();
+            let p_outer: tt_outer::ThreeTrapezoidsOuter = p.into();
+            let pi_inner: tt_inner::ThreeTrapezoidsInnerIndex = p_inner.into();
+            let pi_outer: tt_outer::ThreeTrapezoidsOuterIndex = p_outer.into();
+            for t in all::<tt::Turns>() {
+                let turn: tt::ThreeTrapezoids = t.into();
+                let inner_by_perm = p_inner.act(turn);
+                let outer_by_perm = p_outer.act(turn);
+                let (inner_by_table, outer_by_table) = move_table.sym_index_to_raw_index(move_table.sym_turn(move_table.raw_index_to_sym_index((pi_inner, pi_outer)), t));
+                assert_eq!(inner_by_perm, inner_by_table.into());
+                assert_eq!(outer_by_perm, outer_by_table.into());
+            }
+        }
+
+        // All routes to a permutation result in the same representative
+        for pi0 in all::<tt::ThreeTrapezoidsIndex>() {
+            let p0: tt::ThreeTrapezoids = pi0.into();
+            let p0_inner: tt_inner::ThreeTrapezoidsInner = p0.into();
+            let p0_outer: tt_outer::ThreeTrapezoidsOuter = p0.into();
+            let si0 = move_table.raw_index_to_sym_index((p0_inner.into(), p0_outer.into()));
+            for t in all::<tt::Turns>() {
+                let p1 = p0.permute(t.into());
+                let p1_inner: tt_inner::ThreeTrapezoidsInner = p1.into();
+                let p1_outer: tt_outer::ThreeTrapezoidsOuter = p1.into();
+                let si1 = move_table.raw_index_to_sym_index((p1_inner.into(), p1_outer.into()));
+                let si_rt = move_table.sym_turn(si1, t.invert());
+                assert_eq!(si0.0, si_rt.0);
+            }
+        }
+
+        // All entries are bi-directional (this holds because all turns in the
+        // turn set also have an inverse in the turn set).  If there's a move
+        // that can put you in state b from a, then there must exist an inverse
+        // turn that puts you from state a to state b.
+        for pi in all::<tt::ThreeTrapezoidsIndex>() {
+            let p: tt::ThreeTrapezoids = pi.into();
+            let p_inner: tt_inner::ThreeTrapezoidsInner = p.into();
+            let p_outer: tt_outer::ThreeTrapezoidsOuter = p.into();
+            for t in all::<tt::Turns>() {
+                let si0 = move_table.raw_index_to_sym_index((p_inner.into(), p_outer.into()));
+                let si1 = move_table.sym_turn(si0, t);
+                let si_rt = move_table.sym_turn(si1, t.invert());
+                assert_eq!(si0.0, si_rt.0);
             }
         }
     }
