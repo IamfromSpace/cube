@@ -268,16 +268,9 @@ mod tests {
                 // NOTE: Again, the only reachable states are where the top and
                 // bottom are in the same state.
                 let (ri_a, _) = move_table.raw_index_to_sym_index((pi, pi));
-                let (ri_b, _) = move_table.turn(ri_a, t);
-                let mut found = false;
-                for t in all::<three_triangles::Turns>() {
-                    let (ri_rt, _ ) = move_table.turn(ri_b, t);
-                    if ri_a == ri_rt {
-                        found = true;
-                        break;
-                    }
-                }
-                assert_eq!(found, true);
+                let (ri_b, s) = move_table.turn(ri_a, t);
+                let (ri_rt, _ ) = move_table.turn(ri_b, t.invert().get_equivalent(&s));
+                assert_eq!(ri_a, ri_rt);
             }
         }
     }
@@ -324,16 +317,9 @@ mod tests {
             for pi1 in all::<three_triangles::ThreeTrianglesEvenIndex>() {
                 for t in all::<Turns>() {
                     let (ri_a, _) = move_table.raw_index_to_sym_index((pi0, pi1));
-                    let (ri_b, _) = move_table.turn(ri_a, t);
-                    let mut found = false;
-                    for t in all::<Turns>() {
-                        let (ri_rt, _) = move_table.turn(ri_b, t);
-                        if ri_a == ri_rt {
-                            found = true;
-                            break;
-                        }
-                    }
-                    assert_eq!(found, true);
+                    let (ri_b, s) = move_table.turn(ri_a, t);
+                    let (ri_rt, _ ) = move_table.turn(ri_b, t.invert().get_equivalent(&s));
+                    assert_eq!(ri_a, ri_rt);
                 }
             }
         }
@@ -384,16 +370,9 @@ mod tests {
             for pi1 in all::<three_triangles::ThreeTrianglesEvenIndex>() {
                 for t in all::<Turns>() {
                     let (ri_a, _) = move_table.raw_index_to_sym_index((pi0, pi1));
-                    let (ri_b, _) = move_table.turn(ri_a, t);
-                    let mut found = false;
-                    for t in all::<Turns>() {
-                        let (ri_rt, _) = move_table.turn(ri_b, t);
-                        if ri_a == ri_rt {
-                            found = true;
-                            break;
-                        }
-                    }
-                    assert_eq!(found, true);
+                    let (ri_b, s) = move_table.turn(ri_a, t);
+                    let (ri_rt, _ ) = move_table.turn(ri_b, t.invert().get_equivalent(&s));
+                    assert_eq!(ri_a, ri_rt);
                 }
             }
         }
@@ -441,16 +420,9 @@ mod tests {
             for pi1 in all::<three_triangles::ThreeTrianglesEvenIndex>() {
                 for t in all::<Turns>() {
                     let (ri_a, _) = move_table.raw_index_to_sym_index((pi0, pi1));
-                    let (ri_b, _) = move_table.turn(ri_a, t);
-                    let mut found = false;
-                    for t in all::<Turns>() {
-                        let (ri_rt, _) = move_table.turn(ri_b, t);
-                        if ri_a == ri_rt {
-                            found = true;
-                            break;
-                        }
-                    }
-                    assert_eq!(found, true);
+                    let (ri_b, s) = move_table.turn(ri_a, t);
+                    let (ri_rt, _ ) = move_table.turn(ri_b, t.invert().get_equivalent(&s));
+                    assert_eq!(ri_a, ri_rt);
                 }
             }
         }
@@ -498,16 +470,9 @@ mod tests {
             for pi1 in all::<three_triangles::ThreeTrianglesEvenIndex>() {
                 for t in all::<Turns>() {
                     let (ri_a, _) = move_table.raw_index_to_sym_index((pi0, pi1));
-                    let (ri_b, _) = move_table.turn(ri_a, t);
-                    let mut found = false;
-                    for t in all::<Turns>() {
-                        let (ri_rt, _) = move_table.turn(ri_b, t);
-                        if ri_a == ri_rt {
-                            found = true;
-                            break;
-                        }
-                    }
-                    assert_eq!(found, true);
+                    let (ri_b, s) = move_table.turn(ri_a, t);
+                    let (ri_rt, _ ) = move_table.turn(ri_b, t.invert().get_equivalent(&s));
+                    assert_eq!(ri_a, ri_rt);
                 }
             }
         }
