@@ -259,6 +259,20 @@ mod tests {
             assert_eq!(pi_rt_1, pi);
         }
 
+        // All routes to a permutation result in the same representative
+        for pi0 in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+            let top_p0: three_triangles::ThreeTriangles = pi0.into();
+            let bottom_p0: three_triangles::ThreeTriangles = pi0.into();
+            let si0 = move_table.raw_index_to_sym_index((pi0, pi0));
+            for t in all::<three_triangles::Turns>() {
+                let top_p1 = top_p0.permute(t.into());
+                let bottom_p1 = bottom_p0.permute(t.into());
+                let si1 = move_table.raw_index_to_sym_index((top_p1.into(), bottom_p1.into()));
+                let si_rt = move_table.turn(si1.0, t.get_equivalent(&si1.1).invert());
+                assert_eq!(si0.0, si_rt.0);
+            }
+        }
+
         // All entries are bi-directional (this holds because all turns in the
         // turn set also have an inverse in the turn set).  If there's a move
         // that can put you in state b from a, then there must exist an inverse
@@ -305,6 +319,22 @@ mod tests {
                     let (top_by_table, bottom_by_table) = move_table.sym_index_to_raw_index(move_table.turn(CompositeIndex(top_rep_index, bottom_perm_index), t));
                     assert_eq!(top_by_perm, top_by_table.into());
                     assert_eq!(bottom_by_perm, bottom_by_table.into());
+                }
+            }
+        }
+
+        // All routes to a permutation result in the same representative
+        for top_pi0 in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+            for bottom_pi0 in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+                let top_p0: TopThreeTriangles = top_pi0.into();
+                let bottom_p0: BottomThreeTriangles = bottom_pi0.into();
+                let si0 = move_table.raw_index_to_sym_index((top_pi0, bottom_pi0));
+                for t in all::<Turns>() {
+                    let top_p1 = top_p0.permute(t.into());
+                    let bottom_p1 = bottom_p0.permute(t.into());
+                    let si1 = move_table.raw_index_to_sym_index((top_p1.into(), bottom_p1.into()));
+                    let si_rt = move_table.turn(si1.0, t.get_equivalent(&si1.1).invert());
+                    assert_eq!(si0.0, si_rt.0);
                 }
             }
         }
@@ -359,13 +389,26 @@ mod tests {
             }
         }
 
+        // All routes to a permutation result in the same representative
+        for top_pi0 in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+            for bottom_pi0 in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+                let top_p0: TopThreeTriangles = top_pi0.into();
+                let bottom_p0: BottomThreeTriangles = bottom_pi0.into();
+                let si0 = move_table.raw_index_to_sym_index((top_pi0, bottom_pi0));
+                for t in all::<Turns>() {
+                    let top_p1 = top_p0.permute(t.into());
+                    let bottom_p1 = bottom_p0.permute(t.into());
+                    let si1 = move_table.raw_index_to_sym_index((top_p1.into(), bottom_p1.into()));
+                    let si_rt = move_table.turn(si1.0, t.get_equivalent(&si1.1).invert());
+                    assert_eq!(si0.0, si_rt.0);
+                }
+            }
+        }
+
         // All entries are bi-directional (this holds because all turns in the
         // turn set also have an inverse in the turn set).  If there's a move
         // that can put you in state b from a, then there must exist an inverse
         // turn that puts you from state a to state b.
-        // TODO: This was actually very valuable to test that symmetry
-        // reduction always finds the same exact rep, which is far from
-        // trivial.  But ideally we'd test for that direcly.
         for pi0 in all::<three_triangles::ThreeTrianglesEvenIndex>() {
             for pi1 in all::<three_triangles::ThreeTrianglesEvenIndex>() {
                 for t in all::<Turns>() {
@@ -408,6 +451,22 @@ mod tests {
                     let (top_by_table, bottom_by_table) = move_table.sym_index_to_raw_index(move_table.turn(CompositeIndex(top_rep_index, bottom_perm_index), t));
                     assert_eq!(top_by_perm, top_by_table.into());
                     assert_eq!(bottom_by_perm, bottom_by_table.into());
+                }
+            }
+        }
+
+        // All routes to a permutation result in the same representative
+        for top_pi0 in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+            for bottom_pi0 in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+                let top_p0: TopThreeTriangles = top_pi0.into();
+                let bottom_p0: BottomThreeTriangles = bottom_pi0.into();
+                let si0 = move_table.raw_index_to_sym_index((top_pi0, bottom_pi0));
+                for t in all::<Turns>() {
+                    let top_p1 = top_p0.permute(t.into());
+                    let bottom_p1 = bottom_p0.permute(t.into());
+                    let si1 = move_table.raw_index_to_sym_index((top_p1.into(), bottom_p1.into()));
+                    let si_rt = move_table.turn(si1.0, t.get_equivalent(&si1.1).invert());
+                    assert_eq!(si0.0, si_rt.0);
                 }
             }
         }
@@ -458,6 +517,22 @@ mod tests {
                     let (top_by_table, bottom_by_table) = move_table.sym_index_to_raw_index(move_table.turn(CompositeIndex(top_rep_index, bottom_perm_index), t));
                     assert_eq!(top_by_perm, top_by_table.into());
                     assert_eq!(bottom_by_perm, bottom_by_table.into());
+                }
+            }
+        }
+
+        // All routes to a permutation result in the same representative
+        for top_pi0 in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+            for bottom_pi0 in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+                let top_p0: TopThreeTriangles = top_pi0.into();
+                let bottom_p0: BottomThreeTriangles = bottom_pi0.into();
+                let si0 = move_table.raw_index_to_sym_index((top_pi0, bottom_pi0));
+                for t in all::<Turns>() {
+                    let top_p1 = top_p0.permute(t.into());
+                    let bottom_p1 = bottom_p0.permute(t.into());
+                    let si1 = move_table.raw_index_to_sym_index((top_p1.into(), bottom_p1.into()));
+                    let si_rt = move_table.turn(si1.0, t.get_equivalent(&si1.1).invert());
+                    assert_eq!(si0.0, si_rt.0);
                 }
             }
         }

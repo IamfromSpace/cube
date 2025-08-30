@@ -116,7 +116,7 @@ mod tests {
     use super::*;
     use two_triangles::*;
 
-    fn test<Sym: PartialEq + Sequence + Copy + Clone + Into<usize> + Invertable, PermIndex: std::fmt::Debug + Sequence + Copy + Ord + TryFrom<usize> + Into<usize>, Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Perm: std::fmt::Debug + Eq + PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>>() where PermIndex: Into<Perm>, Turn: Into<Perm>, <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
+    fn test<Sym: PartialEq + Sequence + Copy + Clone + Into<usize> + Invertable + std::fmt::Debug, PermIndex: std::fmt::Debug + Sequence + Copy + Ord + TryFrom<usize> + Into<usize>, Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym> + Invertable, Perm: std::fmt::Debug + Eq + PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>>() where PermIndex: Into<Perm>, Turn: Into<Perm>, <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
         let rep_table = Arc::new(RepresentativeTable::new::<Perm>());
         // Even though either Left + Right generates all states, MoveTables
         // should basically always include turn inverses, so that they can go
@@ -137,6 +137,19 @@ mod tests {
         for pi in all::<PermIndex>() {
             let pi_rt = move_table.sym_index_to_raw_index(move_table.raw_index_to_sym_index(pi));
             assert_eq!(pi_rt, pi);
+        }
+
+        // All routes to a permutation result in the same representative (but
+        // the sym coordinate is nondeterministic)
+        for pi0 in all::<PermIndex>() {
+            let p0: Perm = pi0.into();
+            let si0 = move_table.raw_index_to_sym_index(pi0);
+            for t in all::<Turn>() {
+                let p1 = p0.clone().permute(t.into());
+                let si1 = move_table.raw_index_to_sym_index(p1.into());
+                let si_rt = move_table.turn(si1.0, t.get_equivalent(&si1.1).invert());
+                assert_eq!(si0.0, si_rt.0);
+            }
         }
 
         // All entries are bi-directional (this holds because all turns in the
@@ -264,6 +277,19 @@ mod tests {
             assert_eq!(pi_rt, pi);
         }
 
+        // All routes to a permutation result in the same representative (but
+        // the sym coordinate is nondeterministic)
+        for pi0 in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+            let p0: three_triangles_stack::TopThreeTriangles = pi0.into();
+            let si0 = move_table.raw_index_to_sym_index(pi0);
+            for t in all::<three_triangles_stack::Turns>() {
+                let p1 = p0.clone().permute(t.into());
+                let si1 = move_table.raw_index_to_sym_index(p1.into());
+                let si_rt = move_table.turn(si1.0, t.get_equivalent(&si1.1).invert());
+                assert_eq!(si0.0, si_rt.0);
+            }
+        }
+
         // All entries are bi-directional (this holds because all turns in the
         // turn set also have an inverse in the turn set).  If there's a move
         // that can put you in state b from a, then there must exist an inverse
@@ -302,6 +328,19 @@ mod tests {
             assert_eq!(pi_rt, pi);
         }
 
+        // All routes to a permutation result in the same representative (but
+        // the sym coordinate is nondeterministic)
+        for pi0 in all::<three_triangles::ThreeTrianglesEvenIndex>() {
+            let p0: three_triangles_stack::BottomThreeTriangles = pi0.into();
+            let si0 = move_table.raw_index_to_sym_index(pi0);
+            for t in all::<three_triangles_stack::Turns>() {
+                let p1 = p0.clone().permute(t.into());
+                let si1 = move_table.raw_index_to_sym_index(p1.into());
+                let si_rt = move_table.turn(si1.0, t.get_equivalent(&si1.1).invert());
+                assert_eq!(si0.0, si_rt.0);
+            }
+        }
+
         // All entries are bi-directional (this holds because all turns in the
         // turn set also have an inverse in the turn set).  If there's a move
         // that can put you in state b from a, then there must exist an inverse
@@ -338,7 +377,7 @@ mod tests {
         test::<three_trapezoids::FullSymmetry, three_trapezoids::ThreeTrapezoidsIndex, three_trapezoids::Turns, three_trapezoids::ThreeTrapezoids>();
     }
 
-    fn test_on_pattern<Sym: PartialEq + Sequence + Copy + Clone + Into<usize> + Invertable, PatternIndex: std::fmt::Debug + Sequence + Copy + Ord + TryFrom<usize> + Into<usize>, Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym> + Into<Perm>, Perm: PG, Pattern: GroupAction<Perm> + std::fmt::Debug + Eq + Clone + EquivalenceClass<Sym> + Into<PatternIndex>>() where PatternIndex: Into<Pattern>, <PatternIndex as TryFrom<usize>>::Error: std::fmt::Debug {
+    fn test_on_pattern<Sym: PartialEq + Sequence + Copy + Clone + Into<usize> + Invertable + std::fmt::Debug, PatternIndex: std::fmt::Debug + Sequence + Copy + Ord + TryFrom<usize> + Into<usize>, Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym> + Invertable + Into<Perm>, Perm: PG, Pattern: GroupAction<Perm> + std::fmt::Debug + Eq + Clone + EquivalenceClass<Sym> + Into<PatternIndex>>() where PatternIndex: Into<Pattern>, <PatternIndex as TryFrom<usize>>::Error: std::fmt::Debug {
         let rep_table = Arc::new(RepresentativeTable::new::<Pattern>());
         // Even though either Left + Right generates all states, MoveTables
         // should basically always include turn inverses, so that they can go
@@ -360,6 +399,20 @@ mod tests {
         for pi in all::<PatternIndex>() {
             let pi_rt = move_table.sym_index_to_raw_index(move_table.raw_index_to_sym_index(pi));
             assert_eq!(pi_rt, pi);
+        }
+
+        // All routes to a permutation result in the same representative (but
+        // the sym coordinate is nondeterministic)
+        for pi0 in all::<PatternIndex>() {
+            let p0: Pattern = pi0.into();
+            let si0 = move_table.raw_index_to_sym_index(pi0);
+            for t in all::<Turn>() {
+                let turn: Perm = t.into();
+                let p1 = p0.clone().act(turn);
+                let si1 = move_table.raw_index_to_sym_index(p1.into());
+                let si_rt = move_table.turn(si1.0, t.get_equivalent(&si1.1).invert());
+                assert_eq!(si0.0, si_rt.0);
+            }
         }
 
         // All entries are bi-directional (this holds because all turns in the
