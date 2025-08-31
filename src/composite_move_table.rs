@@ -21,7 +21,6 @@ impl<RepIndexA: Into<usize>, PermIndexB: Into<usize> + Sequence> Into<usize> for
 #[derive(Debug)]
 // TODO: If MoveTable had a trait, then this could compose with itself, meaning
 // we could get three+ move tables.
-// TODO: Ordering of arguments is stupid
 pub struct CompositeMoveTable<Sym, PermIndexA, PermIndexB, Turn> {
     a: Arc<MoveTable<Sym, PermIndexA, Turn>>,
     b: Arc<MoveTable<Sym, PermIndexB, Turn>>,
