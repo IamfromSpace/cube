@@ -10,6 +10,16 @@ impl<Sym, RepIndex, Turn, T: TableTurn<Sym, RepIndex, Turn>> TableTurn<Sym, RepI
     }
 }
 
+pub trait TableSymTurn<Sym, RepIndex, Turn> {
+    fn table_sym_turn(self: &Self, i: (RepIndex, Sym), t: Turn) -> (RepIndex, Sym);
+}
+
+impl<Sym, RepIndex, Turn, T: TableSymTurn<Sym, RepIndex, Turn>> TableSymTurn<Sym, RepIndex, Turn> for Arc<T> {
+    fn table_sym_turn(self: &Self, i: (RepIndex, Sym), t: Turn) -> (RepIndex, Sym) {
+        (**self).table_sym_turn(i, t)
+    }
+}
+
 pub trait TableRawIndexToSymIndex<Sym, PermIndex, RepIndex> {
     fn table_raw_index_to_sym_index(self: &Self, pi: PermIndex) -> (RepIndex, Sym);
 }

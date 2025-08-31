@@ -3,7 +3,7 @@ use invertable::Invertable;
 use equivalence_class::EquivalenceClass;
 use algebraic_actions::GroupAction;
 use representative_table::{ RepresentativeTable, RepIndex };
-use table_traits::{ TableTurn, TableRawIndexToSymIndex, TableSymIndexToRawIndex, TableRepCount };
+use table_traits::{ TableTurn, TableSymTurn, TableRawIndexToSymIndex, TableSymIndexToRawIndex, TableRepCount };
 
 use std::sync::Arc;
 use std::convert::TryFrom;
@@ -25,7 +25,7 @@ pub struct MoveTable<Sym, PermIndex, Turn> {
 // TODO: If the PermIndex is even all Turns must be even too, and if the
 // PermIndex is odd then at least one Turn in the set must also be odd.  Can
 // this be expressed through Traits to guarantee a match?
-impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + Into<usize> + Invertable, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>> MoveTable<Sym, PermIndex, Turn> where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
+impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: PG + Sequence + Copy + Clone + Into<usize> + Invertable, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>> MoveTable<Sym, PermIndex, Turn> where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
     // TODO: We can have an alterative method that automatically generates the
     // RepTable to simplify cases where it isn't shared with other MoveTables.
     pub fn new<Perm: PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>>(rep_table: Arc<RepresentativeTable<Sym, PermIndex>>) -> Self where PermIndex: Into<Perm>, Turn: Into<Perm> {
@@ -65,6 +65,11 @@ impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sy
         self.turn_table[i]
     }
 
+    pub fn sym_turn(&self, si: (RepIndex<Sym, PermIndex>, Sym), t: Turn) -> (RepIndex<Sym, PermIndex>, Sym) {
+        let (ri, s) = self.turn(si.0, t.get_equivalent(&si.1));
+        (ri, si.1.permute(s))
+    }
+
     // Count of Reps
     pub fn len(&self) -> usize {
         self.rep_table.len()
@@ -87,25 +92,31 @@ impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sy
 
 // TODO: Don't need as many constraints (just the specfic ones to this trait)
 // if we fully migrate to traits and the implementation is here
-impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + Into<usize> + Invertable, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>> TableTurn<Sym, RepIndex<Sym, PermIndex>, Turn> for MoveTable<Sym, PermIndex, Turn> where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
+impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: PG + Sequence + Copy + Clone + Into<usize> + Invertable, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>> TableTurn<Sym, RepIndex<Sym, PermIndex>, Turn> for MoveTable<Sym, PermIndex, Turn> where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
     fn table_turn(&self, ri: RepIndex<Sym, PermIndex>, t: Turn) -> (RepIndex<Sym, PermIndex>, Sym) {
         self.turn(ri, t)
     }
 }
 
-impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + Into<usize> + Invertable, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>> TableRawIndexToSymIndex<Sym, PermIndex, RepIndex<Sym, PermIndex>> for MoveTable<Sym, PermIndex, Turn> where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
+impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: PG + Sequence + Copy + Clone + Into<usize> + Invertable, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>> TableSymTurn<Sym, RepIndex<Sym, PermIndex>, Turn> for MoveTable<Sym, PermIndex, Turn> where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
+    fn table_sym_turn(&self, si: (RepIndex<Sym, PermIndex>, Sym), t: Turn) -> (RepIndex<Sym, PermIndex>, Sym) {
+        self.sym_turn(si, t)
+    }
+}
+
+impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: PG + Sequence + Copy + Clone + Into<usize> + Invertable, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>> TableRawIndexToSymIndex<Sym, PermIndex, RepIndex<Sym, PermIndex>> for MoveTable<Sym, PermIndex, Turn> where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
     fn table_raw_index_to_sym_index(&self, pi: PermIndex) -> (RepIndex<Sym, PermIndex>, Sym) {
         self.raw_index_to_sym_index(pi)
     }
 }
 
-impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + Into<usize> + Invertable, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>> TableSymIndexToRawIndex<Sym, PermIndex, RepIndex<Sym, PermIndex>> for MoveTable<Sym, PermIndex, Turn> where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
+impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: PG + Sequence + Copy + Clone + Into<usize> + Invertable, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>> TableSymIndexToRawIndex<Sym, PermIndex, RepIndex<Sym, PermIndex>> for MoveTable<Sym, PermIndex, Turn> where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
     fn table_sym_index_to_raw_index(&self, si: (RepIndex<Sym, PermIndex>, Sym)) -> PermIndex {
         self.sym_index_to_raw_index(si)
     }
 }
 
-impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + Into<usize> + Invertable, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>> TableRepCount for MoveTable<Sym, PermIndex, Turn> where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
+impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: PG + Sequence + Copy + Clone + Into<usize> + Invertable, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>> TableRepCount for MoveTable<Sym, PermIndex, Turn> where <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
     fn table_rep_count(&self) -> usize {
         self.len()
     }
@@ -116,7 +127,7 @@ mod tests {
     use super::*;
     use two_triangles::*;
 
-    fn test<Sym: PartialEq + Sequence + Copy + Clone + Into<usize> + Invertable + std::fmt::Debug, PermIndex: std::fmt::Debug + Sequence + Copy + Ord + TryFrom<usize> + Into<usize>, Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym> + Invertable, Perm: std::fmt::Debug + Eq + PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>>() where PermIndex: Into<Perm>, Turn: Into<Perm>, <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
+    fn test<Sym: PG + PartialEq + Sequence + Copy + Clone + Into<usize> + Invertable + std::fmt::Debug, PermIndex: std::fmt::Debug + Sequence + Copy + Ord + TryFrom<usize> + Into<usize>, Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym> + Invertable, Perm: std::fmt::Debug + Eq + PG + Clone + EquivalenceClass<Sym> + Into<PermIndex>>() where PermIndex: Into<Perm>, Turn: Into<Perm>, <PermIndex as TryFrom<usize>>::Error: std::fmt::Debug {
         let rep_table = Arc::new(RepresentativeTable::new::<Perm>());
         // Even though either Left + Right generates all states, MoveTables
         // should basically always include turn inverses, so that they can go
@@ -377,7 +388,7 @@ mod tests {
         test::<three_trapezoids::FullSymmetry, three_trapezoids::ThreeTrapezoidsIndex, three_trapezoids::Turns, three_trapezoids::ThreeTrapezoids>();
     }
 
-    fn test_on_pattern<Sym: PartialEq + Sequence + Copy + Clone + Into<usize> + Invertable + std::fmt::Debug, PatternIndex: std::fmt::Debug + Sequence + Copy + Ord + TryFrom<usize> + Into<usize>, Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym> + Invertable + Into<Perm>, Perm: PG, Pattern: GroupAction<Perm> + std::fmt::Debug + Eq + Clone + EquivalenceClass<Sym> + Into<PatternIndex>>() where PatternIndex: Into<Pattern>, <PatternIndex as TryFrom<usize>>::Error: std::fmt::Debug {
+    fn test_on_pattern<Sym: PG + PartialEq + Sequence + Copy + Clone + Into<usize> + Invertable + std::fmt::Debug, PatternIndex: std::fmt::Debug + Sequence + Copy + Ord + TryFrom<usize> + Into<usize>, Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym> + Invertable + Into<Perm>, Perm: PG, Pattern: GroupAction<Perm> + std::fmt::Debug + Eq + Clone + EquivalenceClass<Sym> + Into<PatternIndex>>() where PatternIndex: Into<Pattern>, <PatternIndex as TryFrom<usize>>::Error: std::fmt::Debug {
         let rep_table = Arc::new(RepresentativeTable::new::<Pattern>());
         // Even though either Left + Right generates all states, MoveTables
         // should basically always include turn inverses, so that they can go

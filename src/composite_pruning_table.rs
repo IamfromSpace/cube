@@ -1,7 +1,7 @@
 use permutation_group::PermutationGroup as PG;
 use invertable::Invertable;
 use equivalence_class::EquivalenceClass;
-use table_traits::{ TableTurn, TableRawIndexToSymIndex, TableRepCount };
+use table_traits::{ TableTurn, TableSymTurn, TableRawIndexToSymIndex, TableRepCount };
 use flat_pruning_table::{PruningTable, LowerBoundToken};
 
 use std::sync::Arc;
@@ -38,7 +38,7 @@ pub struct CompositePruningTable<SymA, SymB, PermIndexA, PermIndexB, RepIndexA, 
     b: PruningTable<SymB, PermIndexB, RepIndexB, Turn, MoveTableB>,
 }
 
-impl<MoveTableA: TableTurn<SymA, RepIndexA, Turn> + TableRawIndexToSymIndex<SymA, PermIndexA, RepIndexA> + TableRepCount, MoveTableB: TableTurn<SymB, RepIndexB, Turn> + TableRawIndexToSymIndex<SymB, PermIndexB, RepIndexB> + TableRepCount, Turn: std::fmt::Debug + Sequence + Copy + Invertable + EquivalenceClass<SymA> + EquivalenceClass<SymB> + Ord, SymA: std::fmt::Debug + Sequence + Copy + Clone + PG + Ord, SymB: std::fmt::Debug + Sequence + Copy + Clone + PG + Ord, PermIndexA: Sequence + Copy + Ord, PermIndexB: Sequence + Copy + Ord, RepIndexA: std::fmt::Debug + Copy + Ord + Into<usize>, RepIndexB: std::fmt::Debug + Copy + Ord + Into<usize>> CompositePruningTable<SymA, SymB, PermIndexA, PermIndexB, RepIndexA, RepIndexB, Turn, MoveTableA, MoveTableB> {
+impl<MoveTableA: TableTurn<SymA, RepIndexA, Turn> + TableSymTurn<SymA, RepIndexA, Turn> + TableRawIndexToSymIndex<SymA, PermIndexA, RepIndexA> + TableRepCount, MoveTableB: TableTurn<SymB, RepIndexB, Turn> + TableSymTurn<SymB, RepIndexB, Turn> + TableRawIndexToSymIndex<SymB, PermIndexB, RepIndexB> + TableRepCount, Turn: std::fmt::Debug + Sequence + Copy + Invertable + EquivalenceClass<SymA> + EquivalenceClass<SymB> + Ord, SymA: std::fmt::Debug + Sequence + Copy + Clone + PG + Ord, SymB: std::fmt::Debug + Sequence + Copy + Clone + PG + Ord, PermIndexA: Sequence + Copy + Ord, PermIndexB: Sequence + Copy + Ord, RepIndexA: std::fmt::Debug + Copy + Ord + Into<usize>, RepIndexB: std::fmt::Debug + Copy + Ord + Into<usize>> CompositePruningTable<SymA, SymB, PermIndexA, PermIndexB, RepIndexA, RepIndexB, Turn, MoveTableA, MoveTableB> {
     pub fn new(a: PruningTable<SymA, PermIndexA, RepIndexA, Turn, MoveTableA>, b: PruningTable<SymB, PermIndexB, RepIndexB, Turn, MoveTableB>) -> Self {
         CompositePruningTable { a, b }
     }

@@ -1,7 +1,7 @@
 use permutation_group::PermutationGroup as PG;
 use invertable::Invertable;
 use equivalence_class::EquivalenceClass;
-use table_traits::{ TableTurn, TableRawIndexToSymIndex, TableRepCount };
+use table_traits::{ TableTurn, TableSymTurn, TableRawIndexToSymIndex, TableRepCount };
 
 use std::sync::Arc;
 use std::collections::BTreeSet;
@@ -37,7 +37,7 @@ pub struct PruningTable<Sym, PermIndex, RepIndex, Turn, MoveTable> {
     perm_index: std::marker::PhantomData<PermIndex>,
 }
 
-impl<MoveTable: TableTurn<Sym, RepIndex, Turn> + TableRawIndexToSymIndex<Sym, PermIndex, RepIndex> + TableRepCount, Turn: Sequence + Copy + Invertable + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + PG, PermIndex: Sequence + Copy + Ord, RepIndex: Copy + Ord + Into<usize>> PruningTable<Sym, PermIndex, RepIndex, Turn, MoveTable> {
+impl<MoveTable: TableTurn<Sym, RepIndex, Turn> + TableSymTurn<Sym, RepIndex, Turn> + TableRawIndexToSymIndex<Sym, PermIndex, RepIndex> + TableRepCount, Turn: Sequence + Copy + Invertable + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + PG, PermIndex: Sequence + Copy + Ord, RepIndex: Copy + Ord + Into<usize>> PruningTable<Sym, PermIndex, RepIndex, Turn, MoveTable> {
     // TODO: Hypothetically our pruning table could use a different Turn set
     // than our MoveTable.  We'd need the MoveTableTurn to be Invertable, but
     // not the PruningTableTurn.  PruningTableTurn must be From<MoveTableTurn>.
@@ -126,9 +126,9 @@ impl<MoveTable: TableTurn<Sym, RepIndex, Turn> + TableRawIndexToSymIndex<Sym, Pe
     pub fn continue_search(&self, lbt: LowerBoundToken<(RepIndex, Sym), Turn>, t: Turn) -> LowerBoundToken<(RepIndex, Sym), Turn> {
         let prev_lower_bound = lbt.get_lower_bound();
         let prev_m3 = prev_lower_bound % 3;
-        let (ri0, s0) = lbt.get_index();
-        let (ri1, s1) = self.move_table.table_turn(ri0, t.get_equivalent(&s0));
-        let next_m3 = lookup(&self.table, ri1.into());
+        let si0 = lbt.get_index();
+        let si1 = self.move_table.table_sym_turn(si0, t);
+        let next_m3 = lookup(&self.table, si1.0.into());
 
         let next_lower_bound = match (prev_m3, next_m3) {
             // Repetition avoids casting to i8
@@ -144,7 +144,7 @@ impl<MoveTable: TableTurn<Sym, RepIndex, Turn> + TableRawIndexToSymIndex<Sym, Pe
             (_, _) => unreachable!("Invariant violation: Pruning table values were not mod 3."),
         };
 
-        LowerBoundToken::new((ri1, s0.permute(s1)), next_lower_bound)
+        LowerBoundToken::new(si1, next_lower_bound)
     }
 
     /*

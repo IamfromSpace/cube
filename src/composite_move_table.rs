@@ -2,7 +2,7 @@ use permutation_group::PermutationGroup as PG;
 use invertable::Invertable;
 use equivalence_class::EquivalenceClass;
 use representative_table::{ RepresentativeTable, RepIndex };
-use table_traits::{ TableTurn, TableRawIndexToSymIndex, TableSymIndexToRawIndex, TableRepCount };
+use table_traits::{ TableTurn, TableSymTurn, TableRawIndexToSymIndex, TableSymIndexToRawIndex, TableRepCount };
 
 use std::sync::Arc;
 use std::convert::TryFrom;
@@ -117,14 +117,6 @@ impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sy
         (CompositeIndex(a_rep_1, smallest), sym)
     }
 
-    // TODO: Need to determine the right long term strategy for this.  Is this
-    // a convenience function for testing, or is it the preferred way to do a
-    // turn?  The upside is that it is easier to use because it keeps things
-    // straight for you automatically, but the downside is that it can't be
-    // used universally, because it's not as performant.  But in some places
-    // (like in composite pruning tables), we must retain symmetries through
-    // our operations anyway.
-    // Preserves symmetry
     pub fn sym_turn(&self, (ri0, s0): (CompositeIndex<RepIndex<Sym, PermIndexA>, PermIndexB>, Sym), t: Turn) -> (CompositeIndex<RepIndex<Sym, PermIndexA>, PermIndexB>, Sym) {
         let (ri1, s1) = self.turn(ri0, t.get_equivalent(&s0));
         (ri1, s0.permute(s1))
@@ -213,6 +205,12 @@ impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sy
 impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + Into<usize> + Invertable + PG, PermIndexA: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>, PermIndexB: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>> TableTurn<Sym, CompositeIndex<RepIndex<Sym, PermIndexA>, PermIndexB>, Turn> for CompositeMoveTable<Sym, PermIndexA, PermIndexB, Turn> where <PermIndexA as TryFrom<usize>>::Error: std::fmt::Debug, <PermIndexB as TryFrom<usize>>::Error: std::fmt::Debug {
     fn table_turn(&self, ri: CompositeIndex<RepIndex<Sym, PermIndexA>, PermIndexB>, t: Turn) -> (CompositeIndex<RepIndex<Sym, PermIndexA>, PermIndexB>, Sym) {
         self.turn(ri, t)
+    }
+}
+
+impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + Into<usize> + Invertable + PG, PermIndexA: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>, PermIndexB: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>> TableSymTurn<Sym, CompositeIndex<RepIndex<Sym, PermIndexA>, PermIndexB>, Turn> for CompositeMoveTable<Sym, PermIndexA, PermIndexB, Turn> where <PermIndexA as TryFrom<usize>>::Error: std::fmt::Debug, <PermIndexB as TryFrom<usize>>::Error: std::fmt::Debug {
+    fn table_sym_turn(&self, si: (CompositeIndex<RepIndex<Sym, PermIndexA>, PermIndexB>, Sym), t: Turn) -> (CompositeIndex<RepIndex<Sym, PermIndexA>, PermIndexB>, Sym) {
+        self.sym_turn(si, t)
     }
 }
 
