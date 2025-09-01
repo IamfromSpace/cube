@@ -9,6 +9,7 @@ use enum_iterator::{all, Sequence};
 
 pub mod inner;
 pub mod outer;
+pub mod edge;
 
 // We have a simple little puzzle with three trapezoidal "faces" that all share
 // a middle and each share an edge.  we can rotate either clockwise or
@@ -328,6 +329,14 @@ impl Invertable for NoSymmetry {
 }
 
 impl PG for NoSymmetry {}
+
+impl Into<MirrorUDSymmetry> for NoSymmetry {
+    fn into(self) -> MirrorUDSymmetry {
+        match self {
+            NoSymmetry::Identity => MirrorUDSymmetry::Identity,
+        }
+    }
+}
 
 impl Into<FullSymmetry> for NoSymmetry {
     fn into(self) -> FullSymmetry {
