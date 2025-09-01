@@ -21,9 +21,9 @@ pub struct TwoLines([u8; 3]);
 
 const fn permute_arr(a: &[u8; 3], b: &[u8; 3]) -> [u8; 3] {
     [
-        a[b[0] as usize],
-        a[b[1] as usize],
-        a[b[2] as usize],
+        b[a[0] as usize],
+        b[a[1] as usize],
+        b[a[2] as usize],
     ]
 }
 

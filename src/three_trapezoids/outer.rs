@@ -38,48 +38,23 @@ pub struct ThreeTrapezoidsOuter([u16; 3]);
 
 impl From<ThreeTrapezoids> for ThreeTrapezoidsOuter {
     fn from(t: ThreeTrapezoids) -> Self {
-        // TODO: this should be simple index remapping, but its not because of
-        // how our permutation representation doesn't play nicely with
-        // patterns.
-        ThreeTrapezoidsOuter([3, 4, 5]).act(t)
+        ThreeTrapezoidsOuter([t.0[3], t.0[4], t.0[5]])
     }
 }
 
 fn arr_act(a: [u16; 3], b: [u16; 6]) -> [u16; 3] {
-    // TODO: Across the board, current permutations use: "What was in a[i] is
-    // now at i", whereas the opposite is the more standard description.  The
-    // one we're using makes for slow right actions and fast left actions (the
-    // opposite one is the opposite).  We should really use the other because
-    // we're going to do many more right actions than left (left only appear
-    // during conjugation, when a right will appear too!).
-    let mut x = [0; 3];
-    for i in 0..a.len() {
-        for j in 0..b.len() {
-            if a[i] == b[j] {
-                x[i] = j as u16;
-                break;
-            }
-        }
-    }
-    x
+    [
+        b[a[0] as usize],
+        b[a[1] as usize],
+        b[a[2] as usize],
+    ]
 }
 
 fn arr_act_left(a: [u16; 6], b: [u16; 3]) -> [u16; 3] {
-    // TODO: Again, the current permutations use, "what was in a[i] is now at
-    // i", which isn't directly compatible with patterns, so we need to adapt
-    // them first.
-    let mut r = [0; 6];
-    r[a[0] as usize] = 0;
-    r[a[1] as usize] = 1;
-    r[a[2] as usize] = 2;
-    r[a[3] as usize] = 3;
-    r[a[4] as usize] = 4;
-    r[a[5] as usize] = 5;
-
     [
-        b[r[3] as usize - 3],
-        b[r[4] as usize - 3],
-        b[r[5] as usize - 3],
+        b[a[3] as usize - 3],
+        b[a[4] as usize - 3],
+        b[a[5] as usize - 3],
     ]
 }
 

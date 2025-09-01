@@ -34,10 +34,10 @@ pub struct ThreeTriangles([u8; 4]);
 
 const fn permute_arr(a: &[u8; 4], b: &[u8; 4]) -> [u8; 4] {
     [
-        a[b[0] as usize],
-        a[b[1] as usize],
-        a[b[2] as usize],
-        a[b[3] as usize],
+        b[a[0] as usize],
+        b[a[1] as usize],
+        b[a[2] as usize],
+        b[a[3] as usize],
     ]
 }
 
@@ -134,14 +134,14 @@ impl Into<ThreeTriangles> for Turns {
     fn into(self) -> ThreeTriangles {
         match self {
             // 0 -> 2 -> 3
-            Turns::Left => ThreeTriangles([2, 1, 3, 0]),
-            Turns::LeftPrime => ThreeTriangles([3, 1, 0, 2]),
+            Turns::Left => ThreeTriangles([3, 1, 0, 2]),
+            Turns::LeftPrime => ThreeTriangles([2, 1, 3, 0]),
             // 0 -> 1 -> 2
-            Turns::UpperRight => ThreeTriangles([1, 2, 0, 3]),
-            Turns::UpperRightPrime => ThreeTriangles([2, 0, 1, 3]),
+            Turns::UpperRight => ThreeTriangles([2, 0, 1, 3]),
+            Turns::UpperRightPrime => ThreeTriangles([1, 2, 0, 3]),
             // 0 -> 3 -> 1
-            Turns::LowerRight => ThreeTriangles([3, 0, 2, 1]),
-            Turns::LowerRightPrime => ThreeTriangles([1, 3, 2, 0]),
+            Turns::LowerRight => ThreeTriangles([1, 3, 2, 0]),
+            Turns::LowerRightPrime => ThreeTriangles([3, 0, 2, 1]),
         }
     }
 }
@@ -240,9 +240,9 @@ impl Into<ThreeTriangles> for FullSymmetry {
         match self {
             FullSymmetry::Identity => ThreeTriangles([0, 1, 2, 3]),
             // 3 -> 2 -> 1
-            FullSymmetry::RotateCounterClock => ThreeTriangles([0, 3, 1, 2]),
+            FullSymmetry::RotateCounterClock => ThreeTriangles([0, 2, 3, 1]),
             // 1 -> 2 -> 3
-            FullSymmetry::RotateClock => ThreeTriangles([0, 2, 3, 1]),
+            FullSymmetry::RotateClock => ThreeTriangles([0, 3, 1, 2]),
             // 2 -> 3
             FullSymmetry::MirrorLeft => ThreeTriangles([0, 1, 3, 2]),
             // 1 -> 2

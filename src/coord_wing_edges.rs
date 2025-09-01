@@ -476,6 +476,8 @@ const fn arr_inv(a: &[u8; 24]) -> [u8; 24] {
     r
 }
 
+// TODO: This is using the inverse of the standard permutation representation,
+// which technically works, but is not good for patterns.
 const fn permute_arr(a: &[u8; 24], b: &[u8; 24]) -> [u8; 24] {
     [
         a[b[0] as usize],

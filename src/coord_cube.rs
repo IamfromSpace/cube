@@ -688,6 +688,8 @@ impl fmt::Display for CoordCube {
     }
 }
 
+// TODO: This is using the inverse of the standard permutation representation,
+// which technically works, but is not good for patterns.
 fn permute_corner_orientation(a: [u8; 3], b: [u8; 3]) -> [u8; 3] {
     [
         a[b[0] as usize],
@@ -696,6 +698,8 @@ fn permute_corner_orientation(a: [u8; 3], b: [u8; 3]) -> [u8; 3] {
     ]
 }
 
+// TODO: This is using the inverse of the standard permutation representation,
+// which technically works, but is not good for patterns.
 // TODO: All functions like these should really just be implemented as
 // PermutationGroups themselves, then the "permute" for the top level
 // just uses the permute functions for each field.
@@ -712,6 +716,8 @@ fn permute_corners(a: &[(u8, [u8; 3]); 8], b: &[(u8, [u8; 3]); 8]) -> [(u8, [u8;
     ]
 }
 
+// TODO: This is using the inverse of the standard permutation representation,
+// which technically works, but is not good for patterns.
 fn permute_edges(a: &[(u8, bool); 12], b: &[(u8, bool); 12]) -> [(u8, bool); 12] {
     [
         (a[b[0].0 as usize].0, a[b[0].0 as usize].1 != b[0].1),

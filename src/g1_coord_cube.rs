@@ -185,6 +185,8 @@ impl EquivalenceClass<G1SymGenList> for G1CoordCube {
     }
 }
 
+// TODO: This is using the inverse of the standard permutation representation,
+// which technically works, but is not good for patterns.
 fn permute_arr_8(a: &[u8; 8], b: &[u8; 8]) -> [u8; 8] {
     [
         a[b[0] as usize],
@@ -198,6 +200,8 @@ fn permute_arr_8(a: &[u8; 8], b: &[u8; 8]) -> [u8; 8] {
     ]
 }
 
+// TODO: This is using the inverse of the standard permutation representation,
+// which technically works, but is not good for patterns.
 fn permute_arr_4(a: &[u8; 4], b: &[u8; 4]) -> [u8; 4] {
     [
         a[b[0] as usize],

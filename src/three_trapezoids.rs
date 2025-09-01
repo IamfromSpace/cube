@@ -42,12 +42,12 @@ pub struct ThreeTrapezoids([u16; 6]);
 
 const fn permute_arr(a: &[u16; 6], b: &[u16; 6]) -> [u16; 6] {
     [
-        a[b[0] as usize],
-        a[b[1] as usize],
-        a[b[2] as usize],
-        a[b[3] as usize],
-        a[b[4] as usize],
-        a[b[5] as usize],
+        b[a[0] as usize],
+        b[a[1] as usize],
+        b[a[2] as usize],
+        b[a[3] as usize],
+        b[a[4] as usize],
+        b[a[5] as usize],
     ]
 }
 
@@ -119,14 +119,14 @@ impl Into<ThreeTrapezoids> for Turns {
     fn into(self) -> ThreeTrapezoids {
         match self {
             // 1 -> 4 -> 5 -> 2
-            Turns::Left => ThreeTrapezoids([0, 4, 1, 3, 5, 2]),
-            Turns::LeftPrime => ThreeTrapezoids([0, 2, 5, 3, 1, 4]),
+            Turns::Left => ThreeTrapezoids([0, 2, 5, 3, 1, 4]),
+            Turns::LeftPrime => ThreeTrapezoids([0, 4, 1, 3, 5, 2]),
             // 0 -> 3 -> 4 -> 1
-            Turns::UpperRight => ThreeTrapezoids([3, 0, 2, 4, 1, 5]),
-            Turns::UpperRightPrime => ThreeTrapezoids([1, 4, 2, 0, 3, 5]),
+            Turns::UpperRight => ThreeTrapezoids([1, 4, 2, 0, 3, 5]),
+            Turns::UpperRightPrime => ThreeTrapezoids([3, 0, 2, 4, 1, 5]),
             // 0 -> 2 -> 5 -> 3
-            Turns::LowerRight => ThreeTrapezoids([2, 1, 5, 0, 4, 3]),
-            Turns::LowerRightPrime => ThreeTrapezoids([3, 1, 0, 5, 4, 2]),
+            Turns::LowerRight => ThreeTrapezoids([3, 1, 0, 5, 4, 2]),
+            Turns::LowerRightPrime => ThreeTrapezoids([2, 1, 5, 0, 4, 3]),
         }
     }
 }
@@ -224,10 +224,10 @@ impl Into<ThreeTrapezoids> for FullSymmetry {
     fn into(self) -> ThreeTrapezoids {
         match self {
             FullSymmetry::Identity => ThreeTrapezoids([0, 1, 2, 3, 4, 5]),
-            FullSymmetry::RotateCounterClock => ThreeTrapezoids([2, 0, 1, 5, 3, 4]),
+            FullSymmetry::RotateCounterClock => ThreeTrapezoids([1, 2, 0, 4, 5, 3]),
             // 0 -> 1 -> 2
             // 3 -> 4 -> 5
-            FullSymmetry::RotateClock => ThreeTrapezoids([1, 2, 0, 4, 5, 3]),
+            FullSymmetry::RotateClock => ThreeTrapezoids([2, 0, 1, 5, 3, 4]),
             // 4 -> 5
             // 1 -> 2
             FullSymmetry::MirrorLeft => ThreeTrapezoids([0, 2, 1, 3, 5, 4]),

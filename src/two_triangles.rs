@@ -31,11 +31,11 @@ pub struct TwoTriangles([u8; 5]);
 
 const fn permute_arr(a: &[u8; 5], b: &[u8; 5]) -> [u8; 5] {
     [
-        a[b[0] as usize],
-        a[b[1] as usize],
-        a[b[2] as usize],
-        a[b[3] as usize],
-        a[b[4] as usize],
+        b[a[0] as usize],
+        b[a[1] as usize],
+        b[a[2] as usize],
+        b[a[3] as usize],
+        b[a[4] as usize],
     ]
 }
 
@@ -128,13 +128,13 @@ impl Into<TwoTriangles> for Turns {
     fn into(self) -> TwoTriangles {
         match self {
             // 2 -> 0 -> 1
-            Turns::Left => TwoTriangles([1, 2, 0, 3, 4]),
+            Turns::Left => TwoTriangles([2, 0, 1, 3, 4]),
             // 2 <- 0 <- 1
-            Turns::LeftPrime => TwoTriangles([2, 0, 1, 3, 4]),
+            Turns::LeftPrime => TwoTriangles([1, 2, 0, 3, 4]),
             // 3 -> 2 -> 4
-            Turns::Right => TwoTriangles([0, 1, 4, 2, 3]),
+            Turns::Right => TwoTriangles([0, 1, 3, 4, 2]),
             // 3 <- 2 <- 4
-            Turns::RightPrime => TwoTriangles([0, 1, 3, 4, 2]),
+            Turns::RightPrime => TwoTriangles([0, 1, 4, 2, 3]),
         }
     }
 }
