@@ -109,6 +109,9 @@ impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sy
         let mut smallest = PermIndexB::last().expect("PermIndexB has no members, but there must be at least an identity.");
         let mut sym = Sym::first().expect("Sym has no members, but there must be at least an identity.");
 
+        // NOTE: We could alternatively chose "smallest inner symmetry" and
+        // store a sym-index instead of a raw index, but then we must consider
+        // self symmetry of both a and b, and find the smallest product.
         for s in syms {
             let (b_rep_0, sb_0) = self.b.table_raw_index_to_sym_index(i.1);
             let (b_rep_1, sb_1) = self.b.table_turn(b_rep_0, t.get_equivalent(&sb_0));
