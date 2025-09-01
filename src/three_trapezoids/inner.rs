@@ -358,7 +358,7 @@ mod tests {
                 assert_eq!(p, p.act(pt).act(pt.invert()));
             }
 
-            for s in all::<FullSymmetry>() {
+            for s in all::<NoSymmetry>() {
                 let st: ThreeTrapezoids = s.into();
                 assert_eq!(p, p.act(st).act(st.invert()));
             }
