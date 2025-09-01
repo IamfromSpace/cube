@@ -53,15 +53,18 @@ impl PermutationGroup for CoordWingEdges {}
 
 // 1 -> 3 -> 5 -> 7
 // 2 -> 4 -> 6 -> 0
-const U: CoordWingEdges = CoordWingEdges([2, 3, 4, 5, 6, 7, 0, 1, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]);
+const U: CoordWingEdges = CoordWingEdges(arr_inv(&U_PRIME.0));
 
 const U2: CoordWingEdges = CoordWingEdges(permute_arr(&U.0, &U.0));
 
-const U_PRIME: CoordWingEdges = CoordWingEdges(arr_inv(&U.0));
+const U_PRIME: CoordWingEdges = CoordWingEdges([2, 3, 4, 5, 6, 7, 0, 1, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]);
 
 // 8 -> 9 -> 10 -> 11
 #[allow(non_upper_case_globals)]
-const u_SLICE: CoordWingEdges = CoordWingEdges([0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 8, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]);
+const u_SLICE: CoordWingEdges = CoordWingEdges(arr_inv(&u_SLICE_PRIME.0));
+
+#[allow(non_upper_case_globals)]
+const u_SLICE_PRIME: CoordWingEdges = CoordWingEdges([0, 1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 8, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]);
 
 #[allow(non_upper_case_globals)]
 const Uw: CoordWingEdges = CoordWingEdges(permute_arr(&U.0, &u_SLICE.0));
@@ -74,15 +77,18 @@ const Uw_PRIME: CoordWingEdges = CoordWingEdges(arr_inv(&Uw.0));
 
 // 11 -> 5 -> 13 -> 17
 // 12 -> 6 -> 10 -> 18
-const F: CoordWingEdges = CoordWingEdges([0, 1, 2, 3, 4, 13, 10, 7, 8, 9, 18, 5, 6, 17, 14, 15, 16, 11, 12, 19, 20, 21, 22, 23]);
+const F: CoordWingEdges = CoordWingEdges(arr_inv(&F_PRIME.0));
 
 const F2: CoordWingEdges = CoordWingEdges(permute_arr(&F.0, &F.0));
 
-const F_PRIME: CoordWingEdges = CoordWingEdges(arr_inv(&F.0));
+const F_PRIME: CoordWingEdges = CoordWingEdges([0, 1, 2, 3, 4, 13, 10, 7, 8, 9, 18, 5, 6, 17, 14, 15, 16, 11, 12, 19, 20, 21, 22, 23]);
 
 // 7 -> 4 -> 19 -> 16
 #[allow(non_upper_case_globals)]
-const f_SLICE: CoordWingEdges = CoordWingEdges([0, 1, 2, 3, 19, 5, 6, 4, 8, 9, 10, 11, 12, 13, 14, 15, 7, 17, 18, 16, 20, 21, 22, 23]);
+const f_SLICE: CoordWingEdges = CoordWingEdges(arr_inv(&f_SLICE_PRIME.0));
+
+#[allow(non_upper_case_globals)]
+const f_SLICE_PRIME: CoordWingEdges = CoordWingEdges([0, 1, 2, 3, 19, 5, 6, 4, 8, 9, 10, 11, 12, 13, 14, 15, 7, 17, 18, 16, 20, 21, 22, 23]);
 
 #[allow(non_upper_case_globals)]
 const Fw: CoordWingEdges = CoordWingEdges(permute_arr(&F.0, &f_SLICE.0));
@@ -95,15 +101,18 @@ const Fw_PRIME: CoordWingEdges = CoordWingEdges(arr_inv(&Fw.0));
 
 // 8 -> 7 -> 12 -> 23
 // 15 -> 0 -> 11 -> 16
-const R: CoordWingEdges = CoordWingEdges([11, 1, 2, 3, 4, 5, 6, 12, 7, 9, 10, 16, 23, 13, 14, 0, 15, 17, 18, 19, 20, 21, 22, 8]);
+const R: CoordWingEdges = CoordWingEdges(arr_inv(&R_PRIME.0));
 
 const R2: CoordWingEdges = CoordWingEdges(permute_arr(&R.0, &R.0));
 
-const R_PRIME: CoordWingEdges = CoordWingEdges(arr_inv(&R.0));
+const R_PRIME: CoordWingEdges = CoordWingEdges([11, 1, 2, 3, 4, 5, 6, 12, 7, 9, 10, 16, 23, 13, 14, 0, 15, 17, 18, 19, 20, 21, 22, 8]);
 
  // 1 -> 6 -> 17 -> 22
 #[allow(non_upper_case_globals)]
-const r_SLICE: CoordWingEdges = CoordWingEdges([0, 6, 2, 3, 4, 5, 17, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 22, 18, 19, 20, 21, 1, 23]);
+const r_SLICE: CoordWingEdges = CoordWingEdges(arr_inv(&r_SLICE_PRIME.0));
+
+#[allow(non_upper_case_globals)]
+const r_SLICE_PRIME: CoordWingEdges = CoordWingEdges([0, 6, 2, 3, 4, 5, 17, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 22, 18, 19, 20, 21, 1, 23]);
 
 #[allow(non_upper_case_globals)]
 const Rw: CoordWingEdges = CoordWingEdges(permute_arr(&R.0, &r_SLICE.0));
@@ -116,15 +125,18 @@ const Rw_PRIME: CoordWingEdges = CoordWingEdges(arr_inv(&Rw.0));
 
 // 1 -> 15 -> 21 -> 9
 // 2 -> 8 -> 22 -> 14
-const B: CoordWingEdges = CoordWingEdges([0, 15, 8, 3, 4, 5, 6, 7, 22, 1, 10, 11, 12, 13, 2, 21, 16, 17, 18, 19, 20, 9, 14, 23]);
+const B: CoordWingEdges = CoordWingEdges(arr_inv(&B_PRIME.0));
 
 const B2: CoordWingEdges = CoordWingEdges(permute_arr(&B.0, &B.0));
 
-const B_PRIME: CoordWingEdges = CoordWingEdges(arr_inv(&B.0));
+const B_PRIME: CoordWingEdges = CoordWingEdges([0, 15, 8, 3, 4, 5, 6, 7, 22, 1, 10, 11, 12, 13, 2, 21, 16, 17, 18, 19, 20, 9, 14, 23]);
 
 //  3 -> 0 -> 23 -> 20
 #[allow(non_upper_case_globals)]
-const b_SLICE: CoordWingEdges = CoordWingEdges([23, 1, 2, 0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 3, 21, 22, 20]);
+const b_SLICE: CoordWingEdges = CoordWingEdges(arr_inv(&b_SLICE_PRIME.0));
+
+#[allow(non_upper_case_globals)]
+const b_SLICE_PRIME: CoordWingEdges = CoordWingEdges([23, 1, 2, 0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 3, 21, 22, 20]);
 
 #[allow(non_upper_case_globals)]
 const Bw: CoordWingEdges = CoordWingEdges(permute_arr(&B.0, &b_SLICE.0));
@@ -137,15 +149,18 @@ const Bw_PRIME: CoordWingEdges = CoordWingEdges(arr_inv(&Bw.0));
 
 // 3 -> 14 -> 19 -> 10
 // 4 -> 9 -> 20 -> 13
-const L: CoordWingEdges = CoordWingEdges([0, 1, 2, 14, 9, 5, 6, 7, 8, 20, 3, 11, 12, 4, 19, 15, 16, 17, 18, 10, 13, 21, 22, 23]);
+const L: CoordWingEdges = CoordWingEdges(arr_inv(&L_PRIME.0));
 
 const L2: CoordWingEdges = CoordWingEdges(permute_arr(&L.0, &L.0));
 
-const L_PRIME: CoordWingEdges = CoordWingEdges(arr_inv(&L.0));
+const L_PRIME: CoordWingEdges = CoordWingEdges([0, 1, 2, 14, 9, 5, 6, 7, 8, 20, 3, 11, 12, 4, 19, 15, 16, 17, 18, 10, 13, 21, 22, 23]);
 
  // 2 -> 21 -> 18 -> 5
 #[allow(non_upper_case_globals)]
-const l_SLICE: CoordWingEdges = CoordWingEdges([0, 1, 21, 3, 4, 2, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 5, 19, 20, 18, 22, 23]);
+const l_SLICE: CoordWingEdges = CoordWingEdges(arr_inv(&l_SLICE_PRIME.0));
+
+#[allow(non_upper_case_globals)]
+const l_SLICE_PRIME: CoordWingEdges = CoordWingEdges([0, 1, 21, 3, 4, 2, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 5, 19, 20, 18, 22, 23]);
 
 #[allow(non_upper_case_globals)]
 const Lw: CoordWingEdges = CoordWingEdges(permute_arr(&L.0, &l_SLICE.0));
@@ -158,15 +173,18 @@ const Lw_PRIME: CoordWingEdges = CoordWingEdges(arr_inv(&Lw.0));
 
 // 16 -> 18 -> 20 -> 22
 // 17 -> 19 -> 21 -> 23
-const D: CoordWingEdges = CoordWingEdges([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 18, 19, 20, 21, 22, 23, 16, 17]);
+const D: CoordWingEdges = CoordWingEdges(arr_inv(&D_PRIME.0));
 
 const D2: CoordWingEdges = CoordWingEdges(permute_arr(&D.0, &D.0));
 
-const D_PRIME: CoordWingEdges = CoordWingEdges(arr_inv(&D.0));
+const D_PRIME: CoordWingEdges = CoordWingEdges([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 18, 19, 20, 21, 22, 23, 16, 17]);
 
 // 12 -> 13 -> 14 -> 15
 #[allow(non_upper_case_globals)]
-const d_SLICE: CoordWingEdges = CoordWingEdges([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 12, 16, 17, 18, 19, 20, 21, 22, 23]);
+const d_SLICE: CoordWingEdges = CoordWingEdges(arr_inv(&d_SLICE_PRIME.0));
+
+#[allow(non_upper_case_globals)]
+const d_SLICE_PRIME: CoordWingEdges = CoordWingEdges([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 12, 16, 17, 18, 19, 20, 21, 22, 23]);
 
 #[allow(non_upper_case_globals)]
 const Dw: CoordWingEdges = CoordWingEdges(permute_arr(&D.0, &d_SLICE.0));
@@ -253,7 +271,7 @@ impl From<G1WideTurn> for CoordWingEdges {
 // 15 -> 3 -> 18
 // 9 -> 19 -> 22
 // 14 -> 20 -> 21
-const S_URF: CoordWingEdges = CoordWingEdges([5, 10, 13, 18, 17, 12, 11, 6, 4, 19, 16, 7, 0, 23, 20, 3, 1, 8, 15, 22, 21, 14, 9, 2]);
+const S_URF: CoordWingEdges = CoordWingEdges([12, 16, 23, 15, 8, 0, 7, 11, 17, 22, 1, 6, 5, 2, 21, 18, 10, 4, 3, 9, 14, 20, 19, 13]);
 
 const S_F: CoordWingEdges = CoordWingEdges(permute_arr(&Fw2.0, &Bw2.0));
 
@@ -476,34 +494,32 @@ const fn arr_inv(a: &[u8; 24]) -> [u8; 24] {
     r
 }
 
-// TODO: This is using the inverse of the standard permutation representation,
-// which technically works, but is not good for patterns.
 const fn permute_arr(a: &[u8; 24], b: &[u8; 24]) -> [u8; 24] {
     [
-        a[b[0] as usize],
-        a[b[1] as usize],
-        a[b[2] as usize],
-        a[b[3] as usize],
-        a[b[4] as usize],
-        a[b[5] as usize],
-        a[b[6] as usize],
-        a[b[7] as usize],
-        a[b[8] as usize],
-        a[b[9] as usize],
-        a[b[10] as usize],
-        a[b[11] as usize],
-        a[b[12] as usize],
-        a[b[13] as usize],
-        a[b[14] as usize],
-        a[b[15] as usize],
-        a[b[16] as usize],
-        a[b[17] as usize],
-        a[b[18] as usize],
-        a[b[19] as usize],
-        a[b[20] as usize],
-        a[b[21] as usize],
-        a[b[22] as usize],
-        a[b[23] as usize],
+        b[a[0] as usize],
+        b[a[1] as usize],
+        b[a[2] as usize],
+        b[a[3] as usize],
+        b[a[4] as usize],
+        b[a[5] as usize],
+        b[a[6] as usize],
+        b[a[7] as usize],
+        b[a[8] as usize],
+        b[a[9] as usize],
+        b[a[10] as usize],
+        b[a[11] as usize],
+        b[a[12] as usize],
+        b[a[13] as usize],
+        b[a[14] as usize],
+        b[a[15] as usize],
+        b[a[16] as usize],
+        b[a[17] as usize],
+        b[a[18] as usize],
+        b[a[19] as usize],
+        b[a[20] as usize],
+        b[a[21] as usize],
+        b[a[22] as usize],
+        b[a[23] as usize],
     ]
 }
 
