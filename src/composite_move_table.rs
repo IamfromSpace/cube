@@ -19,16 +19,22 @@ impl<RepIndexA: Into<usize>, PermIndexB: Into<usize> + Sequence> Into<usize> for
 }
 
 #[derive(Debug)]
-// TODO: If MoveTable had a trait, then this could compose with itself, meaning
 // we could get three+ move tables.
-pub struct CompositeMoveTable<Sym, PermIndexA, PermIndexB, Turn> {
-    a: Arc<MoveTable<Sym, PermIndexA, Turn>>,
-    b: Arc<MoveTable<Sym, PermIndexB, Turn>>,
+pub struct CompositeMoveTable<Sym, PermIndexA, PermIndexB, Turn, RepIndexB, MoveTableB> {
+a: Arc<MoveTable<Sym, PermIndexA, Turn>>,
+     b: MoveTableB,
+     pib: std::marker::PhantomData<PermIndexB>,
+     rib: std::marker::PhantomData<RepIndexB>,
 }
 
-impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + Into<usize> + Invertable + PG, PermIndexA: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>, PermIndexB: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>> CompositeMoveTable<Sym, PermIndexA, PermIndexB, Turn> where <PermIndexA as TryFrom<usize>>::Error: std::fmt::Debug, <PermIndexB as TryFrom<usize>>::Error: std::fmt::Debug {
-    pub fn new(a: Arc<MoveTable<Sym, PermIndexA, Turn>>, b: Arc<MoveTable<Sym, PermIndexB, Turn>>) -> Self {
-        CompositeMoveTable { a, b }
+impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + Into<usize> + Invertable + PG, PermIndexA: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>, PermIndexB: Sequence + Ord + Copy, RepIndexB, MoveTableB: TableTurn<Sym, RepIndexB, Turn> + TableSymTurn<Sym, RepIndexB, Turn> + TableRawIndexToSymIndex<Sym, PermIndexB, RepIndexB> + TableSymIndexToRawIndex<Sym, PermIndexB, RepIndexB>> CompositeMoveTable<Sym, PermIndexA, PermIndexB, Turn, RepIndexB, MoveTableB> where <PermIndexA as TryFrom<usize>>::Error: std::fmt::Debug {
+    pub fn new(a: Arc<MoveTable<Sym, PermIndexA, Turn>>, b: MoveTableB) -> Self {
+        CompositeMoveTable {
+            a,
+            b,
+            pib: std::marker::PhantomData,
+            rib: std::marker::PhantomData,
+        }
     }
 
     /* Some algebra.  The two sym-indexes be nested within one another. And we
@@ -104,9 +110,9 @@ impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sy
         let mut sym = Sym::first().expect("Sym has no members, but there must be at least an identity.");
 
         for s in syms {
-            let (b_rep_0, sb_0) = self.b.raw_index_to_sym_index(i.1);
-            let (b_rep_1, sb_1) = self.b.turn(b_rep_0, t.get_equivalent(&sb_0));
-            let b_raw_rep = self.b.sym_index_to_raw_index((b_rep_1, s.invert().permute(sb_0).permute(sb_1)));
+            let (b_rep_0, sb_0) = self.b.table_raw_index_to_sym_index(i.1);
+            let (b_rep_1, sb_1) = self.b.table_turn(b_rep_0, t.get_equivalent(&sb_0));
+            let b_raw_rep = self.b.table_sym_index_to_raw_index((b_rep_1, s.invert().permute(sb_0).permute(sb_1)));
             if b_raw_rep <= smallest {
                 smallest = b_raw_rep;
                 sym = s;
@@ -164,8 +170,8 @@ impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sy
         let mut sym = Sym::first().expect("Sym has no members, but there must be at least an identity.");
 
         for s in syms {
-            let (b_rep, s_b) = self.b.raw_index_to_sym_index(pi.1);
-            let b_raw = self.b.sym_index_to_raw_index((b_rep, s.invert().permute(s_b)));
+            let (b_rep, s_b) = self.b.table_raw_index_to_sym_index(pi.1);
+            let b_raw = self.b.table_sym_index_to_raw_index((b_rep, s.invert().permute(s_b)));
             if b_raw <= smallest {
                 smallest = b_raw;
                 sym = s;
@@ -193,39 +199,39 @@ impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sy
      */
     pub fn sym_index_to_raw_index(&self, (CompositeIndex(a_rep, b_rep_raw), s_a): (CompositeIndex<RepIndex<Sym, PermIndexA>, PermIndexB>, Sym)) -> (PermIndexA, PermIndexB) {
         let a_raw = self.a.sym_index_to_raw_index((a_rep, s_a));
-        let (b_rep, s_b) = self.b.raw_index_to_sym_index(b_rep_raw);
-        let b_raw = self.b.sym_index_to_raw_index((b_rep, s_a.permute(s_b)));
+        let (b_rep, s_b) = self.b.table_raw_index_to_sym_index(b_rep_raw);
+        let b_raw = self.b.table_sym_index_to_raw_index((b_rep, s_a.permute(s_b)));
         (a_raw, b_raw)
     }
 }
 
 // TODO: Don't need as many constraints (just the specfic ones to this trait)
 // if we fully migrate to traits and the implementation is here
-impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + Into<usize> + Invertable + PG, PermIndexA: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>, PermIndexB: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>> TableTurn<Sym, CompositeIndex<RepIndex<Sym, PermIndexA>, PermIndexB>, Turn> for CompositeMoveTable<Sym, PermIndexA, PermIndexB, Turn> where <PermIndexA as TryFrom<usize>>::Error: std::fmt::Debug, <PermIndexB as TryFrom<usize>>::Error: std::fmt::Debug {
+impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + Into<usize> + Invertable + PG, PermIndexA: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>, PermIndexB: Sequence + Ord + Copy, RepIndexB, MoveTableB: TableTurn<Sym, RepIndexB, Turn> + TableSymTurn<Sym, RepIndexB, Turn> + TableRawIndexToSymIndex<Sym, PermIndexB, RepIndexB> + TableSymIndexToRawIndex<Sym, PermIndexB, RepIndexB>> TableTurn<Sym, CompositeIndex<RepIndex<Sym, PermIndexA>, PermIndexB>, Turn> for CompositeMoveTable<Sym, PermIndexA, PermIndexB, Turn, RepIndexB, MoveTableB> where <PermIndexA as TryFrom<usize>>::Error: std::fmt::Debug {
     fn table_turn(&self, ri: CompositeIndex<RepIndex<Sym, PermIndexA>, PermIndexB>, t: Turn) -> (CompositeIndex<RepIndex<Sym, PermIndexA>, PermIndexB>, Sym) {
         self.turn(ri, t)
     }
 }
 
-impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + Into<usize> + Invertable + PG, PermIndexA: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>, PermIndexB: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>> TableSymTurn<Sym, CompositeIndex<RepIndex<Sym, PermIndexA>, PermIndexB>, Turn> for CompositeMoveTable<Sym, PermIndexA, PermIndexB, Turn> where <PermIndexA as TryFrom<usize>>::Error: std::fmt::Debug, <PermIndexB as TryFrom<usize>>::Error: std::fmt::Debug {
+impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + Into<usize> + Invertable + PG, PermIndexA: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>, PermIndexB: Sequence + Ord + Copy, RepIndexB, MoveTableB: TableTurn<Sym, RepIndexB, Turn> + TableSymTurn<Sym, RepIndexB, Turn> + TableRawIndexToSymIndex<Sym, PermIndexB, RepIndexB> + TableSymIndexToRawIndex<Sym, PermIndexB, RepIndexB>> TableSymTurn<Sym, CompositeIndex<RepIndex<Sym, PermIndexA>, PermIndexB>, Turn>  for CompositeMoveTable<Sym, PermIndexA, PermIndexB, Turn, RepIndexB, MoveTableB> where <PermIndexA as TryFrom<usize>>::Error: std::fmt::Debug {
     fn table_sym_turn(&self, si: (CompositeIndex<RepIndex<Sym, PermIndexA>, PermIndexB>, Sym), t: Turn) -> (CompositeIndex<RepIndex<Sym, PermIndexA>, PermIndexB>, Sym) {
         self.sym_turn(si, t)
     }
 }
 
-impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + Into<usize> + Invertable + PG, PermIndexA: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>, PermIndexB: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>> TableRawIndexToSymIndex<Sym, (PermIndexA, PermIndexB), CompositeIndex<RepIndex<Sym, PermIndexA>, PermIndexB>> for CompositeMoveTable<Sym, PermIndexA, PermIndexB, Turn> where <PermIndexA as TryFrom<usize>>::Error: std::fmt::Debug, <PermIndexB as TryFrom<usize>>::Error: std::fmt::Debug {
+impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + Into<usize> + Invertable + PG, PermIndexA: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>, PermIndexB: Sequence + Ord + Copy, RepIndexB, MoveTableB: TableTurn<Sym, RepIndexB, Turn> + TableSymTurn<Sym, RepIndexB, Turn> + TableRawIndexToSymIndex<Sym, PermIndexB, RepIndexB> + TableSymIndexToRawIndex<Sym, PermIndexB, RepIndexB>> TableRawIndexToSymIndex<Sym, (PermIndexA, PermIndexB), CompositeIndex<RepIndex<Sym, PermIndexA>, PermIndexB>> for CompositeMoveTable<Sym, PermIndexA, PermIndexB, Turn, RepIndexB, MoveTableB> where <PermIndexA as TryFrom<usize>>::Error: std::fmt::Debug {
     fn table_raw_index_to_sym_index(&self, pi: (PermIndexA, PermIndexB)) -> (CompositeIndex<RepIndex<Sym, PermIndexA>, PermIndexB>, Sym) {
         self.raw_index_to_sym_index(pi)
     }
 }
 
-impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + Into<usize> + Invertable + PG, PermIndexA: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>, PermIndexB: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>> TableSymIndexToRawIndex<Sym, (PermIndexA, PermIndexB), CompositeIndex<RepIndex<Sym, PermIndexA>, PermIndexB>> for CompositeMoveTable<Sym, PermIndexA, PermIndexB, Turn> where <PermIndexA as TryFrom<usize>>::Error: std::fmt::Debug, <PermIndexB as TryFrom<usize>>::Error: std::fmt::Debug {
+impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + Into<usize> + Invertable + PG, PermIndexA: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>, PermIndexB: Sequence + Ord + Copy, RepIndexB, MoveTableB: TableTurn<Sym, RepIndexB, Turn> + TableSymTurn<Sym, RepIndexB, Turn> + TableRawIndexToSymIndex<Sym, PermIndexB, RepIndexB> + TableSymIndexToRawIndex<Sym, PermIndexB, RepIndexB>> TableSymIndexToRawIndex<Sym, (PermIndexA, PermIndexB), CompositeIndex<RepIndex<Sym, PermIndexA>, PermIndexB>> for CompositeMoveTable<Sym, PermIndexA, PermIndexB, Turn, RepIndexB, MoveTableB> where <PermIndexA as TryFrom<usize>>::Error: std::fmt::Debug {
     fn table_sym_index_to_raw_index(&self, si: (CompositeIndex<RepIndex<Sym, PermIndexA>, PermIndexB>, Sym)) -> (PermIndexA, PermIndexB) {
         self.sym_index_to_raw_index(si)
     }
 }
 
-impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + Into<usize> + Invertable + PG, PermIndexA: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>, PermIndexB: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>> TableRepCount for CompositeMoveTable<Sym, PermIndexA, PermIndexB, Turn> where <PermIndexA as TryFrom<usize>>::Error: std::fmt::Debug, <PermIndexB as TryFrom<usize>>::Error: std::fmt::Debug {
+impl<Turn: Sequence + Copy + PartialEq + Into<usize> + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + Into<usize> + Invertable + PG, PermIndexA: Sequence + Copy + Ord + TryFrom<usize> + Into<usize>, PermIndexB: Sequence + Ord + Copy, RepIndexB, MoveTableB: TableTurn<Sym, RepIndexB, Turn> + TableSymTurn<Sym, RepIndexB, Turn> + TableRawIndexToSymIndex<Sym, PermIndexB, RepIndexB> + TableSymIndexToRawIndex<Sym, PermIndexB, RepIndexB>> TableRepCount for CompositeMoveTable<Sym, PermIndexA, PermIndexB, Turn, RepIndexB, MoveTableB> where <PermIndexA as TryFrom<usize>>::Error: std::fmt::Debug {
     fn table_rep_count(&self) -> usize {
         self.len()
     }
@@ -840,4 +846,6 @@ mod tests {
             }
         }
     }
+
+    // TODO: Tests for composites of composites
 }

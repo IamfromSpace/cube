@@ -10,6 +10,41 @@ pub struct TranslatedMoveTable<TSym, MoveTable> {
 }
 
 impl<TSym, MoveTable> TranslatedMoveTable<TSym, MoveTable> {
+    #[deprecated(note = "This struct is dangerous, because it doesn't compose, and that's its primary purpose: to combine two partial patterns to make a large whole.  See comment by warning for more details.")]
+    // NOTE: This struct is dangerous; it doesn't compose.
+    //
+    // If you only need one pattern, you should probably just build the
+    // translation natively into the move table, that will be faster anyway.
+    // It doesn't compose because symmetries are applied in the wrong order,
+    // and they aren't guaranteed to commute.  This only works if the
+    // translation symmetry is the _first_ symmetry applied, but when its the
+    // second entry in a CompositeMovetable, the CompositeIndex's symmetry
+    // applies first.  As of yet, I can't think of anyway to fix this or
+    // prevent accidental misuse of this struct (by introducing some sort of
+    // constraint on commuting symmetries), so it's very risky to use it.
+    //
+    // As an example, consider ThreeTrapezoidsEdge, considering
+    // MirrorUDSymmetry, applying a Left clockwise turn to the identity
+    // position.  However, we want the composite of both the standard right
+    // edge, and the lower right edge, so the second index of the composite is
+    // a TranslatedMoveTable with a RotateCounterClock translation.
+    //
+    // In this case, a valid sym-index for the composite's initial state has
+    // mirrored symmetry.  The identity is self-symmetric, so there's nothing
+    // wrong with this choice (and forcing it to use identity just causes
+    // problems elsewhere).  That means that instead of applying a Left
+    // clockwise turn, we'll be applying a Left counter-clockwise turn to the
+    // composite.  Then, we'll apply that to each component, and it will become
+    // a lower right counter-clockwise turn on the tranlated move table.
+    //
+    // But this results in the incorrect turn.  We needed to apply these
+    // symmetries in reverse.  If we first apply the translated table's
+    // symmetry we go from Left -> LowerRight, and then when we apply the UD
+    // mirror we get LowerRight -> UpperRightPrime.
+    //
+    // Sometimes we'll get the right answer by pure luck of the symmetries
+    // chosen for sym-indexs, or if the symmetries naturally commute, but
+    // generally this can result in applying an incorrect turn.
     pub fn new(move_table: MoveTable, translation: TSym) -> Self {
         TranslatedMoveTable { move_table, translation }
     }
