@@ -50,8 +50,10 @@ impl<T: TableRepCount> TableRepCount for Arc<T> {
     }
 }
 
-pub trait TableSearchToken<Index> {
-    fn table_get_index(&self) -> Index;
+pub trait TableSearchToken {
+    type Index;
+
+    fn table_get_index(&self) -> Self::Index;
 
     // TODO: u8 seems _probably_ big enough....
     fn table_get_lower_bound(&self) -> u8;

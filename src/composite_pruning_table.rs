@@ -12,33 +12,27 @@ use enum_iterator::{all, Sequence};
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
 // Opaque type to prevent accidental misuse
 // NOTE: I don't think we need PermIndex to prevent possible confusions?
-pub struct CompositeLowerBoundToken<IndexA, IndexB, Turn>(u8, LowerBoundToken<IndexA, Turn>, LowerBoundToken<IndexB, Turn>);
+pub struct CompositeLowerBoundToken<SearchTokenA, SearchTokenB>(u8, SearchTokenA, SearchTokenB);
 
-impl<IndexA: Copy, IndexB: Copy, Turn> CompositeLowerBoundToken<IndexA, IndexB, Turn> {
-    pub fn new(a: LowerBoundToken<IndexA, Turn>, b: LowerBoundToken<IndexB, Turn>) -> Self {
-        Self(std::cmp::max(a.get_lower_bound(), b.get_lower_bound()), a, b)
+impl<SearchTokenA: TableSearchToken, SearchTokenB: TableSearchToken> CompositeLowerBoundToken<SearchTokenA, SearchTokenB> {
+    pub fn new(a: SearchTokenA, b: SearchTokenB) -> Self {
+        Self(std::cmp::max(a.table_get_lower_bound(), b.table_get_lower_bound()), a, b)
     }
 
-    pub fn get_index(&self) -> (IndexA, IndexB) {
-        (self.1.get_index(), self.2.get_index())
-    }
-
-    pub fn get_lower_bound(&self) -> u8 {
-        self.0
-    }
-
-    pub fn get_tokens(self) -> (LowerBoundToken<IndexA, Turn>, LowerBoundToken<IndexB, Turn>) {
+    pub fn get_tokens(self) -> (SearchTokenA, SearchTokenB) {
         (self.1, self.2)
     }
 }
 
-impl<IndexA: Copy, IndexB: Copy, Turn> TableSearchToken<(IndexA, IndexB)> for CompositeLowerBoundToken<IndexA, IndexB, Turn> {
-    fn table_get_index(&self) -> (IndexA, IndexB) {
-        self.get_index()
+impl<SearchTokenA: TableSearchToken, SearchTokenB: TableSearchToken> TableSearchToken for CompositeLowerBoundToken<SearchTokenA, SearchTokenB> {
+    type Index = (SearchTokenA::Index, SearchTokenB::Index);
+
+    fn table_get_index(&self) -> Self::Index {
+        (self.1.table_get_index(), self.2.table_get_index())
     }
 
     fn table_get_lower_bound(&self) -> u8 {
-        self.get_lower_bound()
+        self.0
     }
 }
 
@@ -53,13 +47,13 @@ impl<MoveTableA: TableTurn<SymA, RepIndexA, Turn> + TableSymTurn<SymA, RepIndexA
         CompositePruningTable { a, b }
     }
 
-    pub fn start_search(&self, (pi_a, pi_b): (PermIndexA, PermIndexB)) -> CompositeLowerBoundToken<(RepIndexA, SymA), (RepIndexB, SymB), Turn> {
+    pub fn start_search(&self, (pi_a, pi_b): (PermIndexA, PermIndexB)) -> CompositeLowerBoundToken<LowerBoundToken<(RepIndexA, SymA), Turn>, LowerBoundToken<(RepIndexB, SymB), Turn>> {
         let lbt_a = self.a.start_search(pi_a);
         let lbt_b = self.b.start_search(pi_b);
         CompositeLowerBoundToken::new(lbt_a, lbt_b)
     }
 
-    pub fn continue_search(&self, lbt: CompositeLowerBoundToken<(RepIndexA, SymA), (RepIndexB, SymB), Turn>, t: Turn) -> CompositeLowerBoundToken<(RepIndexA, SymA), (RepIndexB, SymB), Turn> {
+    pub fn continue_search(&self, lbt: CompositeLowerBoundToken<LowerBoundToken<(RepIndexA, SymA), Turn>, LowerBoundToken<(RepIndexB, SymB), Turn>>, t: Turn) -> CompositeLowerBoundToken<LowerBoundToken<(RepIndexA, SymA), Turn>, LowerBoundToken<(RepIndexB, SymB), Turn>> {
         let (token_a, token_b) = lbt.get_tokens();
         let lbt_a = self.a.continue_search(token_a, t);
         let lbt_b = self.b.continue_search(token_b, t);
@@ -82,25 +76,25 @@ impl<MoveTableA: TableTurn<SymA, RepIndexA, Turn> + TableSymTurn<SymA, RepIndexA
         //       -> e(3,2) -> f ------------
         let mut shortest_known_path: BTreeMap<_, u8> = BTreeMap::new();
         let lbt = self.start_search(pi);
-        queue.insert((lbt.get_lower_bound(), lbt, Vec::new()));
-        shortest_known_path.insert(lbt.get_index(), 0);
+        queue.insert((lbt.table_get_lower_bound(), lbt, Vec::new()));
+        shortest_known_path.insert(lbt.table_get_index(), 0);
 
         loop {
             let (c, lbt, turns) = queue.pop_first().expect("Invariant violation: It's impossible that the queue is empty, as that would imply that the position is unsolvable!");
-            if lbt.get_lower_bound() == 0 {
+            if lbt.table_get_lower_bound() == 0 {
                 break turns
             }
 
 
             for t in all::<Turn>() {
                 let lbt2 = self.continue_search(lbt, t);
-                let si = lbt2.clone().get_index();
+                let si = lbt2.clone().table_get_index();
                 if shortest_known_path.get(&si).map((|n| turns.len() as u8 + 1 < *n)).unwrap_or(true) {
                     shortest_known_path.insert(si, turns.len() as u8 + 1);
                     // TODO: use linked lists to cut down on memory usage
                     let mut turns2 = turns.clone();
                     turns2.push(t);
-                    queue.insert((lbt2.get_lower_bound() + turns2.len() as u8, lbt2, turns2));
+                    queue.insert((lbt2.table_get_lower_bound() + turns2.len() as u8, lbt2, turns2));
                 }
             }
         }
@@ -108,7 +102,7 @@ impl<MoveTableA: TableTurn<SymA, RepIndexA, Turn> + TableSymTurn<SymA, RepIndexA
 }
 
 impl<MoveTableA: TableTurn<SymA, RepIndexA, Turn> + TableSymTurn<SymA, RepIndexA, Turn> + TableRawIndexToSymIndex<SymA, PermIndexA, RepIndexA> + TableRepCount, MoveTableB: TableTurn<SymB, RepIndexB, Turn> + TableSymTurn<SymB, RepIndexB, Turn> + TableRawIndexToSymIndex<SymB, PermIndexB, RepIndexB> + TableRepCount, Turn: std::fmt::Debug + Sequence + Copy + Invertable + EquivalenceClass<SymA> + EquivalenceClass<SymB> + Ord, SymA: std::fmt::Debug + Sequence + Copy + Clone + PG + Ord, SymB: std::fmt::Debug + Sequence + Copy + Clone + PG + Ord, PermIndexA: Sequence + Copy + Ord, PermIndexB: Sequence + Copy + Ord, RepIndexA: std::fmt::Debug + Copy + Ord + Into<usize>, RepIndexB: std::fmt::Debug + Copy + Ord + Into<usize>> TableSearch<(PermIndexA, PermIndexB), Turn> for CompositePruningTable<SymA, SymB, PermIndexA, PermIndexB, RepIndexA, RepIndexB, Turn, MoveTableA, MoveTableB> {
-    type SearchToken = CompositeLowerBoundToken<(RepIndexA, SymA), (RepIndexB, SymB), Turn>;
+    type SearchToken = CompositeLowerBoundToken<LowerBoundToken<(RepIndexA, SymA), Turn>, LowerBoundToken<(RepIndexB, SymB), Turn>>;
 
     fn table_start_search(&self, i: (PermIndexA, PermIndexB)) -> Self::SearchToken {
         self.start_search(i)

@@ -27,8 +27,10 @@ impl<Index: Copy, Turn> LowerBoundToken<Index, Turn> {
     }
 }
 
-impl<Index: Copy, Turn> TableSearchToken<Index> for LowerBoundToken<Index, Turn> {
-    fn table_get_index(&self) -> Index {
+impl<Index: Copy, Turn> TableSearchToken for LowerBoundToken<Index, Turn> {
+    type Index = Index;
+
+    fn table_get_index(&self) -> Self::Index {
         self.get_index()
     }
 
