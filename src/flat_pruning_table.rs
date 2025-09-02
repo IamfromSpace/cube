@@ -1,7 +1,7 @@
 use permutation_group::PermutationGroup as PG;
 use invertable::Invertable;
 use equivalence_class::EquivalenceClass;
-use table_traits::{ TableTurn, TableSymTurn, TableRawIndexToSymIndex, TableRepCount };
+use table_traits::{ TableTurn, TableSymTurn, TableRawIndexToSymIndex, TableRepCount, TableSearchToken, TableSearch };
 
 use std::sync::Arc;
 use std::collections::BTreeSet;
@@ -24,6 +24,16 @@ impl<Index: Copy, Turn> LowerBoundToken<Index, Turn> {
 
     pub fn get_lower_bound(&self) -> u8 {
         self.0
+    }
+}
+
+impl<Index: Copy, Turn> TableSearchToken<Index> for LowerBoundToken<Index, Turn> {
+    fn table_get_index(&self) -> Index {
+        self.get_index()
+    }
+
+    fn table_get_lower_bound(&self) -> u8 {
+        self.get_lower_bound()
     }
 }
 
@@ -183,6 +193,18 @@ impl<MoveTable: TableTurn<Sym, RepIndex, Turn> + TableSymTurn<Sym, RepIndex, Tur
                 }
             }
         }
+    }
+}
+
+impl<MoveTable: TableTurn<Sym, RepIndex, Turn> + TableSymTurn<Sym, RepIndex, Turn> + TableRawIndexToSymIndex<Sym, PermIndex, RepIndex> + TableRepCount, Turn: Sequence + Copy + Invertable + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + PG, PermIndex: Sequence + Copy + Ord, RepIndex: Copy + Ord + Into<usize>> TableSearch<PermIndex, Turn> for PruningTable<Sym, PermIndex, RepIndex, Turn, MoveTable> {
+    type SearchToken = LowerBoundToken<(RepIndex, Sym), Turn>;
+
+    fn table_start_search(&self, i: PermIndex) -> Self::SearchToken {
+        self.start_search(i)
+    }
+
+    fn table_continue_search(&self, st: Self::SearchToken, t: Turn) -> Self::SearchToken {
+        self.continue_search(st, t)
     }
 }
 

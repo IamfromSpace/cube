@@ -1,7 +1,7 @@
 use permutation_group::PermutationGroup as PG;
 use invertable::Invertable;
 use equivalence_class::EquivalenceClass;
-use table_traits::{ TableTurn, TableSymTurn, TableRawIndexToSymIndex, TableRepCount };
+use table_traits::{ TableTurn, TableSymTurn, TableRawIndexToSymIndex, TableRepCount, TableSearchToken, TableSearch };
 use flat_pruning_table::{PruningTable, LowerBoundToken};
 
 use std::sync::Arc;
@@ -29,6 +29,16 @@ impl<IndexA: Copy, IndexB: Copy, Turn> CompositeLowerBoundToken<IndexA, IndexB, 
 
     pub fn get_tokens(self) -> (LowerBoundToken<IndexA, Turn>, LowerBoundToken<IndexB, Turn>) {
         (self.1, self.2)
+    }
+}
+
+impl<IndexA: Copy, IndexB: Copy, Turn> TableSearchToken<(IndexA, IndexB)> for CompositeLowerBoundToken<IndexA, IndexB, Turn> {
+    fn table_get_index(&self) -> (IndexA, IndexB) {
+        self.get_index()
+    }
+
+    fn table_get_lower_bound(&self) -> u8 {
+        self.get_lower_bound()
     }
 }
 
@@ -94,6 +104,18 @@ impl<MoveTableA: TableTurn<SymA, RepIndexA, Turn> + TableSymTurn<SymA, RepIndexA
                 }
             }
         }
+    }
+}
+
+impl<MoveTableA: TableTurn<SymA, RepIndexA, Turn> + TableSymTurn<SymA, RepIndexA, Turn> + TableRawIndexToSymIndex<SymA, PermIndexA, RepIndexA> + TableRepCount, MoveTableB: TableTurn<SymB, RepIndexB, Turn> + TableSymTurn<SymB, RepIndexB, Turn> + TableRawIndexToSymIndex<SymB, PermIndexB, RepIndexB> + TableRepCount, Turn: std::fmt::Debug + Sequence + Copy + Invertable + EquivalenceClass<SymA> + EquivalenceClass<SymB> + Ord, SymA: std::fmt::Debug + Sequence + Copy + Clone + PG + Ord, SymB: std::fmt::Debug + Sequence + Copy + Clone + PG + Ord, PermIndexA: Sequence + Copy + Ord, PermIndexB: Sequence + Copy + Ord, RepIndexA: std::fmt::Debug + Copy + Ord + Into<usize>, RepIndexB: std::fmt::Debug + Copy + Ord + Into<usize>> TableSearch<(PermIndexA, PermIndexB), Turn> for CompositePruningTable<SymA, SymB, PermIndexA, PermIndexB, RepIndexA, RepIndexB, Turn, MoveTableA, MoveTableB> {
+    type SearchToken = CompositeLowerBoundToken<(RepIndexA, SymA), (RepIndexB, SymB), Turn>;
+
+    fn table_start_search(&self, i: (PermIndexA, PermIndexB)) -> Self::SearchToken {
+        self.start_search(i)
+    }
+
+    fn table_continue_search(&self, st: Self::SearchToken, t: Turn) -> Self::SearchToken {
+        self.continue_search(st, t)
     }
 }
 
