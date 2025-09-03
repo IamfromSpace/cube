@@ -70,3 +70,16 @@ pub trait TableSearch<Turn> {
     // that the caller still needs it.
     fn table_continue_search(&self, st: Self::SearchToken, t: Turn) -> Self::SearchToken;
 }
+
+impl<T: TableSearch<Turn>, Turn> TableSearch<Turn> for Arc<T> {
+    type Index = T::Index;
+    type SearchToken = T::SearchToken;
+
+    fn table_start_search(&self, i: Self::Index) -> Self::SearchToken {
+        (**self).table_start_search(i)
+    }
+
+    fn table_continue_search(&self, st: Self::SearchToken, t: Turn) -> Self::SearchToken {
+        (**self).table_continue_search(st, t)
+    }
+}
