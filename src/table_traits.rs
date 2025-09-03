@@ -60,10 +60,11 @@ pub trait TableSearchToken {
     fn table_get_lower_bound(&self) -> u8;
 }
 
-pub trait TableSearch<Index, Turn> {
+pub trait TableSearch<Turn> {
+    type Index;
     type SearchToken;
 
-    fn table_start_search(&self, i: Index) -> Self::SearchToken;
+    fn table_start_search(&self, i: Self::Index) -> Self::SearchToken;
 
     // TODO: This should really take a reference to the token, we should expect
     // that the caller still needs it.

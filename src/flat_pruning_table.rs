@@ -198,7 +198,8 @@ impl<MoveTable: TableTurn<Sym, RepIndex, Turn> + TableSymTurn<Sym, RepIndex, Tur
     }
 }
 
-impl<MoveTable: TableTurn<Sym, RepIndex, Turn> + TableSymTurn<Sym, RepIndex, Turn> + TableRawIndexToSymIndex<Sym, PermIndex, RepIndex> + TableRepCount, Turn: Sequence + Copy + Invertable + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + PG, PermIndex: Sequence + Copy + Ord, RepIndex: Copy + Ord + Into<usize>> TableSearch<PermIndex, Turn> for PruningTable<Sym, PermIndex, RepIndex, Turn, MoveTable> {
+impl<MoveTable: TableTurn<Sym, RepIndex, Turn> + TableSymTurn<Sym, RepIndex, Turn> + TableRawIndexToSymIndex<Sym, PermIndex, RepIndex> + TableRepCount, Turn: Sequence + Copy + Invertable + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + PG, PermIndex: Sequence + Copy + Ord, RepIndex: Copy + Ord + Into<usize>> TableSearch<Turn> for PruningTable<Sym, PermIndex, RepIndex, Turn, MoveTable> {
+    type Index = PermIndex;
     type SearchToken = LowerBoundToken<(RepIndex, Sym), Turn>;
 
     fn table_start_search(&self, i: PermIndex) -> Self::SearchToken {

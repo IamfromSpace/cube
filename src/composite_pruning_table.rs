@@ -1,8 +1,6 @@
 use permutation_group::PermutationGroup as PG;
 use invertable::Invertable;
-use equivalence_class::EquivalenceClass;
-use table_traits::{ TableTurn, TableSymTurn, TableRawIndexToSymIndex, TableRepCount, TableSearchToken, TableSearch };
-use flat_pruning_table::{PruningTable, LowerBoundToken};
+use table_traits::{ TableSearchToken, TableSearch };
 
 use std::sync::Arc;
 use std::collections::{BTreeSet, BTreeMap};
@@ -14,7 +12,6 @@ use enum_iterator::{all, Sequence};
 // six of them stops being.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
 // Opaque type to prevent accidental misuse
-// NOTE: I don't think we need PermIndex to prevent possible confusions?
 pub struct CompositeLowerBoundToken<SearchTokenA, SearchTokenB>(u8, SearchTokenA, SearchTokenB);
 
 impl<SearchTokenA: TableSearchToken, SearchTokenB: TableSearchToken> CompositeLowerBoundToken<SearchTokenA, SearchTokenB> {
@@ -40,30 +37,40 @@ impl<SearchTokenA: TableSearchToken, SearchTokenB: TableSearchToken> TableSearch
 }
 
 #[derive(Debug)]
-pub struct CompositePruningTable<SymA, SymB, PermIndexA, PermIndexB, RepIndexA, RepIndexB, Turn, MoveTableA, MoveTableB> {
-    a: PruningTable<SymA, PermIndexA, RepIndexA, Turn, MoveTableA>,
-    b: PruningTable<SymB, PermIndexB, RepIndexB, Turn, MoveTableB>,
+pub struct CompositePruningTable<PruningTableA, PruningTableB, Turn> {
+    a: PruningTableA,
+    b: PruningTableB,
+    turn: std::marker::PhantomData<Turn>,
 }
 
-impl<MoveTableA: TableTurn<SymA, RepIndexA, Turn> + TableSymTurn<SymA, RepIndexA, Turn> + TableRawIndexToSymIndex<SymA, PermIndexA, RepIndexA> + TableRepCount, MoveTableB: TableTurn<SymB, RepIndexB, Turn> + TableSymTurn<SymB, RepIndexB, Turn> + TableRawIndexToSymIndex<SymB, PermIndexB, RepIndexB> + TableRepCount, Turn: std::fmt::Debug + Sequence + Copy + Invertable + EquivalenceClass<SymA> + EquivalenceClass<SymB> + Ord, SymA: std::fmt::Debug + Sequence + Copy + Clone + PG + Ord, SymB: std::fmt::Debug + Sequence + Copy + Clone + PG + Ord, PermIndexA: Sequence + Copy + Ord, PermIndexB: Sequence + Copy + Ord, RepIndexA: std::fmt::Debug + Copy + Ord + Into<usize>, RepIndexB: std::fmt::Debug + Copy + Ord + Into<usize>> CompositePruningTable<SymA, SymB, PermIndexA, PermIndexB, RepIndexA, RepIndexB, Turn, MoveTableA, MoveTableB> {
-    pub fn new(a: PruningTable<SymA, PermIndexA, RepIndexA, Turn, MoveTableA>, b: PruningTable<SymB, PermIndexB, RepIndexB, Turn, MoveTableB>) -> Self {
-        CompositePruningTable { a, b }
+impl<Turn, PruningTableA, PruningTableB> CompositePruningTable<PruningTableA, PruningTableB, Turn>
+    where
+        Turn: Sequence + Copy + Invertable + Ord,
+        PruningTableA: TableSearch<Turn>,
+        PruningTableB: TableSearch<Turn>,
+        PruningTableA::SearchToken: TableSearchToken + Ord + Copy,
+        PruningTableB::SearchToken: TableSearchToken + Ord + Copy,
+        <PruningTableA::SearchToken as TableSearchToken>::Index: Ord,
+        <PruningTableB::SearchToken as TableSearchToken>::Index: Ord
+{
+    pub fn new(a: PruningTableA, b: PruningTableB) -> Self {
+        CompositePruningTable { a, b, turn: std::marker::PhantomData }
     }
 
-    pub fn start_search(&self, (pi_a, pi_b): (PermIndexA, PermIndexB)) -> CompositeLowerBoundToken<LowerBoundToken<(RepIndexA, SymA), Turn>, LowerBoundToken<(RepIndexB, SymB), Turn>> {
-        let lbt_a = self.a.start_search(pi_a);
-        let lbt_b = self.b.start_search(pi_b);
+    pub fn start_search(&self, (pi_a, pi_b): (PruningTableA::Index, PruningTableB::Index)) -> CompositeLowerBoundToken<PruningTableA::SearchToken, PruningTableB::SearchToken> {
+        let lbt_a = self.a.table_start_search(pi_a);
+        let lbt_b = self.b.table_start_search(pi_b);
         CompositeLowerBoundToken::new(lbt_a, lbt_b)
     }
 
-    pub fn continue_search(&self, lbt: CompositeLowerBoundToken<LowerBoundToken<(RepIndexA, SymA), Turn>, LowerBoundToken<(RepIndexB, SymB), Turn>>, t: Turn) -> CompositeLowerBoundToken<LowerBoundToken<(RepIndexA, SymA), Turn>, LowerBoundToken<(RepIndexB, SymB), Turn>> {
+    pub fn continue_search(&self, lbt: CompositeLowerBoundToken<PruningTableA::SearchToken, PruningTableB::SearchToken>, t: Turn) -> CompositeLowerBoundToken<PruningTableA::SearchToken, PruningTableB::SearchToken> {
         let (token_a, token_b) = lbt.get_tokens();
-        let lbt_a = self.a.continue_search(token_a, t);
-        let lbt_b = self.b.continue_search(token_b, t);
+        let lbt_a = self.a.table_continue_search(token_a, t);
+        let lbt_b = self.b.table_continue_search(token_b, t);
         CompositeLowerBoundToken::new(lbt_a, lbt_b)
     }
 
-    pub fn solve(&self, pi: (PermIndexA, PermIndexB)) -> Vec<Turn> {
+    pub fn solve(&self, pi: (PruningTableA::Index, PruningTableB::Index)) -> Vec<Turn> {
         let mut queue = BTreeSet::new();
         // NOTE: Even though all turns are the same weight, we still have to
         // account for possibly finding faster routes to states later.  The
@@ -104,17 +111,26 @@ impl<MoveTableA: TableTurn<SymA, RepIndexA, Turn> + TableSymTurn<SymA, RepIndexA
     }
 }
 
-impl<MoveTableA: TableTurn<SymA, RepIndexA, Turn> + TableSymTurn<SymA, RepIndexA, Turn> + TableRawIndexToSymIndex<SymA, PermIndexA, RepIndexA> + TableRepCount, MoveTableB: TableTurn<SymB, RepIndexB, Turn> + TableSymTurn<SymB, RepIndexB, Turn> + TableRawIndexToSymIndex<SymB, PermIndexB, RepIndexB> + TableRepCount, Turn: std::fmt::Debug + Sequence + Copy + Invertable + EquivalenceClass<SymA> + EquivalenceClass<SymB> + Ord, SymA: std::fmt::Debug + Sequence + Copy + Clone + PG + Ord, SymB: std::fmt::Debug + Sequence + Copy + Clone + PG + Ord, PermIndexA: Sequence + Copy + Ord, PermIndexB: Sequence + Copy + Ord, RepIndexA: std::fmt::Debug + Copy + Ord + Into<usize>, RepIndexB: std::fmt::Debug + Copy + Ord + Into<usize>> TableSearch<(PermIndexA, PermIndexB), Turn> for CompositePruningTable<SymA, SymB, PermIndexA, PermIndexB, RepIndexA, RepIndexB, Turn, MoveTableA, MoveTableB> {
-    type SearchToken = CompositeLowerBoundToken<LowerBoundToken<(RepIndexA, SymA), Turn>, LowerBoundToken<(RepIndexB, SymB), Turn>>;
+impl<Turn, PruningTableA, PruningTableB> TableSearch<Turn> for CompositePruningTable<PruningTableA, PruningTableB, Turn> where
+    Turn: Sequence + Copy + Invertable + Ord,
+    PruningTableA: TableSearch<Turn>,
+    PruningTableB: TableSearch<Turn>,
+    PruningTableA::SearchToken: TableSearchToken + Ord + Copy,
+    PruningTableB::SearchToken: TableSearchToken + Ord + Copy,
+    <PruningTableA::SearchToken as TableSearchToken>::Index: Ord,
+    <PruningTableB::SearchToken as TableSearchToken>::Index: Ord,
+    {
+        type Index = (PruningTableA::Index, PruningTableB::Index);
+        type SearchToken = CompositeLowerBoundToken<PruningTableA::SearchToken, PruningTableB::SearchToken>;
 
-    fn table_start_search(&self, i: (PermIndexA, PermIndexB)) -> Self::SearchToken {
-        self.start_search(i)
-    }
+        fn table_start_search(&self, i: (PruningTableA::Index, PruningTableB::Index)) -> Self::SearchToken {
+            self.start_search(i)
+        }
 
-    fn table_continue_search(&self, st: Self::SearchToken, t: Turn) -> Self::SearchToken {
-        self.continue_search(st, t)
+        fn table_continue_search(&self, st: Self::SearchToken, t: Turn) -> Self::SearchToken {
+            self.continue_search(st, t)
+        }
     }
-}
 
 #[cfg(test)]
 mod tests {
@@ -123,6 +139,7 @@ mod tests {
     use three_triangles_stack::*;
     use representative_table::RepresentativeTable;
     use flat_move_table::MoveTable;
+    use flat_pruning_table::PruningTable;
 
     #[test]
     fn pruning_table_is_correct_for_three_triangles_stack_even_parity_with_no_symmetry_via_composite() {
