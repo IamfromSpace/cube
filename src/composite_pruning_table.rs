@@ -140,6 +140,8 @@ mod tests {
     use representative_table::RepresentativeTable;
     use flat_move_table::MoveTable;
     use flat_pruning_table::PruningTable;
+    use translated_pruning_table::TranslatedPruningTable;
+    use equivalence_class::EquivalenceClass;
 
     #[test]
     fn pruning_table_is_correct_for_three_triangles_stack_even_parity_with_no_symmetry_via_composite() {
@@ -348,6 +350,56 @@ mod tests {
             let inner_pi: tt_inner::ThreeTrapezoidsInner = p.into();
             let outer_pi: tt_outer::ThreeTrapezoidsOuter = p.into();
             let cpi = (inner_pi.into(), outer_pi.into());
+            assert_eq!(*tt_table.get(&pi).unwrap(), pruning_table.solve(cpi).len());
+        }
+    }
+
+    use three_trapezoids::edge as tt_edge;
+
+    #[test]
+    fn pruning_table_is_correct_for_three_trapezoids_three_edges_with_no_symmetry_via_translated_composites() {
+        let rep_table = Arc::new(RepresentativeTable::new::<tt_edge::ThreeTrapezoidsEdge>());
+        let move_table: MoveTable<tt::NoSymmetry, tt_edge::ThreeTrapezoidsEdgeIndex, tt::Turns> = MoveTable::new_on_pattern::<tt::ThreeTrapezoids, tt_edge::ThreeTrapezoidsEdge>(rep_table.clone());
+        let unmodified_pruning_table: Arc<PruningTable<tt::NoSymmetry, tt_edge::ThreeTrapezoidsEdgeIndex, _, tt::Turns, _>> = Arc::new(PruningTable::new(move_table, std::iter::once(tt_edge::ThreeTrapezoidsEdge::from(tt::ThreeTrapezoids::identity()).into())));
+        let id_pruning_table = TranslatedPruningTable::new(unmodified_pruning_table.clone(), tt::RotationalSymmetry::Identity);
+        let clock_pruning_table = TranslatedPruningTable::new(unmodified_pruning_table.clone(), tt::RotationalSymmetry::RotateClock);
+        let counter_clock_pruning_table = TranslatedPruningTable::new(unmodified_pruning_table.clone(), tt::RotationalSymmetry::RotateCounterClock);
+
+        let pruning_table = CompositePruningTable::new(id_pruning_table, CompositePruningTable::new(clock_pruning_table, counter_clock_pruning_table));
+
+        // Our simple implementation (small enough to solve naively) matches our more complex one
+        // NOTE: we can still expect the optimal solve here!
+        let tt_table = tt::moves_to_solve();
+        for pi in all::<tt::ThreeTrapezoidsIndex>() {
+            let p: tt::ThreeTrapezoids = pi.into();
+            let id_pi: tt_edge::ThreeTrapezoidsEdge = p.into();
+            let clock_pi: tt_edge::ThreeTrapezoidsEdge = p.get_equivalent(&tt::RotationalSymmetry::RotateClock).into();
+            let counter_clock_pi: tt_edge::ThreeTrapezoidsEdge = p.get_equivalent(&tt::RotationalSymmetry::RotateCounterClock).into();
+            let cpi = (id_pi.into(), (clock_pi.into(), counter_clock_pi.into()));
+            assert_eq!(*tt_table.get(&pi).unwrap(), pruning_table.solve(cpi).len());
+        }
+    }
+
+    #[test]
+    fn pruning_table_is_correct_for_three_trapezoids_three_edges_with_mirror_ud_symmetry_via_translated_composites() {
+        let rep_table = Arc::new(RepresentativeTable::new::<tt_edge::ThreeTrapezoidsEdge>());
+        let move_table: MoveTable<tt::MirrorUDSymmetry, tt_edge::ThreeTrapezoidsEdgeIndex, tt::Turns> = MoveTable::new_on_pattern::<tt::ThreeTrapezoids, tt_edge::ThreeTrapezoidsEdge>(rep_table.clone());
+        let unmodified_pruning_table: Arc<PruningTable<tt::MirrorUDSymmetry, tt_edge::ThreeTrapezoidsEdgeIndex, _, tt::Turns, _>> = Arc::new(PruningTable::new(move_table, std::iter::once(tt_edge::ThreeTrapezoidsEdge::from(tt::ThreeTrapezoids::identity()).into())));
+        let id_pruning_table = TranslatedPruningTable::new(unmodified_pruning_table.clone(), tt::RotationalSymmetry::Identity);
+        let clock_pruning_table = TranslatedPruningTable::new(unmodified_pruning_table.clone(), tt::RotationalSymmetry::RotateClock);
+        let counter_clock_pruning_table = TranslatedPruningTable::new(unmodified_pruning_table.clone(), tt::RotationalSymmetry::RotateCounterClock);
+
+        let pruning_table = CompositePruningTable::new(id_pruning_table, CompositePruningTable::new(clock_pruning_table, counter_clock_pruning_table));
+
+        // Our simple implementation (small enough to solve naively) matches our more complex one
+        // NOTE: we can still expect the optimal solve here!
+        let tt_table = tt::moves_to_solve();
+        for pi in all::<tt::ThreeTrapezoidsIndex>() {
+            let p: tt::ThreeTrapezoids = pi.into();
+            let id_pi: tt_edge::ThreeTrapezoidsEdge = p.into();
+            let clock_pi: tt_edge::ThreeTrapezoidsEdge = p.get_equivalent(&tt::RotationalSymmetry::RotateClock).into();
+            let counter_clock_pi: tt_edge::ThreeTrapezoidsEdge = p.get_equivalent(&tt::RotationalSymmetry::RotateCounterClock).into();
+            let cpi = (id_pi.into(), (clock_pi.into(), counter_clock_pi.into()));
             assert_eq!(*tt_table.get(&pi).unwrap(), pruning_table.solve(cpi).len());
         }
     }

@@ -31,6 +31,7 @@ mod composite_move_table;
 mod translated_move_table;
 mod flat_pruning_table;
 mod composite_pruning_table;
+mod translated_pruning_table;
 mod coord_move_table;
 mod pruning_table;
 mod util;
