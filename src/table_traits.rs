@@ -53,6 +53,7 @@ impl<T: TableRepCount> TableRepCount for Arc<T> {
 pub trait TableSearchToken {
     type Index;
 
+    // TODO: The "table" prefix here is pretty silly, we're mostly just doing this at the moment to avoid collisions
     fn table_get_index(&self) -> Self::Index;
 
     // TODO: u8 seems _probably_ big enough....
@@ -64,5 +65,7 @@ pub trait TableSearch<Index, Turn> {
 
     fn table_start_search(&self, i: Index) -> Self::SearchToken;
 
+    // TODO: This should really take a reference to the token, we should expect
+    // that the caller still needs it.
     fn table_continue_search(&self, st: Self::SearchToken, t: Turn) -> Self::SearchToken;
 }

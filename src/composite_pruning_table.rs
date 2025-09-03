@@ -9,6 +9,9 @@ use std::collections::{BTreeSet, BTreeMap};
 use std::collections::VecDeque;
 use enum_iterator::{all, Sequence};
 
+// TODO: We may not actually want this to be Copy, because it's now of
+// unpredictable size.  A single search token is fairly trivial, but a stack of
+// six of them stops being.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
 // Opaque type to prevent accidental misuse
 // NOTE: I don't think we need PermIndex to prevent possible confusions?
