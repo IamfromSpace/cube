@@ -24,6 +24,7 @@ mod two_by_two_by_two;
 mod two_by_two_by_three;
 mod ftl_minus_keyhole;
 mod move_sets;
+mod symmetries;
 mod representative_table;
 mod move_table;
 mod flat_move_table;
