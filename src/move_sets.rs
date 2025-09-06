@@ -1220,7 +1220,8 @@ pub mod g1_turns {
 }
 
 pub mod g1_wide_turns {
-    #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash, Serialize, Deserialize)]
+    #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash, Serialize, Deserialize, enum_iterator::Sequence)]
+    #[repr(u8)]
     pub enum G1WideTurn {
         U,
         U2,
@@ -1597,6 +1598,14 @@ pub mod g1_wide_turns {
                 (UF2Symmetry::UPrimeF2, G1WideTurn::DPrime) => G1WideTurn::UPrime,
                 (UF2Symmetry::UPrimeF2, G1WideTurn::Dw2) => G1WideTurn::Uw2,
             }
+        }
+    }
+
+    #[cfg(test)]
+    impl quickcheck::Arbitrary for G1WideTurn {
+        fn arbitrary<G: quickcheck::Gen>(g: &mut G) -> G1WideTurn {
+            use rand::Rng;
+            *g.choose(&enum_iterator::all::<G1WideTurn>().collect::<Vec<_>>()).unwrap()
         }
     }
 }

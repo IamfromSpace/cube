@@ -1,5 +1,7 @@
 extern crate functional;
 
+pub mod locked_evens;
+
 use std::fmt;
 use super::permutation_group::PermutationGroup;
 use super::invertable::Invertable;
@@ -273,9 +275,15 @@ impl From<G1WideTurn> for CoordWingEdges {
 // 14 -> 20 -> 21
 const S_URF: CoordWingEdges = CoordWingEdges([12, 16, 23, 15, 8, 0, 7, 11, 17, 22, 1, 6, 5, 2, 21, 18, 10, 4, 3, 9, 14, 20, 19, 13]);
 
-const S_F: CoordWingEdges = CoordWingEdges(permute_arr(&Fw2.0, &Bw2.0));
+const S_F: CoordWingEdges = CoordWingEdges(permute_arr(&Fw.0, &Bw_PRIME.0));
+
+const S_F2: CoordWingEdges = CoordWingEdges(permute_arr(&S_F.0, &S_F.0));
 
 const S_U: CoordWingEdges =  CoordWingEdges(permute_arr(&Uw.0, &Dw_PRIME.0));
+
+const S_U2: CoordWingEdges = CoordWingEdges(permute_arr(&S_U.0, &S_U.0));
+
+const S_U2F2: CoordWingEdges = CoordWingEdges(permute_arr(&S_U2.0, &S_F2.0));
 
 // TODO:  Notably, this does NOT render correctly if done only once, it must be
 // applied as a symmetry (S * X * S^-1), because it would also need to flip all
@@ -288,7 +296,7 @@ use super::move_sets::g1_symmetry_generators::G1SymmetryGenerator;
 impl From<G1SymmetryGenerator> for CoordWingEdges {
     fn from(g1sg: G1SymmetryGenerator) -> CoordWingEdges {
         match g1sg {
-            G1SymmetryGenerator::SF => S_F,
+            G1SymmetryGenerator::SF => S_F2,
             G1SymmetryGenerator::SU => S_U,
             G1SymmetryGenerator::SMrl => S_MRL,
         }
@@ -319,7 +327,7 @@ impl From<SymmetryGenerator> for CoordWingEdges {
     fn from(g1sg: SymmetryGenerator) -> CoordWingEdges {
         match g1sg {
             SymmetryGenerator::SUrf => S_URF,
-            SymmetryGenerator::SF => S_F,
+            SymmetryGenerator::SF => S_F2,
             SymmetryGenerator::SU => S_U,
             SymmetryGenerator::SMrl => S_MRL,
         }
