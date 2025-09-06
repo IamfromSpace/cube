@@ -3,6 +3,49 @@ use invertable::Invertable;
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash, Sequence)]
 #[repr(u8)]
+pub enum U2Symmetry {
+    Identity,
+    U2,
+}
+
+impl Into<usize> for U2Symmetry {
+    fn into(self) -> usize {
+        self as usize
+    }
+}
+
+impl functional::BinaryOperation<U2Symmetry> for U2Symmetry {
+    fn apply(a: U2Symmetry, b: U2Symmetry) -> U2Symmetry {
+        match (a, b) {
+            (U2Symmetry::Identity, U2Symmetry::Identity) => U2Symmetry::Identity,
+            (U2Symmetry::Identity, U2Symmetry::U2) => U2Symmetry::U2,
+            (U2Symmetry::U2, U2Symmetry::Identity) => U2Symmetry::U2,
+            (U2Symmetry::U2, U2Symmetry::U2) => U2Symmetry::Identity,
+        }
+    }
+}
+
+impl functional::AssociativeOperation<U2Symmetry> for U2Symmetry { }
+
+impl functional::Monoid<U2Symmetry> for U2Symmetry {
+    fn one() -> U2Symmetry {
+        U2Symmetry::Identity
+    }
+}
+
+impl Invertable for U2Symmetry {
+    fn invert(&self) -> U2Symmetry {
+        match self {
+            U2Symmetry::Identity => U2Symmetry::Identity,
+            U2Symmetry::U2 => U2Symmetry::U2,
+        }
+    }
+}
+
+impl PG for U2Symmetry {}
+
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash, Sequence)]
+#[repr(u8)]
 pub enum U2F2Symmetry {
     Identity,
     U2,
@@ -193,6 +236,12 @@ mod tests {
     use quickcheck::Gen;
     use rand::Rng;
 
+    impl quickcheck::Arbitrary for U2Symmetry {
+        fn arbitrary<G: Gen>(g: &mut G) -> U2Symmetry {
+            *g.choose(&all::<U2Symmetry>().collect::<Vec<_>>()).unwrap()
+        }
+    }
+
     impl quickcheck::Arbitrary for U2F2Symmetry {
         fn arbitrary<G: Gen>(g: &mut G) -> U2F2Symmetry {
             *g.choose(&all::<U2F2Symmetry>().collect::<Vec<_>>()).unwrap()
@@ -202,6 +251,25 @@ mod tests {
     impl quickcheck::Arbitrary for UF2Symmetry {
         fn arbitrary<G: Gen>(g: &mut G) -> UF2Symmetry {
             *g.choose(&all::<UF2Symmetry>().collect::<Vec<_>>()).unwrap()
+        }
+    }
+
+    quickcheck! {
+        fn u2_symmetry_permutation_is_associative(p0: U2Symmetry, p1: U2Symmetry, p2: U2Symmetry) -> bool {
+            p0.permute(p1).permute(p2) == p0.permute(p1.permute(p2))
+        }
+    }
+
+    quickcheck! {
+        fn u2_symmetry_identity_has_no_effect(p: U2Symmetry) -> bool {
+            p.permute(U2Symmetry::identity()) == p
+                && U2Symmetry::identity().permute(p) == p
+        }
+    }
+
+    quickcheck! {
+        fn u2_symmetry_inversion_is_identity(p: U2Symmetry) -> bool {
+            p.permute(p.invert()) == U2Symmetry::identity()
         }
     }
 

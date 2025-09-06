@@ -1383,6 +1383,47 @@ pub mod g1_wide_turns {
         }
     }
 
+    use symmetries::cube::U2Symmetry;
+    impl EquivalenceClass<U2Symmetry> for G1WideTurn {
+        fn get_equivalent(self, sym: &U2Symmetry) -> G1WideTurn {
+            match (sym, self) {
+                (U2Symmetry::Identity, G1WideTurn::U) => G1WideTurn::U,
+                (U2Symmetry::Identity, G1WideTurn::U2) => G1WideTurn::U2,
+                (U2Symmetry::Identity, G1WideTurn::UPrime) => G1WideTurn::UPrime,
+                (U2Symmetry::Identity, G1WideTurn::Uw2) => G1WideTurn::Uw2,
+                (U2Symmetry::Identity, G1WideTurn::F2) => G1WideTurn::F2,
+                (U2Symmetry::Identity, G1WideTurn::Fw2) => G1WideTurn::Fw2,
+                (U2Symmetry::Identity, G1WideTurn::R2) => G1WideTurn::R2,
+                (U2Symmetry::Identity, G1WideTurn::Rw2) => G1WideTurn::Rw2,
+                (U2Symmetry::Identity, G1WideTurn::B2) => G1WideTurn::B2,
+                (U2Symmetry::Identity, G1WideTurn::Bw2) => G1WideTurn::Bw2,
+                (U2Symmetry::Identity, G1WideTurn::L2) => G1WideTurn::L2,
+                (U2Symmetry::Identity, G1WideTurn::Lw2) => G1WideTurn::Lw2,
+                (U2Symmetry::Identity, G1WideTurn::D) => G1WideTurn::D,
+                (U2Symmetry::Identity, G1WideTurn::D2) => G1WideTurn::D2,
+                (U2Symmetry::Identity, G1WideTurn::DPrime) => G1WideTurn::DPrime,
+                (U2Symmetry::Identity, G1WideTurn::Dw2) => G1WideTurn::Dw2,
+
+                (U2Symmetry::U2, G1WideTurn::U) => G1WideTurn::U,
+                (U2Symmetry::U2, G1WideTurn::U2) => G1WideTurn::U2,
+                (U2Symmetry::U2, G1WideTurn::UPrime) => G1WideTurn::UPrime,
+                (U2Symmetry::U2, G1WideTurn::Uw2) => G1WideTurn::Uw2,
+                (U2Symmetry::U2, G1WideTurn::F2) => G1WideTurn::B2,
+                (U2Symmetry::U2, G1WideTurn::Fw2) => G1WideTurn::Bw2,
+                (U2Symmetry::U2, G1WideTurn::R2) => G1WideTurn::L2,
+                (U2Symmetry::U2, G1WideTurn::Rw2) => G1WideTurn::Lw2,
+                (U2Symmetry::U2, G1WideTurn::B2) => G1WideTurn::F2,
+                (U2Symmetry::U2, G1WideTurn::Bw2) => G1WideTurn::Fw2,
+                (U2Symmetry::U2, G1WideTurn::L2) => G1WideTurn::R2,
+                (U2Symmetry::U2, G1WideTurn::Lw2) => G1WideTurn::Rw2,
+                (U2Symmetry::U2, G1WideTurn::D) => G1WideTurn::D,
+                (U2Symmetry::U2, G1WideTurn::D2) => G1WideTurn::D2,
+                (U2Symmetry::U2, G1WideTurn::DPrime) => G1WideTurn::DPrime,
+                (U2Symmetry::U2, G1WideTurn::Dw2) => G1WideTurn::Dw2,
+            }
+        }
+    }
+
     use symmetries::cube::U2F2Symmetry;
     impl EquivalenceClass<U2F2Symmetry> for G1WideTurn {
         fn get_equivalent(self, sym: &U2F2Symmetry) -> G1WideTurn {

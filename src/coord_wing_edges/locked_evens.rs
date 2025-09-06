@@ -3,7 +3,7 @@ use invertable::Invertable;
 use equivalence_class::EquivalenceClass;
 use coord_wing_edges::CoordWingEdges;
 use move_sets::g1_wide_turns::G1WideTurn;
-use symmetries::cube::U2F2Symmetry;
+use symmetries::cube::{U2F2Symmetry, U2Symmetry};
 
 use std::convert::{TryInto, TryFrom};
 
@@ -103,6 +103,22 @@ impl From<G1WideTurn> for CoordWingEdgesLockedEvens {
     fn from(x: G1WideTurn) -> Self {
         let x: CoordWingEdges = x.into();
         x.try_into().expect("Invariant Violation: G1WideTurn should not move pieces between even and odd orbits.")
+    }
+}
+
+impl Into<CoordWingEdgesLockedEvens> for U2Symmetry {
+    fn into(self) -> CoordWingEdgesLockedEvens {
+        match self {
+            U2Symmetry::Identity => CoordWingEdgesLockedEvens::identity(),
+            U2Symmetry::U2 => CoordWingEdgesLockedEvens::try_from(super::S_U2).expect("Invariant Violation: U2 symmetry should not move pieces between even and odd orbits."),
+        }
+    }
+}
+
+impl EquivalenceClass<U2Symmetry> for CoordWingEdgesLockedEvens {
+    fn get_equivalent(self, sym: &U2Symmetry) -> CoordWingEdgesLockedEvens {
+        let x: CoordWingEdgesLockedEvens = sym.clone().into();
+        x.invert().permute(self).permute(x)
     }
 }
 
@@ -207,7 +223,7 @@ mod tests {
     }
 
     quickcheck! {
-        fn perm_and_turn_full_symmetries_are_equivalent(p: CoordWingEdgesLockedEvens, t: G1WideTurn, s: U2F2Symmetry) -> bool {
+        fn perm_and_turn_full_symmetries_are_equivalent_through_u2f2(p: CoordWingEdgesLockedEvens, t: G1WideTurn, s: U2F2Symmetry) -> bool {
             let after_permute = p.permute(t.into()).get_equivalent(&s);
             let before_permute = p.get_equivalent(&s).permute(t.get_equivalent(&s).into());
             after_permute == before_permute
@@ -215,7 +231,15 @@ mod tests {
     }
 
     quickcheck! {
-        fn full_turn_and_permutation_are_homomorphic(s0: U2F2Symmetry, s1: U2F2Symmetry) -> bool {
+        fn perm_and_turn_full_symmetries_are_equivalent_through_u2(p: CoordWingEdgesLockedEvens, t: G1WideTurn, s: U2Symmetry) -> bool {
+            let after_permute = p.permute(t.into()).get_equivalent(&s);
+            let before_permute = p.get_equivalent(&s).permute(t.get_equivalent(&s).into());
+            after_permute == before_permute
+        }
+    }
+
+    quickcheck! {
+        fn full_turn_and_permutation_are_homomorphic_through_u2f2(s0: U2F2Symmetry, s1: U2F2Symmetry) -> bool {
             let as_perm = <U2F2Symmetry as Into<CoordWingEdgesLockedEvens>>::into(s0).permute(s1.into());
             let as_sym: CoordWingEdgesLockedEvens = s0.permute(s1).into();
             as_perm == as_sym
@@ -223,8 +247,25 @@ mod tests {
     }
 
     quickcheck! {
+        fn full_turn_and_permutation_are_homomorphic_through_u2(s0: U2Symmetry, s1: U2Symmetry) -> bool {
+            let as_perm = <U2Symmetry as Into<CoordWingEdgesLockedEvens>>::into(s0).permute(s1.into());
+            let as_sym: CoordWingEdgesLockedEvens = s0.permute(s1).into();
+            as_perm == as_sym
+        }
+    }
+
+    quickcheck! {
         // This should technically already be proven true by being homomorphic
-        fn direct_and_indirect_sym_multiplication_are_equivalent_for_full_symmetry(p: CoordWingEdgesLockedEvens, s0: U2F2Symmetry, s1: U2F2Symmetry) -> bool {
+        fn direct_and_indirect_sym_multiplication_are_equivalent_for_u2f2_symmetry(p: CoordWingEdgesLockedEvens, s0: U2F2Symmetry, s1: U2F2Symmetry) -> bool {
+            let as_perm = p.permute(s0.into()).permute(s1.into());
+            let as_sym = p.permute(s0.permute(s1).into());
+            as_perm == as_sym
+        }
+    }
+
+    quickcheck! {
+        // This should technically already be proven true by being homomorphic
+        fn direct_and_indirect_sym_multiplication_are_equivalent_for_u2_symmetry(p: CoordWingEdgesLockedEvens, s0: U2Symmetry, s1: U2Symmetry) -> bool {
             let as_perm = p.permute(s0.into()).permute(s1.into());
             let as_sym = p.permute(s0.permute(s1).into());
             as_perm == as_sym
