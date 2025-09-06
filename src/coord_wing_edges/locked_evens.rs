@@ -1,3 +1,5 @@
+pub mod top_six;
+
 use permutation_group::PermutationGroup as PG;
 use invertable::Invertable;
 use equivalence_class::EquivalenceClass;
