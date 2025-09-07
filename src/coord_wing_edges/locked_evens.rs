@@ -1,4 +1,6 @@
 pub mod top_six;
+pub mod ud;
+pub mod ud_slice;
 
 use permutation_group::PermutationGroup as PG;
 use invertable::Invertable;
