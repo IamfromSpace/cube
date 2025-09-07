@@ -1241,6 +1241,12 @@ pub mod g1_wide_turns {
         Dw2,
     }
 
+    impl Into<usize> for G1WideTurn {
+        fn into(self) -> usize {
+            self as usize
+        }
+    }
+
     use super::super::equivalence_class::EquivalenceClass;
     use super::g1_symmetry_generators::G1SymmetryGenerator;
     impl EquivalenceClass<G1SymmetryGenerator> for G1WideTurn {
