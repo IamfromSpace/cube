@@ -112,6 +112,63 @@ impl<Turn, PruningTableA, PruningTableB> CompositePruningTable<PruningTableA, Pr
             }
         }
     }
+
+    pub fn ida(&self, pi: (PruningTableA::Index, PruningTableB::Index)) -> Vec<Turn> {
+        let first = self.start_search(pi);
+        let mut max = first.table_get_lower_bound();
+        let mut t_path = Vec::new();
+        let mut lbt_path = vec![first];
+
+        // TODO: Stupid variables that can probably be optimized better
+        let mut first = true;
+        let mut back = false;
+
+        loop {
+            let curr_lbt = lbt_path[lbt_path.len() - 1];
+            let curr_lower_bound = curr_lbt.table_get_lower_bound();
+            if curr_lower_bound == 0 {
+                break;
+            }
+
+            if t_path.len() == 0 {
+                let t = enum_iterator::first::<Turn>().expect("Invariant Violation: must have at least one turn");
+                let lbt = self.continue_search(curr_lbt, t);
+                t_path.push(t);
+                lbt_path.push(lbt);
+
+                // TODO: This is stupid
+                if first {
+                    first = false;
+                } else {
+                    max += 1;
+                    println!("deeper, max:{max:?}");
+                }
+                back = false;
+            } else if back || (curr_lower_bound + t_path.len() as u8) > max {
+                let t_curr = t_path.pop().expect("Invariant Violation: Already checked that t_path wasn't empty!");
+                lbt_path.pop();
+                match enum_iterator::next::<Turn>(&t_curr) {
+                    None => {
+                        back = true;
+                    },
+                    Some(t) => {
+                        back = false;
+                        let lbt = self.continue_search(lbt_path[lbt_path.len() - 1], t);
+                        t_path.push(t);
+                        lbt_path.push(lbt);
+                    }
+                }
+            } else {
+                let t = enum_iterator::first::<Turn>().expect("Invariant Violation: must have at least one turn");
+                let lbt = self.continue_search(curr_lbt, t);
+                t_path.push(t);
+                lbt_path.push(lbt);
+                back = false;
+            }
+        }
+
+        t_path
+    }
 }
 
 impl<Turn, PruningTableA, PruningTableB> TableSearch<Turn> for CompositePruningTable<PruningTableA, PruningTableB, Turn> where
@@ -165,6 +222,7 @@ mod tests {
                 let pi = (top_pi, bottom_pi);
                 let p = (top_pi.into(), bottom_pi.into());
                 assert_eq!(tt_table.get(&p).unwrap().len(), pruning_table.solve(pi).len());
+                assert_eq!(tt_table.get(&p).unwrap().len(), pruning_table.ida(pi).len());
             }
         }
     }
@@ -188,6 +246,7 @@ mod tests {
                 let pi = (top_pi, bottom_pi);
                 let p = (top_pi.into(), bottom_pi.into());
                 assert_eq!(tt_table.get(&p).unwrap().len(), pruning_table.solve(pi).len());
+                assert_eq!(tt_table.get(&p).unwrap().len(), pruning_table.ida(pi).len());
             }
         }
     }
@@ -211,6 +270,7 @@ mod tests {
                 let pi = (top_pi, bottom_pi);
                 let p = (top_pi.into(), bottom_pi.into());
                 assert_eq!(tt_table.get(&p).unwrap().len(), pruning_table.solve(pi).len());
+                assert_eq!(tt_table.get(&p).unwrap().len(), pruning_table.ida(pi).len());
             }
         }
     }
@@ -234,6 +294,7 @@ mod tests {
                 let pi = (top_pi, bottom_pi);
                 let p = (top_pi.into(), bottom_pi.into());
                 assert_eq!(tt_table.get(&p).unwrap().len(), pruning_table.solve(pi).len());
+                assert_eq!(tt_table.get(&p).unwrap().len(), pruning_table.ida(pi).len());
             }
         }
     }
@@ -257,6 +318,7 @@ mod tests {
                 let pi = (top_pi, bottom_pi);
                 let p = (top_pi.into(), bottom_pi.into());
                 assert_eq!(tt_table.get(&p).unwrap().len(), pruning_table.solve(pi).len());
+                assert_eq!(tt_table.get(&p).unwrap().len(), pruning_table.ida(pi).len());
             }
         }
     }
@@ -285,6 +347,7 @@ mod tests {
             let outer_pi: tt_outer::ThreeTrapezoidsOuter = p.into();
             let cpi = (inner_pi.into(), outer_pi.into());
             assert_eq!(*tt_table.get(&pi).unwrap(), pruning_table.solve(cpi).len());
+            assert_eq!(*tt_table.get(&pi).unwrap(), pruning_table.ida(cpi).len());
         }
     }
 
@@ -308,6 +371,7 @@ mod tests {
             let outer_pi: tt_outer::ThreeTrapezoidsOuter = p.into();
             let cpi = (inner_pi.into(), outer_pi.into());
             assert_eq!(*tt_table.get(&pi).unwrap(), pruning_table.solve(cpi).len());
+            assert_eq!(*tt_table.get(&pi).unwrap(), pruning_table.ida(cpi).len());
         }
     }
 
@@ -331,6 +395,7 @@ mod tests {
             let outer_pi: tt_outer::ThreeTrapezoidsOuter = p.into();
             let cpi = (inner_pi.into(), outer_pi.into());
             assert_eq!(*tt_table.get(&pi).unwrap(), pruning_table.solve(cpi).len());
+            assert_eq!(*tt_table.get(&pi).unwrap(), pruning_table.ida(cpi).len());
         }
     }
 
@@ -354,6 +419,7 @@ mod tests {
             let outer_pi: tt_outer::ThreeTrapezoidsOuter = p.into();
             let cpi = (inner_pi.into(), outer_pi.into());
             assert_eq!(*tt_table.get(&pi).unwrap(), pruning_table.solve(cpi).len());
+            assert_eq!(*tt_table.get(&pi).unwrap(), pruning_table.ida(cpi).len());
         }
     }
 
@@ -380,6 +446,7 @@ mod tests {
             let counter_clock_pi: tt_edge::ThreeTrapezoidsEdge = p.get_equivalent(&tt::RotationalSymmetry::RotateCounterClock).into();
             let cpi = (id_pi.into(), (clock_pi.into(), counter_clock_pi.into()));
             assert_eq!(*tt_table.get(&pi).unwrap(), pruning_table.solve(cpi).len());
+            assert_eq!(*tt_table.get(&pi).unwrap(), pruning_table.ida(cpi).len());
         }
     }
 
@@ -404,6 +471,7 @@ mod tests {
             let counter_clock_pi: tt_edge::ThreeTrapezoidsEdge = p.get_equivalent(&tt::RotationalSymmetry::RotateCounterClock).into();
             let cpi = (id_pi.into(), (clock_pi.into(), counter_clock_pi.into()));
             assert_eq!(*tt_table.get(&pi).unwrap(), pruning_table.solve(cpi).len());
+            assert_eq!(*tt_table.get(&pi).unwrap(), pruning_table.ida(cpi).len());
         }
     }
 }
