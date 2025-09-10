@@ -1241,6 +1241,30 @@ pub mod g1_wide_turns {
         Dw2,
     }
 
+    impl rand::distributions::Distribution<G1WideTurn> for rand::distributions::Standard {
+        fn sample<R: rand::Rng + ?Sized>(&self, rng: &mut R) -> G1WideTurn {
+            match rng.gen_range(0, enum_iterator::cardinality::<G1WideTurn>()) {
+                0 => G1WideTurn::U,
+                1 => G1WideTurn::U2,
+                2 => G1WideTurn::UPrime,
+                3 => G1WideTurn::Uw2,
+                4 => G1WideTurn::F2,
+                5 => G1WideTurn::Fw2,
+                6 => G1WideTurn::R2,
+                7 => G1WideTurn::Rw2,
+                8 => G1WideTurn::B2,
+                9 => G1WideTurn::Bw2,
+                10 => G1WideTurn::L2,
+                11 => G1WideTurn::Lw2,
+                12 => G1WideTurn::D,
+                13 => G1WideTurn::D2,
+                14 => G1WideTurn::DPrime,
+                15 => G1WideTurn::Dw2,
+                _ => unreachable!(),
+            }
+        }
+    }
+
     impl Into<usize> for G1WideTurn {
         fn into(self) -> usize {
             self as usize
