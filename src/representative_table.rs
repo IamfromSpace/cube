@@ -59,6 +59,8 @@ impl<Sym: Sequence + Clone, PermIndex: Sequence + Copy + Ord + TryFrom<usize> + 
             to_sym_index_table.push((RepIndex(ri.try_into().expect("Invariant violated: the size of the rep table exceeded PermIndexes maximum bound."), std::marker::PhantomData), sym));
         }
 
+        to_sym_index_table.shrink_to_fit();
+
         RepresentativeTable {
             table,
             self_symmetric_table,
