@@ -5,6 +5,7 @@ pub mod locked_evens;
 use std::fmt;
 use super::permutation_group::PermutationGroup;
 use super::invertable::Invertable;
+use symmetries::cube::MRLSymmetry;
 
 /*
  *  Looking at the top:
@@ -348,6 +349,22 @@ impl From<SymGenList> for CoordWingEdges {
 impl EquivalenceClass<SymGenList> for CoordWingEdges {
     fn get_equivalent(self, sgl: &SymGenList) -> CoordWingEdges {
         let x = CoordWingEdges::from(sgl.clone());
+        x.invert().permute(self).permute(x)
+    }
+}
+
+impl Into<CoordWingEdges> for MRLSymmetry {
+    fn into(self) -> CoordWingEdges {
+        match self {
+            MRLSymmetry::Identity => CoordWingEdges::identity(),
+            MRLSymmetry::Mirror => S_MRL,
+        }
+    }
+}
+
+impl EquivalenceClass<MRLSymmetry> for CoordWingEdges {
+    fn get_equivalent(self, sym: &MRLSymmetry) -> CoordWingEdges {
+        let x: CoordWingEdges = sym.clone().into();
         x.invert().permute(self).permute(x)
     }
 }

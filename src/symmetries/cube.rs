@@ -3,6 +3,49 @@ use invertable::Invertable;
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash, Sequence)]
 #[repr(u8)]
+pub enum MRLSymmetry {
+    Identity,
+    Mirror,
+}
+
+impl Into<usize> for MRLSymmetry {
+    fn into(self) -> usize {
+        self as usize
+    }
+}
+
+impl functional::BinaryOperation<MRLSymmetry> for MRLSymmetry {
+    fn apply(a: MRLSymmetry, b: MRLSymmetry) -> MRLSymmetry {
+        match (a, b) {
+            (MRLSymmetry::Identity, MRLSymmetry::Identity) => MRLSymmetry::Identity,
+            (MRLSymmetry::Identity, MRLSymmetry::Mirror) => MRLSymmetry::Mirror,
+            (MRLSymmetry::Mirror, MRLSymmetry::Identity) => MRLSymmetry::Mirror,
+            (MRLSymmetry::Mirror, MRLSymmetry::Mirror) => MRLSymmetry::Identity,
+        }
+    }
+}
+
+impl functional::AssociativeOperation<MRLSymmetry> for MRLSymmetry { }
+
+impl functional::Monoid<MRLSymmetry> for MRLSymmetry {
+    fn one() -> MRLSymmetry {
+        MRLSymmetry::Identity
+    }
+}
+
+impl Invertable for MRLSymmetry {
+    fn invert(&self) -> MRLSymmetry {
+        match self {
+            MRLSymmetry::Identity => MRLSymmetry::Identity,
+            MRLSymmetry::Mirror => MRLSymmetry::Mirror,
+        }
+    }
+}
+
+impl PG for MRLSymmetry {}
+
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash, Sequence)]
+#[repr(u8)]
 pub enum U2Symmetry {
     Identity,
     U2,
@@ -236,6 +279,12 @@ mod tests {
     use quickcheck::Gen;
     use rand::Rng;
 
+    impl quickcheck::Arbitrary for MRLSymmetry {
+        fn arbitrary<G: Gen>(g: &mut G) -> MRLSymmetry {
+            *g.choose(&all::<MRLSymmetry>().collect::<Vec<_>>()).unwrap()
+        }
+    }
+
     impl quickcheck::Arbitrary for U2Symmetry {
         fn arbitrary<G: Gen>(g: &mut G) -> U2Symmetry {
             *g.choose(&all::<U2Symmetry>().collect::<Vec<_>>()).unwrap()
@@ -251,6 +300,25 @@ mod tests {
     impl quickcheck::Arbitrary for UF2Symmetry {
         fn arbitrary<G: Gen>(g: &mut G) -> UF2Symmetry {
             *g.choose(&all::<UF2Symmetry>().collect::<Vec<_>>()).unwrap()
+        }
+    }
+
+    quickcheck! {
+        fn mrl_symmetry_permutation_is_associative(p0: MRLSymmetry, p1: MRLSymmetry, p2: MRLSymmetry) -> bool {
+            p0.permute(p1).permute(p2) == p0.permute(p1.permute(p2))
+        }
+    }
+
+    quickcheck! {
+        fn mrl_symmetry_identity_has_no_effect(p: MRLSymmetry) -> bool {
+            p.permute(MRLSymmetry::identity()) == p
+                && MRLSymmetry::identity().permute(p) == p
+        }
+    }
+
+    quickcheck! {
+        fn mrl_symmetry_inversion_is_identity(p: MRLSymmetry) -> bool {
+            p.permute(p.invert()) == MRLSymmetry::identity()
         }
     }
 

@@ -1389,6 +1389,47 @@ pub mod g1_wide_turns {
         }
     }
 
+    use symmetries::cube::MRLSymmetry;
+    impl EquivalenceClass<MRLSymmetry> for G1WideTurn {
+        fn get_equivalent(self, sym: &MRLSymmetry) -> G1WideTurn {
+            match (sym, self) {
+                (MRLSymmetry::Identity, G1WideTurn::U) => G1WideTurn::U,
+                (MRLSymmetry::Identity, G1WideTurn::U2) => G1WideTurn::U2,
+                (MRLSymmetry::Identity, G1WideTurn::UPrime) => G1WideTurn::UPrime,
+                (MRLSymmetry::Identity, G1WideTurn::Uw2) => G1WideTurn::Uw2,
+                (MRLSymmetry::Identity, G1WideTurn::F2) => G1WideTurn::F2,
+                (MRLSymmetry::Identity, G1WideTurn::Fw2) => G1WideTurn::Fw2,
+                (MRLSymmetry::Identity, G1WideTurn::R2) => G1WideTurn::R2,
+                (MRLSymmetry::Identity, G1WideTurn::Rw2) => G1WideTurn::Rw2,
+                (MRLSymmetry::Identity, G1WideTurn::B2) => G1WideTurn::B2,
+                (MRLSymmetry::Identity, G1WideTurn::Bw2) => G1WideTurn::Bw2,
+                (MRLSymmetry::Identity, G1WideTurn::L2) => G1WideTurn::L2,
+                (MRLSymmetry::Identity, G1WideTurn::Lw2) => G1WideTurn::Lw2,
+                (MRLSymmetry::Identity, G1WideTurn::D) => G1WideTurn::D,
+                (MRLSymmetry::Identity, G1WideTurn::D2) => G1WideTurn::D2,
+                (MRLSymmetry::Identity, G1WideTurn::DPrime) => G1WideTurn::DPrime,
+                (MRLSymmetry::Identity, G1WideTurn::Dw2) => G1WideTurn::Dw2,
+
+                (MRLSymmetry::Mirror, G1WideTurn::U) => G1WideTurn::UPrime,
+                (MRLSymmetry::Mirror, G1WideTurn::U2) => G1WideTurn::U2,
+                (MRLSymmetry::Mirror, G1WideTurn::UPrime) => G1WideTurn::U,
+                (MRLSymmetry::Mirror, G1WideTurn::Uw2) => G1WideTurn::Uw2,
+                (MRLSymmetry::Mirror, G1WideTurn::F2) => G1WideTurn::F2,
+                (MRLSymmetry::Mirror, G1WideTurn::Fw2) => G1WideTurn::Fw2,
+                (MRLSymmetry::Mirror, G1WideTurn::R2) => G1WideTurn::L2,
+                (MRLSymmetry::Mirror, G1WideTurn::Rw2) => G1WideTurn::Lw2,
+                (MRLSymmetry::Mirror, G1WideTurn::B2) => G1WideTurn::B2,
+                (MRLSymmetry::Mirror, G1WideTurn::Bw2) => G1WideTurn::Bw2,
+                (MRLSymmetry::Mirror, G1WideTurn::L2) => G1WideTurn::R2,
+                (MRLSymmetry::Mirror, G1WideTurn::Lw2) => G1WideTurn::Rw2,
+                (MRLSymmetry::Mirror, G1WideTurn::D) => G1WideTurn::DPrime,
+                (MRLSymmetry::Mirror, G1WideTurn::D2) => G1WideTurn::D2,
+                (MRLSymmetry::Mirror, G1WideTurn::DPrime) => G1WideTurn::D,
+                (MRLSymmetry::Mirror, G1WideTurn::Dw2) => G1WideTurn::Dw2,
+            }
+        }
+    }
+
     use symmetries::cube::U2Symmetry;
     impl EquivalenceClass<U2Symmetry> for G1WideTurn {
         fn get_equivalent(self, sym: &U2Symmetry) -> G1WideTurn {
