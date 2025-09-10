@@ -1219,6 +1219,313 @@ pub mod g1_turns {
     }
 }
 
+pub mod h1_wide_turns {
+    #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash, Serialize, Deserialize, enum_iterator::Sequence)]
+    #[repr(u8)]
+    pub enum H1WideTurn {
+        U,
+        U2,
+        UPrime,
+        Uw2,
+        F,
+        F2,
+        FPrime,
+        Fw2,
+        R2,
+        Rw2,
+        B,
+        B2,
+        BPrime,
+        Bw2,
+        L2,
+        Lw2,
+        D,
+        D2,
+        DPrime,
+        Dw2,
+    }
+
+    impl rand::distributions::Distribution<H1WideTurn> for rand::distributions::Standard {
+        fn sample<R: rand::Rng + ?Sized>(&self, rng: &mut R) -> H1WideTurn {
+            match rng.gen_range(0, enum_iterator::cardinality::<H1WideTurn>()) {
+                0 => H1WideTurn::U,
+                1 => H1WideTurn::U2,
+                2 => H1WideTurn::UPrime,
+                3 => H1WideTurn::Uw2,
+                4 => H1WideTurn::F,
+                5 => H1WideTurn::F2,
+                6 => H1WideTurn::FPrime,
+                7 => H1WideTurn::Fw2,
+                8 => H1WideTurn::R2,
+                9 => H1WideTurn::Rw2,
+                10 => H1WideTurn::B,
+                11 => H1WideTurn::B2,
+                12 => H1WideTurn::BPrime,
+                13 => H1WideTurn::Bw2,
+                14 => H1WideTurn::L2,
+                15 => H1WideTurn::Lw2,
+                16 => H1WideTurn::D,
+                17 => H1WideTurn::D2,
+                18 => H1WideTurn::DPrime,
+                19 => H1WideTurn::Dw2,
+                _ => unreachable!(),
+            }
+        }
+    }
+
+    impl Into<usize> for H1WideTurn {
+        fn into(self) -> usize {
+            self as usize
+        }
+    }
+
+
+    use super::super::invertable::Invertable;
+    impl Invertable for H1WideTurn {
+        fn invert(&self) -> H1WideTurn {
+            match self {
+                H1WideTurn::U => H1WideTurn::UPrime,
+                H1WideTurn::U2 => H1WideTurn::U2,
+                H1WideTurn::UPrime => H1WideTurn::U,
+                H1WideTurn::Uw2 => H1WideTurn::Uw2,
+                H1WideTurn::F => H1WideTurn::FPrime,
+                H1WideTurn::F2 => H1WideTurn::F2,
+                H1WideTurn::FPrime => H1WideTurn::F,
+                H1WideTurn::Fw2 => H1WideTurn::Fw2,
+                H1WideTurn::R2 => H1WideTurn::R2,
+                H1WideTurn::Rw2 => H1WideTurn::Rw2,
+                H1WideTurn::B => H1WideTurn::BPrime,
+                H1WideTurn::B2 => H1WideTurn::B2,
+                H1WideTurn::BPrime => H1WideTurn::B,
+                H1WideTurn::Bw2 => H1WideTurn::Bw2,
+                H1WideTurn::L2 => H1WideTurn::L2,
+                H1WideTurn::Lw2 => H1WideTurn::Lw2,
+                H1WideTurn::D => H1WideTurn::DPrime,
+                H1WideTurn::D2 => H1WideTurn::D2,
+                H1WideTurn::DPrime => H1WideTurn::D,
+                H1WideTurn::Dw2 => H1WideTurn::Dw2,
+            }
+        }
+    }
+
+    use super::g1_turns::G1Turn;
+    impl From<G1Turn> for H1WideTurn {
+        fn from(t: G1Turn) -> H1WideTurn {
+            match t {
+                G1Turn::U => H1WideTurn::U,
+                G1Turn::U2 => H1WideTurn::U2,
+                G1Turn::UPrime => H1WideTurn::UPrime,
+                G1Turn::F2 => H1WideTurn::F2,
+                G1Turn::R2 => H1WideTurn::R2,
+                G1Turn::B2 => H1WideTurn::B2,
+                G1Turn::L2 => H1WideTurn::L2,
+                G1Turn::D => H1WideTurn::D,
+                G1Turn::D2 => H1WideTurn::D2,
+                G1Turn::DPrime => H1WideTurn::DPrime,
+            }
+        }
+    }
+
+    use super::super::equivalence_class::EquivalenceClass;
+    use symmetries::cube::MRLSymmetry;
+    impl EquivalenceClass<MRLSymmetry> for H1WideTurn {
+        fn get_equivalent(self, sym: &MRLSymmetry) -> H1WideTurn {
+            match (sym, self) {
+                (MRLSymmetry::Identity, H1WideTurn::U) => H1WideTurn::U,
+                (MRLSymmetry::Identity, H1WideTurn::U2) => H1WideTurn::U2,
+                (MRLSymmetry::Identity, H1WideTurn::UPrime) => H1WideTurn::UPrime,
+                (MRLSymmetry::Identity, H1WideTurn::Uw2) => H1WideTurn::Uw2,
+                (MRLSymmetry::Identity, H1WideTurn::F) => H1WideTurn::F,
+                (MRLSymmetry::Identity, H1WideTurn::F2) => H1WideTurn::F2,
+                (MRLSymmetry::Identity, H1WideTurn::FPrime) => H1WideTurn::FPrime,
+                (MRLSymmetry::Identity, H1WideTurn::Fw2) => H1WideTurn::Fw2,
+                (MRLSymmetry::Identity, H1WideTurn::R2) => H1WideTurn::R2,
+                (MRLSymmetry::Identity, H1WideTurn::Rw2) => H1WideTurn::Rw2,
+                (MRLSymmetry::Identity, H1WideTurn::B) => H1WideTurn::B,
+                (MRLSymmetry::Identity, H1WideTurn::B2) => H1WideTurn::B2,
+                (MRLSymmetry::Identity, H1WideTurn::BPrime) => H1WideTurn::BPrime,
+                (MRLSymmetry::Identity, H1WideTurn::Bw2) => H1WideTurn::Bw2,
+                (MRLSymmetry::Identity, H1WideTurn::L2) => H1WideTurn::L2,
+                (MRLSymmetry::Identity, H1WideTurn::Lw2) => H1WideTurn::Lw2,
+                (MRLSymmetry::Identity, H1WideTurn::D) => H1WideTurn::D,
+                (MRLSymmetry::Identity, H1WideTurn::D2) => H1WideTurn::D2,
+                (MRLSymmetry::Identity, H1WideTurn::DPrime) => H1WideTurn::DPrime,
+                (MRLSymmetry::Identity, H1WideTurn::Dw2) => H1WideTurn::Dw2,
+
+                (MRLSymmetry::Mirror, H1WideTurn::U) => H1WideTurn::UPrime,
+                (MRLSymmetry::Mirror, H1WideTurn::U2) => H1WideTurn::U2,
+                (MRLSymmetry::Mirror, H1WideTurn::UPrime) => H1WideTurn::U,
+                (MRLSymmetry::Mirror, H1WideTurn::Uw2) => H1WideTurn::Uw2,
+                (MRLSymmetry::Mirror, H1WideTurn::F) => H1WideTurn::FPrime,
+                (MRLSymmetry::Mirror, H1WideTurn::F2) => H1WideTurn::F2,
+                (MRLSymmetry::Mirror, H1WideTurn::FPrime) => H1WideTurn::F,
+                (MRLSymmetry::Mirror, H1WideTurn::Fw2) => H1WideTurn::Fw2,
+                (MRLSymmetry::Mirror, H1WideTurn::R2) => H1WideTurn::L2,
+                (MRLSymmetry::Mirror, H1WideTurn::Rw2) => H1WideTurn::Lw2,
+                (MRLSymmetry::Mirror, H1WideTurn::B) => H1WideTurn::BPrime,
+                (MRLSymmetry::Mirror, H1WideTurn::B2) => H1WideTurn::B2,
+                (MRLSymmetry::Mirror, H1WideTurn::BPrime) => H1WideTurn::B,
+                (MRLSymmetry::Mirror, H1WideTurn::Bw2) => H1WideTurn::Bw2,
+                (MRLSymmetry::Mirror, H1WideTurn::L2) => H1WideTurn::R2,
+                (MRLSymmetry::Mirror, H1WideTurn::Lw2) => H1WideTurn::Rw2,
+                (MRLSymmetry::Mirror, H1WideTurn::D) => H1WideTurn::DPrime,
+                (MRLSymmetry::Mirror, H1WideTurn::D2) => H1WideTurn::D2,
+                (MRLSymmetry::Mirror, H1WideTurn::DPrime) => H1WideTurn::D,
+                (MRLSymmetry::Mirror, H1WideTurn::Dw2) => H1WideTurn::Dw2,
+            }
+        }
+    }
+
+    use symmetries::cube::U2Symmetry;
+    impl EquivalenceClass<U2Symmetry> for H1WideTurn {
+        fn get_equivalent(self, sym: &U2Symmetry) -> H1WideTurn {
+            match (sym, self) {
+                (U2Symmetry::Identity, H1WideTurn::U) => H1WideTurn::U,
+                (U2Symmetry::Identity, H1WideTurn::U2) => H1WideTurn::U2,
+                (U2Symmetry::Identity, H1WideTurn::UPrime) => H1WideTurn::UPrime,
+                (U2Symmetry::Identity, H1WideTurn::Uw2) => H1WideTurn::Uw2,
+                (U2Symmetry::Identity, H1WideTurn::F) => H1WideTurn::F,
+                (U2Symmetry::Identity, H1WideTurn::F2) => H1WideTurn::F2,
+                (U2Symmetry::Identity, H1WideTurn::FPrime) => H1WideTurn::FPrime,
+                (U2Symmetry::Identity, H1WideTurn::Fw2) => H1WideTurn::Fw2,
+                (U2Symmetry::Identity, H1WideTurn::R2) => H1WideTurn::R2,
+                (U2Symmetry::Identity, H1WideTurn::Rw2) => H1WideTurn::Rw2,
+                (U2Symmetry::Identity, H1WideTurn::B) => H1WideTurn::B,
+                (U2Symmetry::Identity, H1WideTurn::B2) => H1WideTurn::B2,
+                (U2Symmetry::Identity, H1WideTurn::BPrime) => H1WideTurn::BPrime,
+                (U2Symmetry::Identity, H1WideTurn::Bw2) => H1WideTurn::Bw2,
+                (U2Symmetry::Identity, H1WideTurn::L2) => H1WideTurn::L2,
+                (U2Symmetry::Identity, H1WideTurn::Lw2) => H1WideTurn::Lw2,
+                (U2Symmetry::Identity, H1WideTurn::D) => H1WideTurn::D,
+                (U2Symmetry::Identity, H1WideTurn::D2) => H1WideTurn::D2,
+                (U2Symmetry::Identity, H1WideTurn::DPrime) => H1WideTurn::DPrime,
+                (U2Symmetry::Identity, H1WideTurn::Dw2) => H1WideTurn::Dw2,
+
+                (U2Symmetry::U2, H1WideTurn::U) => H1WideTurn::U,
+                (U2Symmetry::U2, H1WideTurn::U2) => H1WideTurn::U2,
+                (U2Symmetry::U2, H1WideTurn::UPrime) => H1WideTurn::UPrime,
+                (U2Symmetry::U2, H1WideTurn::Uw2) => H1WideTurn::Uw2,
+                (U2Symmetry::U2, H1WideTurn::F) => H1WideTurn::B,
+                (U2Symmetry::U2, H1WideTurn::F2) => H1WideTurn::B2,
+                (U2Symmetry::U2, H1WideTurn::FPrime) => H1WideTurn::BPrime,
+                (U2Symmetry::U2, H1WideTurn::Fw2) => H1WideTurn::Bw2,
+                (U2Symmetry::U2, H1WideTurn::R2) => H1WideTurn::L2,
+                (U2Symmetry::U2, H1WideTurn::Rw2) => H1WideTurn::Lw2,
+                (U2Symmetry::U2, H1WideTurn::B) => H1WideTurn::F,
+                (U2Symmetry::U2, H1WideTurn::B2) => H1WideTurn::F2,
+                (U2Symmetry::U2, H1WideTurn::BPrime) => H1WideTurn::FPrime,
+                (U2Symmetry::U2, H1WideTurn::Bw2) => H1WideTurn::Fw2,
+                (U2Symmetry::U2, H1WideTurn::L2) => H1WideTurn::R2,
+                (U2Symmetry::U2, H1WideTurn::Lw2) => H1WideTurn::Rw2,
+                (U2Symmetry::U2, H1WideTurn::D) => H1WideTurn::D,
+                (U2Symmetry::U2, H1WideTurn::D2) => H1WideTurn::D2,
+                (U2Symmetry::U2, H1WideTurn::DPrime) => H1WideTurn::DPrime,
+                (U2Symmetry::U2, H1WideTurn::Dw2) => H1WideTurn::Dw2,
+            }
+        }
+    }
+
+    use symmetries::cube::U2F2Symmetry;
+    impl EquivalenceClass<U2F2Symmetry> for H1WideTurn {
+        fn get_equivalent(self, sym: &U2F2Symmetry) -> H1WideTurn {
+            match (sym, self) {
+                (U2F2Symmetry::Identity, H1WideTurn::U) => H1WideTurn::U,
+                (U2F2Symmetry::Identity, H1WideTurn::U2) => H1WideTurn::U2,
+                (U2F2Symmetry::Identity, H1WideTurn::UPrime) => H1WideTurn::UPrime,
+                (U2F2Symmetry::Identity, H1WideTurn::Uw2) => H1WideTurn::Uw2,
+                (U2F2Symmetry::Identity, H1WideTurn::F) => H1WideTurn::F,
+                (U2F2Symmetry::Identity, H1WideTurn::F2) => H1WideTurn::F2,
+                (U2F2Symmetry::Identity, H1WideTurn::FPrime) => H1WideTurn::FPrime,
+                (U2F2Symmetry::Identity, H1WideTurn::Fw2) => H1WideTurn::Fw2,
+                (U2F2Symmetry::Identity, H1WideTurn::R2) => H1WideTurn::R2,
+                (U2F2Symmetry::Identity, H1WideTurn::Rw2) => H1WideTurn::Rw2,
+                (U2F2Symmetry::Identity, H1WideTurn::B) => H1WideTurn::B,
+                (U2F2Symmetry::Identity, H1WideTurn::B2) => H1WideTurn::B2,
+                (U2F2Symmetry::Identity, H1WideTurn::BPrime) => H1WideTurn::BPrime,
+                (U2F2Symmetry::Identity, H1WideTurn::Bw2) => H1WideTurn::Bw2,
+                (U2F2Symmetry::Identity, H1WideTurn::L2) => H1WideTurn::L2,
+                (U2F2Symmetry::Identity, H1WideTurn::Lw2) => H1WideTurn::Lw2,
+                (U2F2Symmetry::Identity, H1WideTurn::D) => H1WideTurn::D,
+                (U2F2Symmetry::Identity, H1WideTurn::D2) => H1WideTurn::D2,
+                (U2F2Symmetry::Identity, H1WideTurn::DPrime) => H1WideTurn::DPrime,
+                (U2F2Symmetry::Identity, H1WideTurn::Dw2) => H1WideTurn::Dw2,
+
+                (U2F2Symmetry::U2, H1WideTurn::U) => H1WideTurn::U,
+                (U2F2Symmetry::U2, H1WideTurn::U2) => H1WideTurn::U2,
+                (U2F2Symmetry::U2, H1WideTurn::UPrime) => H1WideTurn::UPrime,
+                (U2F2Symmetry::U2, H1WideTurn::Uw2) => H1WideTurn::Uw2,
+                (U2F2Symmetry::U2, H1WideTurn::F) => H1WideTurn::B,
+                (U2F2Symmetry::U2, H1WideTurn::F2) => H1WideTurn::B2,
+                (U2F2Symmetry::U2, H1WideTurn::FPrime) => H1WideTurn::BPrime,
+                (U2F2Symmetry::U2, H1WideTurn::Fw2) => H1WideTurn::Bw2,
+                (U2F2Symmetry::U2, H1WideTurn::R2) => H1WideTurn::L2,
+                (U2F2Symmetry::U2, H1WideTurn::Rw2) => H1WideTurn::Lw2,
+                (U2F2Symmetry::U2, H1WideTurn::B) => H1WideTurn::F,
+                (U2F2Symmetry::U2, H1WideTurn::B2) => H1WideTurn::F2,
+                (U2F2Symmetry::U2, H1WideTurn::BPrime) => H1WideTurn::FPrime,
+                (U2F2Symmetry::U2, H1WideTurn::Bw2) => H1WideTurn::Fw2,
+                (U2F2Symmetry::U2, H1WideTurn::L2) => H1WideTurn::R2,
+                (U2F2Symmetry::U2, H1WideTurn::Lw2) => H1WideTurn::Rw2,
+                (U2F2Symmetry::U2, H1WideTurn::D) => H1WideTurn::D,
+                (U2F2Symmetry::U2, H1WideTurn::D2) => H1WideTurn::D2,
+                (U2F2Symmetry::U2, H1WideTurn::DPrime) => H1WideTurn::DPrime,
+                (U2F2Symmetry::U2, H1WideTurn::Dw2) => H1WideTurn::Dw2,
+
+                (U2F2Symmetry::F2, H1WideTurn::U) => H1WideTurn::D,
+                (U2F2Symmetry::F2, H1WideTurn::U2) => H1WideTurn::D2,
+                (U2F2Symmetry::F2, H1WideTurn::UPrime) => H1WideTurn::DPrime,
+                (U2F2Symmetry::F2, H1WideTurn::Uw2) => H1WideTurn::Dw2,
+                (U2F2Symmetry::F2, H1WideTurn::F) => H1WideTurn::F,
+                (U2F2Symmetry::F2, H1WideTurn::F2) => H1WideTurn::F2,
+                (U2F2Symmetry::F2, H1WideTurn::FPrime) => H1WideTurn::FPrime,
+                (U2F2Symmetry::F2, H1WideTurn::Fw2) => H1WideTurn::Fw2,
+                (U2F2Symmetry::F2, H1WideTurn::R2) => H1WideTurn::L2,
+                (U2F2Symmetry::F2, H1WideTurn::Rw2) => H1WideTurn::Lw2,
+                (U2F2Symmetry::F2, H1WideTurn::B) => H1WideTurn::B,
+                (U2F2Symmetry::F2, H1WideTurn::B2) => H1WideTurn::B2,
+                (U2F2Symmetry::F2, H1WideTurn::BPrime) => H1WideTurn::BPrime,
+                (U2F2Symmetry::F2, H1WideTurn::Bw2) => H1WideTurn::Bw2,
+                (U2F2Symmetry::F2, H1WideTurn::L2) => H1WideTurn::R2,
+                (U2F2Symmetry::F2, H1WideTurn::Lw2) => H1WideTurn::Rw2,
+                (U2F2Symmetry::F2, H1WideTurn::D) => H1WideTurn::U,
+                (U2F2Symmetry::F2, H1WideTurn::D2) => H1WideTurn::U2,
+                (U2F2Symmetry::F2, H1WideTurn::DPrime) => H1WideTurn::UPrime,
+                (U2F2Symmetry::F2, H1WideTurn::Dw2) => H1WideTurn::Uw2,
+
+                (U2F2Symmetry::U2F2, H1WideTurn::U) => H1WideTurn::D,
+                (U2F2Symmetry::U2F2, H1WideTurn::U2) => H1WideTurn::D2,
+                (U2F2Symmetry::U2F2, H1WideTurn::UPrime) => H1WideTurn::DPrime,
+                (U2F2Symmetry::U2F2, H1WideTurn::Uw2) => H1WideTurn::Dw2,
+                (U2F2Symmetry::U2F2, H1WideTurn::F) => H1WideTurn::B,
+                (U2F2Symmetry::U2F2, H1WideTurn::F2) => H1WideTurn::B2,
+                (U2F2Symmetry::U2F2, H1WideTurn::FPrime) => H1WideTurn::BPrime,
+                (U2F2Symmetry::U2F2, H1WideTurn::Fw2) => H1WideTurn::Bw2,
+                (U2F2Symmetry::U2F2, H1WideTurn::R2) => H1WideTurn::R2,
+                (U2F2Symmetry::U2F2, H1WideTurn::Rw2) => H1WideTurn::Rw2,
+                (U2F2Symmetry::U2F2, H1WideTurn::B) => H1WideTurn::F,
+                (U2F2Symmetry::U2F2, H1WideTurn::B2) => H1WideTurn::F2,
+                (U2F2Symmetry::U2F2, H1WideTurn::BPrime) => H1WideTurn::FPrime,
+                (U2F2Symmetry::U2F2, H1WideTurn::Bw2) => H1WideTurn::Fw2,
+                (U2F2Symmetry::U2F2, H1WideTurn::L2) => H1WideTurn::L2,
+                (U2F2Symmetry::U2F2, H1WideTurn::Lw2) => H1WideTurn::Lw2,
+                (U2F2Symmetry::U2F2, H1WideTurn::D) => H1WideTurn::U,
+                (U2F2Symmetry::U2F2, H1WideTurn::D2) => H1WideTurn::U2,
+                (U2F2Symmetry::U2F2, H1WideTurn::DPrime) => H1WideTurn::UPrime,
+                (U2F2Symmetry::U2F2, H1WideTurn::Dw2) => H1WideTurn::Uw2,
+            }
+        }
+    }
+
+    #[cfg(test)]
+    impl quickcheck::Arbitrary for H1WideTurn {
+        fn arbitrary<G: quickcheck::Gen>(g: &mut G) -> H1WideTurn {
+            use rand::Rng;
+            *g.choose(&enum_iterator::all::<H1WideTurn>().collect::<Vec<_>>()).unwrap()
+        }
+    }
+}
+
+
 pub mod g1_wide_turns {
     #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash, Serialize, Deserialize, enum_iterator::Sequence)]
     #[repr(u8)]

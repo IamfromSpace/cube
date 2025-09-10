@@ -6,6 +6,7 @@ use permutation_group::PermutationGroup as PG;
 use invertable::Invertable;
 use equivalence_class::EquivalenceClass;
 use coord_wing_edges::CoordWingEdges;
+use move_sets::h1_wide_turns::H1WideTurn;
 use move_sets::g1_wide_turns::G1WideTurn;
 use symmetries::cube::{U2F2Symmetry, U2Symmetry};
 
@@ -102,6 +103,13 @@ impl Invertable for CoordWingEdgesLockedEvens {
 }
 
 impl PG for CoordWingEdgesLockedEvens {}
+
+impl From<H1WideTurn> for CoordWingEdgesLockedEvens {
+    fn from(x: H1WideTurn) -> Self {
+        let x: CoordWingEdges = x.into();
+        x.try_into().expect("Invariant Violation: H1WideTurn should not move pieces between even and odd orbits.")
+    }
+}
 
 impl From<G1WideTurn> for CoordWingEdgesLockedEvens {
     fn from(x: G1WideTurn) -> Self {
@@ -219,7 +227,7 @@ mod tests {
     }
 
     quickcheck! {
-        fn perm_and_turns_and_sym_invert_round_trips(p: CoordWingEdgesLockedEvens, t: G1WideTurn, s: U2F2Symmetry) -> bool {
+        fn perm_and_h1_turns_and_sym_invert_round_trips(p: CoordWingEdgesLockedEvens, t: H1WideTurn, s: U2F2Symmetry) -> bool {
             p == p.invert().invert()
                 && p == p.permute(t.into()).permute(t.invert().into())
                 && p == p.permute(s.into()).permute(s.invert().into())
@@ -227,7 +235,7 @@ mod tests {
     }
 
     quickcheck! {
-        fn perm_and_turn_full_symmetries_are_equivalent_through_u2f2(p: CoordWingEdgesLockedEvens, t: G1WideTurn, s: U2F2Symmetry) -> bool {
+        fn perm_and_h1_turn_full_symmetries_are_equivalent_through_u2f2(p: CoordWingEdgesLockedEvens, t: H1WideTurn, s: U2F2Symmetry) -> bool {
             let after_permute = p.permute(t.into()).get_equivalent(&s);
             let before_permute = p.get_equivalent(&s).permute(t.get_equivalent(&s).into());
             after_permute == before_permute
@@ -235,7 +243,31 @@ mod tests {
     }
 
     quickcheck! {
-        fn perm_and_turn_full_symmetries_are_equivalent_through_u2(p: CoordWingEdgesLockedEvens, t: G1WideTurn, s: U2Symmetry) -> bool {
+        fn perm_and_h1_turn_full_symmetries_are_equivalent_through_u2(p: CoordWingEdgesLockedEvens, t: H1WideTurn, s: U2Symmetry) -> bool {
+            let after_permute = p.permute(t.into()).get_equivalent(&s);
+            let before_permute = p.get_equivalent(&s).permute(t.get_equivalent(&s).into());
+            after_permute == before_permute
+        }
+    }
+
+    quickcheck! {
+        fn perm_and_g1_turns_and_sym_invert_round_trips(p: CoordWingEdgesLockedEvens, t: G1WideTurn, s: U2F2Symmetry) -> bool {
+            p == p.invert().invert()
+                && p == p.permute(t.into()).permute(t.invert().into())
+                && p == p.permute(s.into()).permute(s.invert().into())
+        }
+    }
+
+    quickcheck! {
+        fn perm_and_g1_turn_full_symmetries_are_equivalent_through_u2f2(p: CoordWingEdgesLockedEvens, t: G1WideTurn, s: U2F2Symmetry) -> bool {
+            let after_permute = p.permute(t.into()).get_equivalent(&s);
+            let before_permute = p.get_equivalent(&s).permute(t.get_equivalent(&s).into());
+            after_permute == before_permute
+        }
+    }
+
+    quickcheck! {
+        fn perm_and_g1_turn_full_symmetries_are_equivalent_through_u2(p: CoordWingEdgesLockedEvens, t: G1WideTurn, s: U2Symmetry) -> bool {
             let after_permute = p.permute(t.into()).get_equivalent(&s);
             let before_permute = p.get_equivalent(&s).permute(t.get_equivalent(&s).into());
             after_permute == before_permute

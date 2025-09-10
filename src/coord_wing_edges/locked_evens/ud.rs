@@ -3,6 +3,7 @@ use invertable::Invertable;
 use equivalence_class::EquivalenceClass;
 use algebraic_actions::{MagmaAction, MonoidAction, LeftMagmaAction, LeftMonoidAction};
 use super::CoordWingEdgesLockedEvens;
+use move_sets::h1_wide_turns::H1WideTurn;
 use move_sets::g1_wide_turns::G1WideTurn;
 use symmetries::cube::U2F2Symmetry;
 
@@ -217,7 +218,7 @@ mod tests {
     }
 
     quickcheck! {
-        fn turns_and_sym_invert_round_trips(pi: CoordWingEdgesLockedEvensUDIndex, t: G1WideTurn, s: U2F2Symmetry) -> bool {
+        fn h1_turns_and_sym_invert_round_trips(pi: CoordWingEdgesLockedEvensUDIndex, t: H1WideTurn, s: U2F2Symmetry) -> bool {
             let p: CoordWingEdgesLockedEvensUD = pi.into();
             let t_p: CoordWingEdgesLockedEvens = t.into();
             let t_p_prime: CoordWingEdgesLockedEvens = t.invert().into();
@@ -230,7 +231,30 @@ mod tests {
 
 
     quickcheck! {
-        fn perm_and_turn_u2f2_symmetries_are_equivalent(pi: CoordWingEdgesLockedEvensUDIndex, t: G1WideTurn, s: U2F2Symmetry) -> bool {
+        fn perm_and_h1_turn_u2f2_symmetries_are_equivalent(pi: CoordWingEdgesLockedEvensUDIndex, t: H1WideTurn, s: U2F2Symmetry) -> bool {
+            let p: CoordWingEdgesLockedEvensUD = pi.into();
+            let turn: CoordWingEdgesLockedEvens = t.into();
+            let after_action = p.act(turn).get_equivalent(&s);
+            let before_action = p.get_equivalent(&s).act(turn.get_equivalent(&s));
+            after_action == before_action
+        }
+    }
+
+    quickcheck! {
+        fn g1_turns_and_sym_invert_round_trips(pi: CoordWingEdgesLockedEvensUDIndex, t: G1WideTurn, s: U2F2Symmetry) -> bool {
+            let p: CoordWingEdgesLockedEvensUD = pi.into();
+            let t_p: CoordWingEdgesLockedEvens = t.into();
+            let t_p_prime: CoordWingEdgesLockedEvens = t.invert().into();
+            let s_p: CoordWingEdgesLockedEvens = s.into();
+            let s_p_prime: CoordWingEdgesLockedEvens = s.invert().into();
+            p == p.act(t_p).act(t_p_prime)
+                && p == p.act(s_p).act(s_p_prime)
+        }
+    }
+
+
+    quickcheck! {
+        fn perm_and_g1_turn_u2f2_symmetries_are_equivalent(pi: CoordWingEdgesLockedEvensUDIndex, t: G1WideTurn, s: U2F2Symmetry) -> bool {
             let p: CoordWingEdgesLockedEvensUD = pi.into();
             let turn: CoordWingEdgesLockedEvens = t.into();
             let after_action = p.act(turn).get_equivalent(&s);
