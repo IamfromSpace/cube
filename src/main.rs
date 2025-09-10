@@ -1,6 +1,7 @@
 #![feature(test)]
 extern crate test;
 extern crate bincode;
+extern crate im;
 #[macro_use]
 extern crate serde;
 #[macro_use]

@@ -86,13 +86,13 @@ impl<Turn, PruningTableA, PruningTableB> CompositePruningTable<PruningTableA, Pr
         //       -> e(3,2) -> f ------------
         let mut shortest_known_path: BTreeMap<_, u8> = BTreeMap::new();
         let lbt = self.start_search(pi);
-        queue.insert((lbt.table_get_lower_bound(), lbt, Vec::new()));
+        queue.insert((lbt.table_get_lower_bound(), lbt.table_get_lower_bound(), lbt, im::Vector::new()));
         shortest_known_path.insert(lbt.table_get_index(), 0);
 
         loop {
-            let (c, lbt, turns) = queue.pop_first().expect("Invariant violation: It's impossible that the queue is empty, as that would imply that the position is unsolvable!");
+            let (c, remaining, lbt, turns) = queue.pop_first().expect("Invariant violation: It's impossible that the queue is empty, as that would imply that the position is unsolvable!");
             if lbt.table_get_lower_bound() == 0 {
-                break turns
+                break turns.into_iter().collect()
             }
 
 
@@ -101,10 +101,13 @@ impl<Turn, PruningTableA, PruningTableB> CompositePruningTable<PruningTableA, Pr
                 let si = lbt2.clone().table_get_index();
                 if shortest_known_path.get(&si).map((|n| turns.len() as u8 + 1 < *n)).unwrap_or(true) {
                     shortest_known_path.insert(si, turns.len() as u8 + 1);
-                    // TODO: use linked lists to cut down on memory usage
+                    // TODO: We're using the im crate now, so hypothetically
+                    // this clone isn't hardly as punishing as just cloning
+                    // Vecs, but my feeling is that this isn't optimized for
+                    // small lists.  And most will be small.
                     let mut turns2 = turns.clone();
-                    turns2.push(t);
-                    queue.insert((lbt2.table_get_lower_bound() + turns2.len() as u8, lbt2, turns2));
+                    turns2.push_back(t);
+                    queue.insert((lbt2.table_get_lower_bound() + turns2.len() as u8, lbt2.table_get_lower_bound(), lbt2, turns2));
                 }
             }
         }
