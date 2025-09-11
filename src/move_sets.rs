@@ -1517,10 +1517,55 @@ pub mod h1_wide_turns {
     }
 
     #[cfg(test)]
-    impl quickcheck::Arbitrary for H1WideTurn {
-        fn arbitrary<G: quickcheck::Gen>(g: &mut G) -> H1WideTurn {
-            use rand::Rng;
-            *g.choose(&enum_iterator::all::<H1WideTurn>().collect::<Vec<_>>()).unwrap()
+    mod test {
+        use super::*;
+        use enum_iterator::all;
+        use permutation_group::PermutationGroup;
+
+        impl quickcheck::Arbitrary for H1WideTurn {
+            fn arbitrary<G: quickcheck::Gen>(g: &mut G) -> H1WideTurn {
+                use rand::Rng;
+                *g.choose(&enum_iterator::all::<H1WideTurn>().collect::<Vec<_>>()).unwrap()
+            }
+        }
+
+        #[test]
+        fn is_compatible_with_mrl() {
+            for t in all::<H1WideTurn>() {
+                for s0 in all::<MRLSymmetry>() {
+                    for s1 in all::<MRLSymmetry>() {
+                        let direct = t.get_equivalent(&s0).get_equivalent(&s1);
+                        let indirect = t.get_equivalent(&s0.permute(s1));
+                        assert_eq!(direct, indirect);
+                    }
+                }
+            }
+        }
+
+        #[test]
+        fn is_compatible_with_u2() {
+            for t in all::<H1WideTurn>() {
+                for s0 in all::<U2Symmetry>() {
+                    for s1 in all::<U2Symmetry>() {
+                        let direct = t.get_equivalent(&s0).get_equivalent(&s1);
+                        let indirect = t.get_equivalent(&s0.permute(s1));
+                        assert_eq!(direct, indirect);
+                    }
+                }
+            }
+        }
+
+        #[test]
+        fn is_compatible_with_u2f2() {
+            for t in all::<H1WideTurn>() {
+                for s0 in all::<U2F2Symmetry>() {
+                    for s1 in all::<U2F2Symmetry>() {
+                        let direct = t.get_equivalent(&s0).get_equivalent(&s1);
+                        let indirect = t.get_equivalent(&s0.permute(s1));
+                        assert_eq!(direct, indirect);
+                    }
+                }
+            }
         }
     }
 }
@@ -2021,10 +2066,68 @@ pub mod g1_wide_turns {
     }
 
     #[cfg(test)]
-    impl quickcheck::Arbitrary for G1WideTurn {
-        fn arbitrary<G: quickcheck::Gen>(g: &mut G) -> G1WideTurn {
-            use rand::Rng;
-            *g.choose(&enum_iterator::all::<G1WideTurn>().collect::<Vec<_>>()).unwrap()
+    mod test {
+        use super::*;
+        use enum_iterator::all;
+        use permutation_group::PermutationGroup;
+
+        impl quickcheck::Arbitrary for G1WideTurn {
+            fn arbitrary<G: quickcheck::Gen>(g: &mut G) -> G1WideTurn {
+                use rand::Rng;
+                *g.choose(&enum_iterator::all::<G1WideTurn>().collect::<Vec<_>>()).unwrap()
+            }
+        }
+
+        #[test]
+        fn is_compatible_with_mrl() {
+            for t in all::<G1WideTurn>() {
+                for s0 in all::<MRLSymmetry>() {
+                    for s1 in all::<MRLSymmetry>() {
+                        let direct = t.get_equivalent(&s0).get_equivalent(&s1);
+                        let indirect = t.get_equivalent(&s0.permute(s1));
+                        assert_eq!(direct, indirect);
+                    }
+                }
+            }
+        }
+
+        #[test]
+        fn is_compatible_with_u2() {
+            for t in all::<G1WideTurn>() {
+                for s0 in all::<U2Symmetry>() {
+                    for s1 in all::<U2Symmetry>() {
+                        let direct = t.get_equivalent(&s0).get_equivalent(&s1);
+                        let indirect = t.get_equivalent(&s0.permute(s1));
+                        assert_eq!(direct, indirect);
+                    }
+                }
+            }
+        }
+
+        #[test]
+        fn is_compatible_with_u2f2() {
+            for t in all::<G1WideTurn>() {
+                for s0 in all::<U2F2Symmetry>() {
+                    for s1 in all::<U2F2Symmetry>() {
+                        let direct = t.get_equivalent(&s0).get_equivalent(&s1);
+                        let indirect = t.get_equivalent(&s0.permute(s1));
+                        assert_eq!(direct, indirect);
+                    }
+                }
+            }
+        }
+
+        #[test]
+        fn is_compatible_with_uf2() {
+            for t in all::<G1WideTurn>() {
+                for s0 in all::<UF2Symmetry>() {
+                    for s1 in all::<UF2Symmetry>() {
+                        let direct = t.get_equivalent(&s0).get_equivalent(&s1);
+                        let indirect = t.get_equivalent(&s0.permute(s1));
+                        assert_eq!(direct, indirect);
+                    }
+                }
+            }
         }
     }
 }
