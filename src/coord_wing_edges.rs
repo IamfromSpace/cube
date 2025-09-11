@@ -1,6 +1,7 @@
 extern crate functional;
 
 pub mod locked_evens;
+pub mod locked_ud_evens;
 
 use std::fmt;
 use super::permutation_group::PermutationGroup;
@@ -312,7 +313,13 @@ const S_U: CoordWingEdges =  CoordWingEdges(permute_arr(&Uw.0, &Dw_PRIME.0));
 
 const S_U2: CoordWingEdges = CoordWingEdges(permute_arr(&S_U.0, &S_U.0));
 
+const S_U_PRIME: CoordWingEdges =  CoordWingEdges(arr_inv(&S_U.0));
+
+const S_UF2: CoordWingEdges = CoordWingEdges(permute_arr(&S_U.0, &S_F2.0));
+
 const S_U2F2: CoordWingEdges = CoordWingEdges(permute_arr(&S_U2.0, &S_F2.0));
+
+const S_U_PRIME_F2: CoordWingEdges = CoordWingEdges(permute_arr(&S_U_PRIME.0, &S_F2.0));
 
 // TODO:  Notably, this does NOT render correctly if done only once, it must be
 // applied as a symmetry (S * X * S^-1), because it would also need to flip all
