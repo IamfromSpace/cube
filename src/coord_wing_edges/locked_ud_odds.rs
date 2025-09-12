@@ -1,0 +1,396 @@
+use permutation_group::PermutationGroup as PG;
+use invertable::Invertable;
+use equivalence_class::EquivalenceClass;
+use coord_wing_edges::CoordWingEdges;
+use move_sets::g1_wide_turns::G1WideTurn;
+use symmetries::cube::{UF2Symmetry, U2F2Symmetry, U2Symmetry};
+
+use std::convert::{TryInto, TryFrom};
+use enum_iterator::Sequence;
+
+// This module is an orbit of of CoordWingEdges under a subset of turns,
+// tracing only the positions of the odd pieces on the top face and bottom
+// face, but assuming they cannot be moved into odd or middle slice locations.
+// So there are only eight entries: eight pieces in eight locations.
+//
+// We can only apply turns that retain the even and odd split, and don't
+// disrupt the middle slice.
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
+pub struct CoordWingEdgesLockedUDOdds([u8; 8]);
+
+fn adjust(x: u8) -> u8 {
+    if x > 7 {
+        x - 8
+    } else {
+        x
+    }
+}
+
+impl TryFrom<CoordWingEdges> for CoordWingEdgesLockedUDOdds {
+    type Error = ();
+
+    fn try_from(p: CoordWingEdges) -> Result<Self, Self::Error> {
+        for i in 0..4 {
+            let is_odd = p.0[i * 2 + 1] % 2 == 0 || p.0[i * 2 + 17] % 2 == 0;
+            let u_is_middle = p.0[i * 2] > 7 && p.0[i * 2] < 16;
+            let d_is_middle = p.0[i * 2 + 17] > 7 && p.0[i * 2 + 17] < 16;
+
+            if is_odd || u_is_middle || d_is_middle {
+                Err(())?;
+            }
+        }
+
+        Ok(CoordWingEdgesLockedUDOdds([
+            adjust(p.0[1]) >> 1,
+            adjust(p.0[3]) >> 1,
+            adjust(p.0[5]) >> 1,
+            adjust(p.0[7]) >> 1,
+            adjust(p.0[17]) >> 1,
+            adjust(p.0[19]) >> 1,
+            adjust(p.0[21]) >> 1,
+            adjust(p.0[23]) >> 1,
+        ]))
+    }
+}
+
+const fn permute_arr(a: &[u8; 8], b: &[u8; 8]) -> [u8; 8] {
+    [
+        b[a[0] as usize],
+        b[a[1] as usize],
+        b[a[2] as usize],
+        b[a[3] as usize],
+        b[a[4] as usize],
+        b[a[5] as usize],
+        b[a[6] as usize],
+        b[a[7] as usize],
+    ]
+}
+
+const fn arr_inv(a: &[u8; 8]) -> [u8; 8] {
+    let mut r = [0; 8];
+    r[a[0] as usize] = 0;
+    r[a[1] as usize] = 1;
+    r[a[2] as usize] = 2;
+    r[a[3] as usize] = 3;
+    r[a[4] as usize] = 4;
+    r[a[5] as usize] = 5;
+    r[a[6] as usize] = 6;
+    r[a[7] as usize] = 7;
+    r
+}
+
+impl functional::BinaryOperation<CoordWingEdgesLockedUDOdds> for CoordWingEdgesLockedUDOdds {
+    fn apply(a: CoordWingEdgesLockedUDOdds, b: CoordWingEdgesLockedUDOdds) -> CoordWingEdgesLockedUDOdds {
+        CoordWingEdgesLockedUDOdds(permute_arr(&a.0, &b.0))
+    }
+}
+
+impl functional::AssociativeOperation<CoordWingEdgesLockedUDOdds> for CoordWingEdgesLockedUDOdds { }
+
+impl functional::Monoid<CoordWingEdgesLockedUDOdds> for CoordWingEdgesLockedUDOdds {
+    fn one() -> CoordWingEdgesLockedUDOdds {
+        CoordWingEdgesLockedUDOdds([0, 1, 2, 3, 4, 5, 6, 7])
+    }
+}
+
+impl Invertable for CoordWingEdgesLockedUDOdds {
+    fn invert(&self) -> CoordWingEdgesLockedUDOdds {
+        CoordWingEdgesLockedUDOdds(arr_inv(&self.0))
+    }
+}
+
+impl PG for CoordWingEdgesLockedUDOdds {}
+
+impl From<G1WideTurn> for CoordWingEdgesLockedUDOdds {
+    fn from(x: G1WideTurn) -> Self {
+        let x: CoordWingEdges = x.into();
+        x.try_into().expect("Invariant Violation: G1WideTurn should not move pieces outside of UD orbit.")
+    }
+}
+
+impl Into<CoordWingEdgesLockedUDOdds> for U2Symmetry {
+    fn into(self) -> CoordWingEdgesLockedUDOdds {
+        match self {
+            U2Symmetry::Identity => CoordWingEdgesLockedUDOdds::identity(),
+            U2Symmetry::U2 => CoordWingEdgesLockedUDOdds::try_from(super::S_U2).expect("Invariant Violation: U2 symmetry should not move pieces outside of UD orbit."),
+        }
+    }
+}
+
+impl EquivalenceClass<U2Symmetry> for CoordWingEdgesLockedUDOdds {
+    fn get_equivalent(self, sym: &U2Symmetry) -> CoordWingEdgesLockedUDOdds {
+        let x: CoordWingEdgesLockedUDOdds = sym.clone().into();
+        x.invert().permute(self).permute(x)
+    }
+}
+
+impl Into<CoordWingEdgesLockedUDOdds> for U2F2Symmetry {
+    fn into(self) -> CoordWingEdgesLockedUDOdds {
+        match self {
+            U2F2Symmetry::Identity => CoordWingEdgesLockedUDOdds::identity(),
+            U2F2Symmetry::U2 => CoordWingEdgesLockedUDOdds::try_from(super::S_U2).expect("Invariant Violation: U2 symmetry should not move pieces outside of UD orbit."),
+            U2F2Symmetry::F2 => CoordWingEdgesLockedUDOdds::try_from(super::S_F2).expect("Invariant Violation: F2 symmetry should not move pieces outside of UD orbit."),
+            U2F2Symmetry::U2F2 => CoordWingEdgesLockedUDOdds::try_from(super::S_U2F2).expect("Invariant Violation: U2F2 symmetry should not move pieces outside of UD orbit."),
+        }
+    }
+}
+
+impl EquivalenceClass<U2F2Symmetry> for CoordWingEdgesLockedUDOdds {
+    fn get_equivalent(self, sym: &U2F2Symmetry) -> CoordWingEdgesLockedUDOdds {
+        let x: CoordWingEdgesLockedUDOdds = sym.clone().into();
+        x.invert().permute(self).permute(x)
+    }
+}
+
+impl Into<CoordWingEdgesLockedUDOdds> for UF2Symmetry {
+    fn into(self) -> CoordWingEdgesLockedUDOdds {
+        match self {
+            UF2Symmetry::Identity => CoordWingEdgesLockedUDOdds::identity(),
+            UF2Symmetry::U => CoordWingEdgesLockedUDOdds::try_from(super::S_U).expect("Invariant Violation: U symmetry should not move pieces outside of UD orbit."),
+            UF2Symmetry::U2 => CoordWingEdgesLockedUDOdds::try_from(super::S_U2).expect("Invariant Violation: U2 symmetry should not move pieces outside of UD orbit."),
+            UF2Symmetry::UPrime => CoordWingEdgesLockedUDOdds::try_from(super::S_U_PRIME).expect("Invariant Violation: UPrime symmetry should not move pieces outside of UD orbit."),
+            UF2Symmetry::F2 => CoordWingEdgesLockedUDOdds::try_from(super::S_F2).expect("Invariant Violation: F2 symmetry should not move pieces outside of UD orbit."),
+            UF2Symmetry::UF2 => CoordWingEdgesLockedUDOdds::try_from(super::S_UF2).expect("Invariant Violation: UF2 symmetry should not move pieces outside of UD orbit."),
+            UF2Symmetry::U2F2 => CoordWingEdgesLockedUDOdds::try_from(super::S_U2F2).expect("Invariant Violation: U2F2 symmetry should not move pieces outside of UD orbit."),
+            UF2Symmetry::UPrimeF2 => CoordWingEdgesLockedUDOdds::try_from(super::S_U_PRIME_F2).expect("Invariant Violation: UPrimeF2 symmetry should not move pieces outside of UD orbit."),
+        }
+    }
+}
+
+impl EquivalenceClass<UF2Symmetry> for CoordWingEdgesLockedUDOdds {
+    fn get_equivalent(self, sym: &UF2Symmetry) -> CoordWingEdgesLockedUDOdds {
+        let x: CoordWingEdgesLockedUDOdds = sym.clone().into();
+        x.invert().permute(self).permute(x)
+    }
+}
+
+// TODO: There are faster algorithms than this
+fn to_lehmer(p: CoordWingEdgesLockedUDOdds) -> u16 {
+    let mut x = p.0.clone();
+    for i in 0..8 {
+        for j in (i+1)..8 {
+            if x[j] > x[i] {
+                x[j] -= 1;
+            }
+        }
+    }
+    // NOTE that x[7] is guaranteed to be 0
+    5040 * (x[0] as u16) + 720 * (x[1] as u16) + 120 * (x[2] as u16) + 24 * (x[3] as u16) + 6 * (x[4] as u16) + 2 * (x[5] as u16) + (x[6] as u16)
+}
+
+// TODO: There are faster algorithms than this
+fn from_lehmer(i: u16) -> CoordWingEdgesLockedUDOdds {
+    let mut x =
+        [ (i / 5040) as u8
+        , ((i / 720) % 7) as u8
+        , ((i / 120) % 6) as u8
+        , ((i / 24) % 5) as u8
+        , ((i / 6) % 4) as u8
+        , ((i / 2) % 3) as u8
+        , (i % 2) as u8
+        , 0
+        ];
+
+    for i in (0..8).rev() {
+        for j in (i+1)..8 {
+            if x[j as usize] >= x[i] {
+                x[j as usize] += 1;
+            }
+        }
+    }
+    CoordWingEdgesLockedUDOdds(x)
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord)]
+pub struct CoordWingEdgesLockedUDOddsIndex(u16);
+
+impl Sequence for CoordWingEdgesLockedUDOddsIndex {
+    const CARDINALITY: usize = 40320;
+
+    fn next(&self) -> Option<Self> {
+        if self.0 == (Self::CARDINALITY - 1) as u16 {
+            None
+        } else {
+            Some(CoordWingEdgesLockedUDOddsIndex(self.0 + 1))
+        }
+    }
+
+    fn previous(&self) -> Option<Self> {
+        if self.0 == 0 {
+            None
+        } else {
+            Some(CoordWingEdgesLockedUDOddsIndex(self.0 - 1))
+        }
+    }
+
+    fn first() -> Option<Self> {
+        Some(CoordWingEdgesLockedUDOddsIndex(0))
+    }
+
+    fn last() -> Option<Self> {
+        Some(CoordWingEdgesLockedUDOddsIndex((Self::CARDINALITY - 1) as u16))
+    }
+}
+
+impl Into<CoordWingEdgesLockedUDOdds> for CoordWingEdgesLockedUDOddsIndex {
+    fn into(self) -> CoordWingEdgesLockedUDOdds {
+        from_lehmer(self.0)
+    }
+}
+
+impl Into<usize> for CoordWingEdgesLockedUDOddsIndex {
+    fn into(self) -> usize {
+        self.0 as usize
+    }
+}
+
+impl TryFrom<usize> for CoordWingEdgesLockedUDOddsIndex {
+    type Error = std::num::TryFromIntError;
+
+    fn try_from(i: usize) -> Result<Self, Self::Error> {
+        let j = i.try_into()?;
+        Ok(CoordWingEdgesLockedUDOddsIndex(j))
+    }
+}
+
+impl Into<CoordWingEdgesLockedUDOddsIndex> for CoordWingEdgesLockedUDOdds {
+    fn into(self) -> CoordWingEdgesLockedUDOddsIndex {
+        CoordWingEdgesLockedUDOddsIndex(to_lehmer(self))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use quickcheck::Gen;
+    use rand::Rng;
+    use enum_iterator::{all, cardinality};
+
+    impl quickcheck::Arbitrary for CoordWingEdgesLockedUDOddsIndex {
+        fn arbitrary<G: Gen>(g: &mut G) -> CoordWingEdgesLockedUDOddsIndex {
+            CoordWingEdgesLockedUDOddsIndex(g.gen_range(0, cardinality::<CoordWingEdgesLockedUDOddsIndex>() as u16))
+        }
+    }
+
+    #[test]
+    fn all_lehmer_codes_round_trip() {
+        for a in all::<CoordWingEdgesLockedUDOddsIndex>() {
+            let b: CoordWingEdgesLockedUDOdds = a.into();
+            assert_eq!(a, b.into());
+        }
+    }
+
+    quickcheck! {
+        fn permutation_is_associative(pi0: CoordWingEdgesLockedUDOddsIndex, pi1: CoordWingEdgesLockedUDOddsIndex, pi2: CoordWingEdgesLockedUDOddsIndex) -> bool {
+            let p0: CoordWingEdgesLockedUDOdds = pi0.into();
+            let p1: CoordWingEdgesLockedUDOdds = pi1.into();
+            let p2: CoordWingEdgesLockedUDOdds = pi2.into();
+            p0.permute(p1).permute(p2) == p0.permute(p1.permute(p2))
+        }
+    }
+
+    quickcheck! {
+        fn identity_has_no_effect(pi: CoordWingEdgesLockedUDOddsIndex) -> bool {
+            let p: CoordWingEdgesLockedUDOdds = pi.into();
+            p.permute(CoordWingEdgesLockedUDOdds::identity()) == p
+                && CoordWingEdgesLockedUDOdds::identity().permute(p) == p
+        }
+    }
+
+    quickcheck! {
+        fn inversion_is_identity(pi: CoordWingEdgesLockedUDOddsIndex) -> bool {
+            let p: CoordWingEdgesLockedUDOdds = pi.into();
+            p.permute(p.invert()) == CoordWingEdgesLockedUDOdds::identity()
+        }
+    }
+
+    quickcheck! {
+        fn perm_and_turns_and_sym_invert_round_trips(pi: CoordWingEdgesLockedUDOddsIndex, t: G1WideTurn, s: U2F2Symmetry) -> bool {
+            let p: CoordWingEdgesLockedUDOdds = pi.into();
+            p == p.invert().invert()
+                && p == p.permute(t.into()).permute(t.invert().into())
+                && p == p.permute(s.into()).permute(s.invert().into())
+        }
+    }
+
+    quickcheck! {
+        fn perm_and_turn_full_symmetries_are_equivalent_through_uf2(pi: CoordWingEdgesLockedUDOddsIndex, t: G1WideTurn, s: UF2Symmetry) -> bool {
+            let p: CoordWingEdgesLockedUDOdds = pi.into();
+            let after_permute = p.permute(t.into()).get_equivalent(&s);
+            let before_permute = p.get_equivalent(&s).permute(t.get_equivalent(&s).into());
+            after_permute == before_permute
+        }
+    }
+
+    quickcheck! {
+        fn perm_and_turn_full_symmetries_are_equivalent_through_u2f2(pi: CoordWingEdgesLockedUDOddsIndex, t: G1WideTurn, s: U2F2Symmetry) -> bool {
+            let p: CoordWingEdgesLockedUDOdds = pi.into();
+            let after_permute = p.permute(t.into()).get_equivalent(&s);
+            let before_permute = p.get_equivalent(&s).permute(t.get_equivalent(&s).into());
+            after_permute == before_permute
+        }
+    }
+
+    quickcheck! {
+        fn perm_and_turn_full_symmetries_are_equivalent_through_u2(pi: CoordWingEdgesLockedUDOddsIndex, t: G1WideTurn, s: U2Symmetry) -> bool {
+            let p: CoordWingEdgesLockedUDOdds = pi.into();
+            let after_permute = p.permute(t.into()).get_equivalent(&s);
+            let before_permute = p.get_equivalent(&s).permute(t.get_equivalent(&s).into());
+            after_permute == before_permute
+        }
+    }
+
+    quickcheck! {
+        fn full_turn_and_permutation_are_homomorphic_through_uf2(s0: UF2Symmetry, s1: UF2Symmetry) -> bool {
+            let as_perm = <UF2Symmetry as Into<CoordWingEdgesLockedUDOdds>>::into(s0).permute(s1.into());
+            let as_sym: CoordWingEdgesLockedUDOdds = s0.permute(s1).into();
+            as_perm == as_sym
+        }
+    }
+
+    quickcheck! {
+        fn full_turn_and_permutation_are_homomorphic_through_u2f2(s0: U2F2Symmetry, s1: U2F2Symmetry) -> bool {
+            let as_perm = <U2F2Symmetry as Into<CoordWingEdgesLockedUDOdds>>::into(s0).permute(s1.into());
+            let as_sym: CoordWingEdgesLockedUDOdds = s0.permute(s1).into();
+            as_perm == as_sym
+        }
+    }
+
+    quickcheck! {
+        fn full_turn_and_permutation_are_homomorphic_through_u2(s0: U2Symmetry, s1: U2Symmetry) -> bool {
+            let as_perm = <U2Symmetry as Into<CoordWingEdgesLockedUDOdds>>::into(s0).permute(s1.into());
+            let as_sym: CoordWingEdgesLockedUDOdds = s0.permute(s1).into();
+            as_perm == as_sym
+        }
+    }
+
+    quickcheck! {
+        // This should technically already be proven true by being homomorphic
+        fn direct_and_indirect_sym_multiplication_are_equivalent_for_uf2_symmetry(pi: CoordWingEdgesLockedUDOddsIndex, s0: UF2Symmetry, s1: UF2Symmetry) -> bool {
+            let p: CoordWingEdgesLockedUDOdds = pi.into();
+            let as_perm = p.permute(s0.into()).permute(s1.into());
+            let as_sym = p.permute(s0.permute(s1).into());
+            as_perm == as_sym
+        }
+    }
+
+    quickcheck! {
+        // This should technically already be proven true by being homomorphic
+        fn direct_and_indirect_sym_multiplication_are_equivalent_for_u2f2_symmetry(pi: CoordWingEdgesLockedUDOddsIndex, s0: U2F2Symmetry, s1: U2F2Symmetry) -> bool {
+            let p: CoordWingEdgesLockedUDOdds = pi.into();
+            let as_perm = p.permute(s0.into()).permute(s1.into());
+            let as_sym = p.permute(s0.permute(s1).into());
+            as_perm == as_sym
+        }
+    }
+
+    quickcheck! {
+        // This should technically already be proven true by being homomorphic
+        fn direct_and_indirect_sym_multiplication_are_equivalent_for_u2_symmetry(pi: CoordWingEdgesLockedUDOddsIndex, s0: U2Symmetry, s1: U2Symmetry) -> bool {
+            let p: CoordWingEdgesLockedUDOdds = pi.into();
+            let as_perm = p.permute(s0.into()).permute(s1.into());
+            let as_sym = p.permute(s0.permute(s1).into());
+            as_perm == as_sym
+        }
+    }
+}

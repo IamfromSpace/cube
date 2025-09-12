@@ -2,6 +2,7 @@ extern crate functional;
 
 pub mod locked_evens;
 pub mod locked_ud_evens;
+pub mod locked_ud_odds;
 
 use std::fmt;
 use super::permutation_group::PermutationGroup;
