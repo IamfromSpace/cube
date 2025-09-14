@@ -3,6 +3,7 @@ use invertable::Invertable;
 use equivalence_class::EquivalenceClass;
 use coord_wing_edges::CoordWingEdges;
 use move_sets::g1_wide_turns::G1WideTurn;
+use move_sets::g1a_wide_turns::G1aWideTurn;
 use symmetries::cube::{UF2Symmetry, U2F2Symmetry, U2Symmetry};
 
 use std::convert::{TryInto, TryFrom};
@@ -105,6 +106,13 @@ impl From<G1WideTurn> for CoordWingEdgesLockedUDEvens {
     fn from(x: G1WideTurn) -> Self {
         let x: CoordWingEdges = x.into();
         x.try_into().expect("Invariant Violation: G1WideTurn should not move pieces outside of UD orbit.")
+    }
+}
+
+impl From<G1aWideTurn> for CoordWingEdgesLockedUDEvens {
+    fn from(x: G1aWideTurn) -> Self {
+        let x: CoordWingEdges = x.into();
+        x.try_into().expect("Invariant Violation: G1aWideTurn should not move pieces outside of UD orbit.")
     }
 }
 
@@ -301,6 +309,42 @@ mod tests {
         fn inversion_is_identity(pi: CoordWingEdgesLockedUDEvensIndex) -> bool {
             let p: CoordWingEdgesLockedUDEvens = pi.into();
             p.permute(p.invert()) == CoordWingEdgesLockedUDEvens::identity()
+        }
+    }
+
+    quickcheck! {
+        fn perm_and_g1a_turns_and_sym_invert_round_trips(pi: CoordWingEdgesLockedUDEvensIndex, t: G1aWideTurn, s: U2F2Symmetry) -> bool {
+            let p: CoordWingEdgesLockedUDEvens = pi.into();
+            p == p.invert().invert()
+                && p == p.permute(t.into()).permute(t.invert().into())
+                && p == p.permute(s.into()).permute(s.invert().into())
+        }
+    }
+
+    quickcheck! {
+        fn perm_and_g1a_turn_full_symmetries_are_equivalent_through_uf2(pi: CoordWingEdgesLockedUDEvensIndex, t: G1aWideTurn, s: UF2Symmetry) -> bool {
+            let p: CoordWingEdgesLockedUDEvens = pi.into();
+            let after_permute = p.permute(t.into()).get_equivalent(&s);
+            let before_permute = p.get_equivalent(&s).permute(t.get_equivalent(&s).into());
+            after_permute == before_permute
+        }
+    }
+
+    quickcheck! {
+        fn perm_and_g1a_turn_full_symmetries_are_equivalent_through_u2f2(pi: CoordWingEdgesLockedUDEvensIndex, t: G1aWideTurn, s: U2F2Symmetry) -> bool {
+            let p: CoordWingEdgesLockedUDEvens = pi.into();
+            let after_permute = p.permute(t.into()).get_equivalent(&s);
+            let before_permute = p.get_equivalent(&s).permute(t.get_equivalent(&s).into());
+            after_permute == before_permute
+        }
+    }
+
+    quickcheck! {
+        fn perm_and_g1a_turn_full_symmetries_are_equivalent_through_u2(pi: CoordWingEdgesLockedUDEvensIndex, t: G1aWideTurn, s: U2Symmetry) -> bool {
+            let p: CoordWingEdgesLockedUDEvens = pi.into();
+            let after_permute = p.permute(t.into()).get_equivalent(&s);
+            let before_permute = p.get_equivalent(&s).permute(t.get_equivalent(&s).into());
+            after_permute == before_permute
         }
     }
 
