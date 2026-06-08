@@ -8,7 +8,7 @@ pub mod locked_ud_slice;
 use std::fmt;
 use super::permutation_group::PermutationGroup;
 use super::invertable::Invertable;
-use symmetries::cube::MRLSymmetry;
+use symmetries::cube::{MRLSymmetry, UF2Symmetry};
 
 /*
  *  Looking at the top:
@@ -429,6 +429,28 @@ impl Into<CoordWingEdges> for MRLSymmetry {
 
 impl EquivalenceClass<MRLSymmetry> for CoordWingEdges {
     fn get_equivalent(self, sym: &MRLSymmetry) -> CoordWingEdges {
+        let x: CoordWingEdges = sym.clone().into();
+        x.invert().permute(self).permute(x)
+    }
+}
+
+impl Into<CoordWingEdges> for UF2Symmetry {
+    fn into(self) -> CoordWingEdges {
+        match self {
+            UF2Symmetry::Identity => CoordWingEdges::identity(),
+            UF2Symmetry::U => S_U,
+            UF2Symmetry::U2 => S_U2,
+            UF2Symmetry::UPrime => S_U_PRIME,
+            UF2Symmetry::F2 => S_F2,
+            UF2Symmetry::UF2 => S_UF2,
+            UF2Symmetry::U2F2 => S_U2F2,
+            UF2Symmetry::UPrimeF2 => S_U_PRIME_F2,
+        }
+    }
+}
+
+impl EquivalenceClass<UF2Symmetry> for CoordWingEdges {
+    fn get_equivalent(self, sym: &UF2Symmetry) -> CoordWingEdges {
         let x: CoordWingEdges = sym.clone().into();
         x.invert().permute(self).permute(x)
     }
