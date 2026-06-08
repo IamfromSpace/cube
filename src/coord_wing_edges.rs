@@ -642,6 +642,14 @@ mod tests {
     use quickcheck::Gen;
     use rand::Rng;
 
+    impl quickcheck::Arbitrary for CoordWingEdges {
+        fn arbitrary<G: Gen>(g: &mut G) -> CoordWingEdges {
+            let mut x = CoordWingEdges::identity();
+            g.shuffle(&mut x.0);
+            x
+        }
+    }
+
     impl quickcheck::Arbitrary for WideTurn {
         fn arbitrary<G: Gen>(g: &mut G) -> WideTurn {
             *g.choose(&[
