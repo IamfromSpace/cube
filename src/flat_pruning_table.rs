@@ -49,6 +49,23 @@ pub struct PruningTable<Sym, PermIndex, RepIndex, Turn, MoveTable> {
     perm_index: std::marker::PhantomData<PermIndex>,
 }
 
+// TODO: Currently, this accepts any index as the goal state, but this doesn't
+// actually hold.  This can only solve self-symmetric indexes, or find
+// solutions that are symmetric to a the goal index.  Always finding an exact
+// solution to any arbitrary index is not possible.  However, it's also not
+// necessary, for a permutation, if we can solve to the identity (which is
+// always self-symmetric), we can just use algebra to solve from any
+// permutation to any other--constructing additional pruning tables would be
+// wasteful.  And this was just Identity until we added in patterns and sorted
+// patterns, which are not Permutations, and so they don't have an identity in
+// the Monoidal sense.  However, algebraically, what we're looking for is
+// Basepoint, which is supported by all perms, patterns, and sorted patterns.
+// It's also always self-symmetric across all supported symmetries.  It also
+// always matches between a permutation and its patterns (pattern.basepoint()
+// == perm.identity().into()).  So we require Basepoint<PermIndex>, and use
+// that as the goal state.  Dropping the iterator is also fine, if we were
+// looking for multiple goals, we probably were always doing a coset reduction,
+// in which case, solving the coset restores the existance of a basepoint.
 impl<MoveTable: TableTurn<Sym, RepIndex, Turn> + TableSymTurn<Sym, RepIndex, Turn> + TableRawIndexToSymIndex<Sym, PermIndex, RepIndex> + TableRepCount, Turn: Sequence + Copy + Invertable + EquivalenceClass<Sym>, Sym: Sequence + Copy + Clone + PG, PermIndex: Sequence + Copy + Ord, RepIndex: Copy + Ord + Into<usize>> PruningTable<Sym, PermIndex, RepIndex, Turn, MoveTable> {
     // TODO: Hypothetically our pruning table could use a different Turn set
     // than our MoveTable.  We'd need the MoveTableTurn to be Invertable, but
