@@ -5,6 +5,7 @@ pub mod locked_ud_evens;
 pub mod locked_ud_odds;
 pub mod locked_ud_slice;
 pub mod sorted_ud_evens;
+pub mod sorted_ud_odds;
 
 use std::fmt;
 use super::permutation_group::PermutationGroup;
