@@ -14,6 +14,21 @@ pub struct CompositeIndex<RepIndexA, PermIndexB>(RepIndexA, PermIndexB);
 
 impl<RepIndexA: Into<usize>, PermIndexB: Into<usize> + Sequence> Into<usize> for CompositeIndex<RepIndexA, PermIndexB> {
     fn into(self) -> usize {
+        // TODO: This works perfectly well when the two coordinates are fully
+        // independent, like in the 3x3x3 algorithms.  However, when we have
+        // interdependent coordinates, like trying to split one orbit into
+        // three in the case of reducing all 24 wing edges to G1a by fixing
+        // three orbits of eight, this creates a sparse index, as some
+        // positions aren't actually possible.  In the case of the prior
+        // example, only about 1/56 slots are occupied, because most of the
+        // time the two coordinates have at least on piece in the same
+        // position, which can't actually happen.  This can be addressed in a
+        // very fancy way where we add in some more tables.  We can create
+        // tables from reps that create a bitmap of occupied positions, and
+        // then use the PEXT instruction between the two to figure out what the
+        // adjusted positions should be, and then calculate the combinadic on
+        // that (also via precomputed table), which gives us a smaller
+        // coordinate conditioned on the other.
         self.0.into() * cardinality::<PermIndexB>() + self.1.into()
     }
 }
