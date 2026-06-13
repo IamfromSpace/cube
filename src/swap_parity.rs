@@ -2,6 +2,13 @@
 // though the maximum optimal swap count cannot exceed usize, the swap count
 // that we find may not be optimal and exceed it.  This isn't likely enough in
 // practice to worry about--we're not sorting huge slices.
+// TODO: We could get optimal if we re-index the sort.  The idea is, sort the
+// array, then create a new array based on the original where we find the index
+// of the value in the sorted array, and use that as this index.  That gives us
+// the permutation the sort used, and we could then count the swaps on that
+// permutation.  So [5, 3, 0] sorted is [0, 3, 5], and the sort's permutation
+// is [2, 0, 1], which has two swaps.  That eliminates the need entirely for a
+// hand-rolled sorting function, but does allocate a permutation.
 pub fn sort_and_count_swaps<T: Ord>(xs_arg: &mut [T]) -> usize {
     let mut xs = xs_arg;
     let mut pivot = xs.len().saturating_sub(1);
