@@ -22,7 +22,7 @@ pub struct CoordWingEdgesSortedUDEvens([u8; 8]);
 
 impl From<CoordWingEdges> for CoordWingEdgesSortedUDEvens {
     fn from(t: CoordWingEdges) -> Self {
-        CoordWingEdgesSortedUDEvens([0, 1, 2, 3, 4, 5, 6, 7]).act(t)
+        CoordWingEdgesSortedUDEvens([0, 2, 4, 6, 16, 18, 20, 22]).act(t)
     }
 }
 
