@@ -6,10 +6,12 @@ pub mod locked_ud_odds;
 pub mod locked_ud_slice;
 pub mod sorted_ud_evens;
 pub mod sorted_ud_odds;
+pub mod sorted_ud_slice;
 
 use std::fmt;
 use super::permutation_group::PermutationGroup;
 use super::invertable::Invertable;
+use swap_parity::count_swaps;
 use symmetries::cube::{MRLSymmetry, UF2Symmetry};
 
 /*
@@ -455,6 +457,12 @@ impl EquivalenceClass<UF2Symmetry> for CoordWingEdges {
     fn get_equivalent(self, sym: &UF2Symmetry) -> CoordWingEdges {
         let x: CoordWingEdges = sym.clone().into();
         x.invert().permute(self).permute(x)
+    }
+}
+
+impl CoordWingEdges {
+    pub fn is_even_parity(&self) -> bool {
+        count_swaps(&self.0) % 2 == 0
     }
 }
 
