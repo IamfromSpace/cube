@@ -775,4 +775,40 @@ mod tests {
 
         }
     }
+
+    quickcheck! {
+        fn into_and_uf2_symmetry_commute_on_wide_turn(s: UF2Symmetry, t: WideTurn) -> bool {
+            Into::<CoordWingEdges>::into(t).get_equivalent(&s) == t.get_equivalent(&s).into()
+        }
+    }
+
+    quickcheck! {
+        fn into_and_mrl_symmetry_commute_on_h1_wide_turn(s: MRLSymmetry, t: H1WideTurn) -> bool {
+            Into::<CoordWingEdges>::into(t).get_equivalent(&s) == t.get_equivalent(&s).into()
+        }
+    }
+
+    quickcheck! {
+        fn into_and_mrl_symmetry_commute_on_g1_wide_turn(s: MRLSymmetry, t: G1WideTurn) -> bool {
+            Into::<CoordWingEdges>::into(t).get_equivalent(&s) == t.get_equivalent(&s).into()
+        }
+    }
+
+    quickcheck! {
+        fn into_and_uf2_symmetry_commute_on_g1_wide_turn(s: UF2Symmetry, t: G1WideTurn) -> bool {
+            Into::<CoordWingEdges>::into(t).get_equivalent(&s) == t.get_equivalent(&s).into()
+        }
+    }
+
+    quickcheck! {
+        fn into_and_mrl_symmetry_commute_on_g1a_wide_turn(s: MRLSymmetry, t: G1aWideTurn) -> bool {
+            Into::<CoordWingEdges>::into(t).get_equivalent(&s) == t.get_equivalent(&s).into()
+        }
+    }
+
+    quickcheck! {
+        fn into_and_uf2_symmetry_commute_on_g1a_wide_turn(s: UF2Symmetry, t: G1aWideTurn) -> bool {
+            Into::<CoordWingEdges>::into(t).get_equivalent(&s) == t.get_equivalent(&s).into()
+        }
+    }
 }

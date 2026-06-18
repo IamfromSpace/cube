@@ -437,4 +437,40 @@ mod tests {
             as_perm == as_sym
         }
     }
+
+    quickcheck! {
+        fn into_and_uf2_symmetry_commute_on_g1a_wide_turn(s: UF2Symmetry, t: G1aWideTurn) -> bool {
+            Into::<CoordWingEdgesLockedUDEvens>::into(t).get_equivalent(&s) == t.get_equivalent(&s).into()
+        }
+    }
+
+    quickcheck! {
+        fn into_and_u2f2_symmetry_commute_on_g1a_wide_turn(s: U2F2Symmetry, t: G1aWideTurn) -> bool {
+            Into::<CoordWingEdgesLockedUDEvens>::into(t).get_equivalent(&s) == t.get_equivalent(&s).into()
+        }
+    }
+
+    quickcheck! {
+        fn into_and_u2_symmetry_commute_on_g1a_wide_turn(s: U2Symmetry, t: G1aWideTurn) -> bool {
+            Into::<CoordWingEdgesLockedUDEvens>::into(t).get_equivalent(&s) == t.get_equivalent(&s).into()
+        }
+    }
+
+    quickcheck! {
+        fn into_and_uf2_symmetry_commute_on_g1_wide_turn(s: UF2Symmetry, t: G1WideTurn) -> bool {
+            Into::<CoordWingEdgesLockedUDEvens>::into(t).get_equivalent(&s) == t.get_equivalent(&s).into()
+        }
+    }
+
+    quickcheck! {
+        fn into_and_u2f2_symmetry_commute_on_g1_wide_turn(s: U2F2Symmetry, t: G1WideTurn) -> bool {
+            Into::<CoordWingEdgesLockedUDEvens>::into(t).get_equivalent(&s) == t.get_equivalent(&s).into()
+        }
+    }
+
+    quickcheck! {
+        fn into_and_u2_symmetry_commute_on_g1_wide_turn(s: U2Symmetry, t: G1WideTurn) -> bool {
+            Into::<CoordWingEdgesLockedUDEvens>::into(t).get_equivalent(&s) == t.get_equivalent(&s).into()
+        }
+    }
 }

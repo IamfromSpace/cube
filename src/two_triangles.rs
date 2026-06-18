@@ -779,4 +779,21 @@ mod tests {
             }
         }
     }
+
+    #[test]
+    fn into_and_full_symmetry_commute_on_turns() {
+        for s in all::<FullSymmetry>() {
+            for t in all::<Turns>() {
+                assert_eq!(Into::<TwoTriangles>::into(t).get_equivalent(&s), t.get_equivalent(&s).into())
+            }
+        }
+    }
+    #[test]
+    fn into_and_no_symmetry_commute_on_turns() {
+        for s in all::<NoSymmetry>() {
+            for t in all::<Turns>() {
+                assert_eq!(Into::<TwoTriangles>::into(t).get_equivalent(&s), t.get_equivalent(&s).into())
+            }
+        }
+    }
 }
