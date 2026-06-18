@@ -660,49 +660,6 @@ mod tests {
         }
     }
 
-    impl quickcheck::Arbitrary for WideTurn {
-        fn arbitrary<G: Gen>(g: &mut G) -> WideTurn {
-            *g.choose(&[
-              WideTurn::U,
-              WideTurn::U2,
-              WideTurn::UPrime,
-              WideTurn::Uw,
-              WideTurn::Uw2,
-              WideTurn::UwPrime,
-              WideTurn::F,
-              WideTurn::F2,
-              WideTurn::FPrime,
-              WideTurn::Fw,
-              WideTurn::Fw2,
-              WideTurn::FwPrime,
-              WideTurn::R,
-              WideTurn::R2,
-              WideTurn::RPrime,
-              WideTurn::Rw,
-              WideTurn::Rw2,
-              WideTurn::RwPrime,
-              WideTurn::B,
-              WideTurn::B2,
-              WideTurn::BPrime,
-              WideTurn::Bw,
-              WideTurn::Bw2,
-              WideTurn::BwPrime,
-              WideTurn::L,
-              WideTurn::L2,
-              WideTurn::LPrime,
-              WideTurn::Lw,
-              WideTurn::Lw2,
-              WideTurn::LwPrime,
-              WideTurn::D,
-              WideTurn::D2,
-              WideTurn::DPrime,
-              WideTurn::Dw,
-              WideTurn::Dw2,
-              WideTurn::DwPrime,
-            ]).unwrap()
-        }
-    }
-
     impl quickcheck::Arbitrary for SymmetryGenerator {
         fn arbitrary<G: Gen>(g: &mut G) -> SymmetryGenerator {
             *g.choose(&[
