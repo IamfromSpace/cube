@@ -1,7 +1,7 @@
 use permutation_group::PermutationGroup as PG;
 use invertable::Invertable;
 use equivalence_class::EquivalenceClass;
-use representative_table::{ RepresentativeTable, RepIndex };
+use representative_table::RepIndex;
 use table_traits::{ TableTurn, TableSymTurn, TableRawIndexToSymIndex, TableSymIndexToRawIndex, TableRepCount };
 
 use std::sync::Arc;
@@ -261,6 +261,7 @@ mod tests {
     use three_triangles;
     use three_triangles_stack::*;
     use algebraic_actions::MagmaAction;
+    use representative_table::RepresentativeTable;
  
     #[test]
     fn composite_move_table_is_correct_for_double_three_triangles_even_parity_with_full_symmetry() {

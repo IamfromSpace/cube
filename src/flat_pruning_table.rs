@@ -3,7 +3,6 @@ use invertable::Invertable;
 use equivalence_class::EquivalenceClass;
 use table_traits::{ TableTurn, TableSymTurn, TableRawIndexToSymIndex, TableRepCount, TableSearchToken, TableSearch };
 
-use std::sync::Arc;
 use std::collections::BTreeSet;
 use std::collections::VecDeque;
 use enum_iterator::{all, Sequence};
@@ -252,6 +251,7 @@ mod tests {
     use enum_iterator::all;
     use flat_move_table::MoveTable;
     use algebraic_actions::MagmaAction;
+    use std::sync::Arc;
 
     #[test]
     fn pruning_table_is_correct_for_two_triangles_even_parity_without_symmetry() {

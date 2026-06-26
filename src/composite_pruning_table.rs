@@ -1,8 +1,6 @@
-use permutation_group::PermutationGroup as PG;
 use invertable::Invertable;
 use table_traits::{ TableSearchToken, TableSearch };
 
-use std::sync::Arc;
 use std::collections::{BTreeSet, BTreeMap};
 use enum_iterator::{all, Sequence};
 
@@ -201,8 +199,11 @@ mod tests {
     use representative_table::RepresentativeTable;
     use flat_move_table::MoveTable;
     use flat_pruning_table::PruningTable;
+    use permutation_group::PermutationGroup as PG;
     use translated_pruning_table::TranslatedPruningTable;
     use equivalence_class::EquivalenceClass;
+
+    use std::sync::Arc;
 
     #[test]
     fn pruning_table_is_correct_for_three_triangles_stack_even_parity_with_no_symmetry_via_composite() {

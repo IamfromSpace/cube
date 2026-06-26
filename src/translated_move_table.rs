@@ -1,8 +1,6 @@
 use equivalence_class::EquivalenceClass;
 use table_traits::{ TableTurn, TableSymTurn, TableRawIndexToSymIndex, TableSymIndexToRawIndex, TableRepCount };
 
-use enum_iterator::{ Sequence, all };
-
 #[derive(Debug)]
 pub struct TranslatedMoveTable<TSym, MoveTable> {
     move_table: MoveTable,
@@ -91,6 +89,7 @@ impl<TSym, MoveTable> TableRepCount for TranslatedMoveTable<TSym, MoveTable> whe
 mod tests {
     use super::*;
 
+    use enum_iterator::{ Sequence, all };
     use std::sync::Arc;
     use std::convert::TryFrom;
 

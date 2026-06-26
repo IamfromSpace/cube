@@ -1,10 +1,7 @@
-use permutation_group::PermutationGroup as PG;
 use invertable::Invertable;
 use equivalence_class::EquivalenceClass;
 use algebraic_actions::{MagmaAction, MonoidAction, LeftMagmaAction, LeftMonoidAction};
 use super::CoordWingEdgesLockedEvens;
-use move_sets::h1_wide_turns::H1WideTurn;
-use move_sets::g1_wide_turns::G1WideTurn;
 use symmetries::cube::U2Symmetry;
 
 use std::convert::{TryInto, TryFrom};
@@ -176,6 +173,10 @@ mod tests {
     use quickcheck::Gen;
     use enum_iterator::cardinality;
     use rand::prelude::IteratorRandom;
+
+    use move_sets::g1_wide_turns::G1WideTurn;
+    use move_sets::h1_wide_turns::H1WideTurn;
+    use permutation_group::PermutationGroup as PG;
 
     impl quickcheck::Arbitrary for CoordWingEdgesLockedEvensTopSixIndex {
         fn arbitrary<G: Gen>(g: &mut G) -> CoordWingEdgesLockedEvensTopSixIndex {
