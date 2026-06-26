@@ -349,9 +349,9 @@ mod tests {
             FtlMinusKeyholeInternal {
                 corner_positions: index_to_arr_8_3(g.gen_range(0, 336)),
                 corner_orientations: [
-                    *g.choose(&edge_orientation_choices).unwrap(),
-                    *g.choose(&edge_orientation_choices).unwrap(),
-                    *g.choose(&edge_orientation_choices).unwrap(),
+                    *edge_orientation_choices.choose(g).unwrap(),
+                    *edge_orientation_choices.choose(g).unwrap(),
+                    *edge_orientation_choices.choose(g).unwrap(),
                 ],
                 edge_positions: index_to_arr_12_7(g.gen_range(0, 3991680)),
                 edge_orientations: [

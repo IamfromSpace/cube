@@ -90,7 +90,7 @@ pub fn count_swaps<T: Into<usize> + Copy>(xs: &[T]) -> usize {
 mod tests {
     use super::*;
     use quickcheck::Gen;
-    use rand::Rng;
+    use rand::prelude::SliceRandom;
 
     #[derive(Debug, Clone)]
     pub struct TestPerm(Vec<usize>);
@@ -101,7 +101,7 @@ mod tests {
             for i in 0..len {
                 vec.push(i);
             }
-            g.shuffle(&mut vec);
+            vec.shuffle(g);
             TestPerm(vec)
         }
     }

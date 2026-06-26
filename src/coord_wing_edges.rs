@@ -650,24 +650,24 @@ const fn permute_arr(a: &[u8; 24], b: &[u8; 24]) -> [u8; 24] {
 mod tests {
     use super::*;
     use quickcheck::Gen;
-    use rand::Rng;
+    use rand::prelude::SliceRandom;
 
     impl quickcheck::Arbitrary for CoordWingEdges {
         fn arbitrary<G: Gen>(g: &mut G) -> CoordWingEdges {
             let mut x = CoordWingEdges::identity();
-            g.shuffle(&mut x.0);
+            x.0.shuffle(g);
             x
         }
     }
 
     impl quickcheck::Arbitrary for SymmetryGenerator {
         fn arbitrary<G: Gen>(g: &mut G) -> SymmetryGenerator {
-            *g.choose(&[
+            *[
                 SymmetryGenerator::SUrf,
                 SymmetryGenerator::SF,
                 SymmetryGenerator::SU,
                 SymmetryGenerator::SMrl,
-            ]).unwrap()
+            ].choose(g).unwrap()
         }
     }
 

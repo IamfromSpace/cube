@@ -317,8 +317,8 @@ mod tests {
             TwoByTwoByThreeInternal {
                 corner_positions: index_to_arr_8_2(g.gen_range(0, 56)),
                 corner_orientations: [
-                    *g.choose(&edge_orientation_choices).unwrap(),
-                    *g.choose(&edge_orientation_choices).unwrap(),
+                    *(&edge_orientation_choices).choose(g).unwrap(),
+                    *(&edge_orientation_choices).choose(g).unwrap(),
                 ],
                 edge_positions: index_to_arr_12_5(g.gen_range(0, 95040)),
                 edge_orientations: [

@@ -1477,8 +1477,8 @@ pub mod wide_turns {
 
         impl quickcheck::Arbitrary for WideTurn {
             fn arbitrary<G: quickcheck::Gen>(g: &mut G) -> WideTurn {
-                use rand::Rng;
-                *g.choose(&enum_iterator::all::<WideTurn>().collect::<Vec<_>>()).unwrap()
+                use rand::prelude::IteratorRandom;
+                enum_iterator::all::<WideTurn>().choose(g).unwrap()
             }
         }
 
@@ -1906,8 +1906,8 @@ pub mod h1_wide_turns {
 
         impl quickcheck::Arbitrary for H1WideTurn {
             fn arbitrary<G: quickcheck::Gen>(g: &mut G) -> H1WideTurn {
-                use rand::Rng;
-                *g.choose(&enum_iterator::all::<H1WideTurn>().collect::<Vec<_>>()).unwrap()
+                use rand::prelude::IteratorRandom;
+                enum_iterator::all::<H1WideTurn>().choose(g).unwrap()
             }
         }
 
@@ -2455,8 +2455,8 @@ pub mod g1_wide_turns {
 
         impl quickcheck::Arbitrary for G1WideTurn {
             fn arbitrary<G: quickcheck::Gen>(g: &mut G) -> G1WideTurn {
-                use rand::Rng;
-                *g.choose(&enum_iterator::all::<G1WideTurn>().collect::<Vec<_>>()).unwrap()
+                use rand::prelude::IteratorRandom;
+                enum_iterator::all::<G1WideTurn>().choose(g).unwrap()
             }
         }
 
@@ -2996,8 +2996,8 @@ pub mod g1a_wide_turns {
 
         impl quickcheck::Arbitrary for G1aWideTurn {
             fn arbitrary<G: quickcheck::Gen>(g: &mut G) -> G1aWideTurn {
-                use rand::Rng;
-                *g.choose(&enum_iterator::all::<G1aWideTurn>().collect::<Vec<_>>()).unwrap()
+                use rand::prelude::IteratorRandom;
+                enum_iterator::all::<G1aWideTurn>().choose(g).unwrap()
             }
         }
 

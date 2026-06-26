@@ -162,7 +162,7 @@ impl EquivalenceClass<U2F2Symmetry> for CoordWingEdgesLockedEvens {
 mod tests {
     use super::*;
     use quickcheck::Gen;
-    use rand::Rng;
+    use rand::prelude::SliceRandom;
 
     // TODO: this can be generalized, also, isn't this a property of being a permutation group?
     fn is_even_parity(x: [u8; 12]) -> bool {
@@ -194,7 +194,7 @@ mod tests {
     impl quickcheck::Arbitrary for CoordWingEdgesLockedEvens {
         fn arbitrary<G: Gen>(g: &mut G) -> CoordWingEdgesLockedEvens {
             let mut x = CoordWingEdgesLockedEvens::identity();
-            g.shuffle(&mut x.0);
+            x.0.shuffle(g);
 
             // If not even, do one more swap
             if !is_even_parity(x.0) {

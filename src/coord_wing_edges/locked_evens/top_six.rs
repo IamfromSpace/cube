@@ -174,12 +174,13 @@ impl Into<CoordWingEdgesLockedEvensTopSixIndex> for CoordWingEdgesLockedEvensTop
 mod tests {
     use super::*;
     use quickcheck::Gen;
-    use rand::Rng;
     use enum_iterator::cardinality;
+    use rand::prelude::IteratorRandom;
 
     impl quickcheck::Arbitrary for CoordWingEdgesLockedEvensTopSixIndex {
         fn arbitrary<G: Gen>(g: &mut G) -> CoordWingEdgesLockedEvensTopSixIndex {
-            CoordWingEdgesLockedEvensTopSixIndex(*g.choose(&(0..cardinality::<CoordWingEdgesLockedEvensTopSixIndex>() as u32).collect::<Vec<_>>()).unwrap())
+            // Note: all is extremely slow
+            CoordWingEdgesLockedEvensTopSixIndex((0..cardinality::<CoordWingEdgesLockedEvensTopSixIndex>() as u32).choose(g).unwrap())
         }
     }
 

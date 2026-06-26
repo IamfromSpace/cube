@@ -520,11 +520,11 @@ extern crate rand;
 mod tests {
     use super::*;
     use super::quickcheck::Gen;
-    use super::rand::Rng;
+    use rand::prelude::SliceRandom;
 
     impl super::quickcheck::Arbitrary for FaceTurn {
         fn arbitrary<G: Gen>(g: &mut G) -> FaceTurn {
-            *g.choose(&[
+            *[
               FaceTurn::U,
               FaceTurn::U2,
               FaceTurn::UPrime,
@@ -543,13 +543,13 @@ mod tests {
               FaceTurn::D,
               FaceTurn::D2,
               FaceTurn::DPrime,
-            ]).unwrap()
+            ].choose(g).unwrap()
         }
     }
 
     impl super::quickcheck::Arbitrary for QuarterTurn {
         fn arbitrary<G: Gen>(g: &mut G) -> QuarterTurn {
-            *g.choose(&[
+            *[
               QuarterTurn::U,
               QuarterTurn::UPrime,
               QuarterTurn::F,
@@ -562,13 +562,13 @@ mod tests {
               QuarterTurn::LPrime,
               QuarterTurn::D,
               QuarterTurn::DPrime,
-            ]).unwrap()
+            ].choose(g).unwrap()
         }
     }
 
     impl super::quickcheck::Arbitrary for G1Turn {
         fn arbitrary<G: Gen>(g: &mut G) -> G1Turn {
-            *g.choose(&[
+            *[
               G1Turn::U,
               G1Turn::U2,
               G1Turn::UPrime,
@@ -579,7 +579,7 @@ mod tests {
               G1Turn::D,
               G1Turn::D2,
               G1Turn::DPrime,
-            ]).unwrap()
+            ].choose(g).unwrap()
         }
     }
 

@@ -196,12 +196,13 @@ mod tests {
     use permutation_group::PermutationGroup as PG;
     use move_sets::wide_turns::WideTurn;
     use quickcheck::Gen;
-    use rand::Rng;
     use enum_iterator::cardinality;
+    use rand::prelude::IteratorRandom;
 
     impl quickcheck::Arbitrary for CoordWingEdgesSortedUDEvensIndex {
         fn arbitrary<G: Gen>(g: &mut G) -> CoordWingEdgesSortedUDEvensIndex {
-            CoordWingEdgesSortedUDEvensIndex(*g.choose(&(0..cardinality::<CoordWingEdgesSortedUDEvensIndex>() as u32).collect::<Vec<_>>()).unwrap())
+            // NOTE: all is extremely slow
+            CoordWingEdgesSortedUDEvensIndex((0..cardinality::<CoordWingEdgesSortedUDEvensIndex>() as u32).choose(g).unwrap())
         }
     }
 

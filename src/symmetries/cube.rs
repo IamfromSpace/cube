@@ -277,29 +277,29 @@ mod tests {
     use super::*;
     use enum_iterator::all;
     use quickcheck::Gen;
-    use rand::Rng;
+    use rand::prelude::IteratorRandom;
 
     impl quickcheck::Arbitrary for MRLSymmetry {
         fn arbitrary<G: Gen>(g: &mut G) -> MRLSymmetry {
-            *g.choose(&all::<MRLSymmetry>().collect::<Vec<_>>()).unwrap()
+            all::<MRLSymmetry>().choose(g).unwrap()
         }
     }
 
     impl quickcheck::Arbitrary for U2Symmetry {
         fn arbitrary<G: Gen>(g: &mut G) -> U2Symmetry {
-            *g.choose(&all::<U2Symmetry>().collect::<Vec<_>>()).unwrap()
+            all::<U2Symmetry>().choose(g).unwrap()
         }
     }
 
     impl quickcheck::Arbitrary for U2F2Symmetry {
         fn arbitrary<G: Gen>(g: &mut G) -> U2F2Symmetry {
-            *g.choose(&all::<U2F2Symmetry>().collect::<Vec<_>>()).unwrap()
+            all::<U2F2Symmetry>().choose(g).unwrap()
         }
     }
 
     impl quickcheck::Arbitrary for UF2Symmetry {
         fn arbitrary<G: Gen>(g: &mut G) -> UF2Symmetry {
-            *g.choose(&all::<UF2Symmetry>().collect::<Vec<_>>()).unwrap()
+            all::<UF2Symmetry>().choose(g).unwrap()
         }
     }
 

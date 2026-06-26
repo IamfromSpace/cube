@@ -239,13 +239,13 @@ pub fn moves_to_solve() -> BTreeMap<ThreeTrapezoidsEdgeIndex, usize> {
 mod tests {
     use super::*;
     use quickcheck::Gen;
-    use rand::Rng;
-    use enum_iterator::{all, cardinality};
+    use rand::prelude::IteratorRandom;
+    use enum_iterator::all;
     use three_trapezoids::ThreeTrapezoidsIndex;
 
     impl quickcheck::Arbitrary for ThreeTrapezoidsEdgeIndex {
         fn arbitrary<G: Gen>(g: &mut G) -> ThreeTrapezoidsEdgeIndex {
-            ThreeTrapezoidsEdgeIndex(*g.choose(&(0..cardinality::<ThreeTrapezoidsEdgeIndex>() as u16).collect::<Vec<_>>()).unwrap())
+            all::<ThreeTrapezoidsEdgeIndex>().choose(g).unwrap()
         }
     }
 
