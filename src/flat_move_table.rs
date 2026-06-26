@@ -460,8 +460,6 @@ mod tests {
         test_on_pattern::<three_trapezoids::FullSymmetry, three_trapezoids::inner::ThreeTrapezoidsInnerIndex, three_trapezoids::Turns, three_trapezoids::ThreeTrapezoids, three_trapezoids::inner::ThreeTrapezoidsInner>();
     }
 
-    use three_trapezoids::outer;
-
     #[test]
     fn move_table_is_correct_for_three_trapezoids_outer_with_no_symmetry() {
         test_on_pattern::<three_trapezoids::NoSymmetry, three_trapezoids::outer::ThreeTrapezoidsOuterIndex, three_trapezoids::Turns, three_trapezoids::ThreeTrapezoids, three_trapezoids::outer::ThreeTrapezoidsOuter>();

@@ -2703,7 +2703,6 @@ pub mod g1a_wide_turns {
                 (U2Symmetry::U2, G1aWideTurn::Uw) => G1aWideTurn::Uw,
                 (U2Symmetry::U2, G1aWideTurn::Uw2) => G1aWideTurn::Uw2,
                 (U2Symmetry::U2, G1aWideTurn::UwPrime) => G1aWideTurn::UwPrime,
-                (U2Symmetry::U2, G1aWideTurn::Uw2) => G1aWideTurn::Uw2,
                 (U2Symmetry::U2, G1aWideTurn::F2) => G1aWideTurn::B2,
                 (U2Symmetry::U2, G1aWideTurn::Fw2) => G1aWideTurn::Bw2,
                 (U2Symmetry::U2, G1aWideTurn::R2) => G1aWideTurn::L2,

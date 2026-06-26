@@ -73,8 +73,6 @@ mod tests {
         let inner_pruning_table: Arc<PruningTable<MirrorUDSymmetry, ThreeTrapezoidsIndex, _, Turns, _>> = Arc::new(PruningTable::new(move_table.clone(), std::iter::once(ThreeTrapezoids::from(ThreeTrapezoids::identity()).into())));
 
         // Our simple implementation (ThreeTrapezoids is small enough to solve naively) matches our more complex one
-        let tt_table = moves_to_solve();
-
         for translation in all::<RotationalSymmetry>() {
             let pruning_table = TranslatedPruningTable::new(inner_pruning_table.clone(), translation);
             for pi in all::<ThreeTrapezoidsIndex>() {
@@ -98,8 +96,6 @@ mod tests {
         let inner_pruning_table: Arc<PruningTable<RotationalSymmetry, ThreeTrapezoidsIndex, _, Turns, _>> = Arc::new(PruningTable::new(move_table.clone(), std::iter::once(ThreeTrapezoids::from(ThreeTrapezoids::identity()).into())));
 
         // Our simple implementation (ThreeTrapezoids is small enough to solve naively) matches our more complex one
-        let tt_table = moves_to_solve();
-
         for translation in all::<MirrorUDSymmetry>() {
             let pruning_table = TranslatedPruningTable::new(inner_pruning_table.clone(), translation);
             for pi in all::<ThreeTrapezoidsIndex>() {

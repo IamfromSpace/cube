@@ -158,6 +158,7 @@ const F_PRIME: FaceletWingEdges = FaceletWingEdges([0, 1, 2, 3, 4, 39, 32, 7, 10
 #[allow(non_upper_case_globals)]
 const f_SLICE: FaceletWingEdges = FaceletWingEdges(arr_inv(&f_SLICE_PRIME.0));
 
+#[allow(non_upper_case_globals)]
 const f_SLICE_PRIME: FaceletWingEdges = FaceletWingEdges([0, 1, 2, 3, 38, 5, 6, 33, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 4, 19, 20, 7, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 43, 34, 35, 36, 37, 40, 39, 18, 41, 42, 21, 44, 45, 46, 47]);
 
 #[allow(non_upper_case_globals)]

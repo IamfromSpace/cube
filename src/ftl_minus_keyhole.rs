@@ -392,7 +392,6 @@ mod tests {
     }
 
     use super::super::move_sets::quarter_turns::QuarterTurn;
-    use super::super::move_sets::face_turns::FaceTurn;
     use super::super::permutation_group::PermutationGroup;
     #[test]
     fn should_be_able_to_generate_one_turn_with_a_combination_of_the_other_five() {
