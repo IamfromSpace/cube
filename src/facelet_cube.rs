@@ -419,7 +419,6 @@ fn permute_arr(a: &[u8; 24], b: &[u8; 24]) -> [u8; 24] {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use test::Bencher;
 
     const CLEAN_ARR: [u8; 24] = [
         0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23
@@ -707,51 +706,5 @@ mod tests {
             .permute(QuarterTurn::R.into())
             .permute(SymmetryGenerator::SMrl.into());
         assert_eq!(l_prime, QuarterTurn::LPrime.into());
-    }
-
-    #[bench]
-    fn repeatedly_perform_1000_turns_via_complex_arr_permutation(b: &mut Bencher) {
-        let mut cleanc = CLEAN_ARR;
-        b.iter(|| {
-            for _ in 0..2_000 {
-                cleanc = permute_arr(&cleanc, &LOTS_ARR)
-            }
-            cleanc
-        });
-    }
-
-    #[bench]
-    fn repeatedly_perform_1000_inv_turns_via_complex_arr_permutation(b: &mut Bencher) {
-        let mut cleanc = CLEAN_ARR;
-        b.iter(|| {
-            for _ in 0..2_000 {
-                cleanc = permute_arr(&cleanc, &arr_inv(&LOTS_ARR))
-            }
-            cleanc
-        });
-    }
-
-    #[bench]
-    fn repeat_all_turn_identity_sequence(b: &mut Bencher) {
-        b.iter(|| {
-            FaceletCube::from(QuarterTurn::R)
-                .permute(QuarterTurn::L.into())
-                .permute(QuarterTurn::F.into())
-                .permute(QuarterTurn::F.into())
-                .permute(QuarterTurn::B.into())
-                .permute(QuarterTurn::B.into())
-                .permute(QuarterTurn::RPrime.into())
-                .permute(QuarterTurn::LPrime.into())
-                .permute(QuarterTurn::U.into())
-                .permute(QuarterTurn::R.into())
-                .permute(QuarterTurn::L.into())
-                .permute(QuarterTurn::FPrime.into())
-                .permute(QuarterTurn::FPrime.into())
-                .permute(QuarterTurn::BPrime.into())
-                .permute(QuarterTurn::BPrime.into())
-                .permute(QuarterTurn::RPrime.into())
-                .permute(QuarterTurn::LPrime.into())
-                .permute(QuarterTurn::D.into());
-        });
     }
 }

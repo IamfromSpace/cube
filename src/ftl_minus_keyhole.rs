@@ -277,7 +277,6 @@ impl From<FtlMinusKeyhole> for CoordCube {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use test::Bencher;
 
     #[test]
     fn internal_and_public_should_round_trip() {
@@ -421,36 +420,6 @@ mod tests {
                 CoordCube::from(FtlMinusKeyhole::from(coord_cube.permute(t.into())));
         }
         assert_eq!(coord_cube, CoordCube::identity());
-    }
-
-    #[bench]
-    fn repeat_all_turn_identity_sequence(b: &mut Bencher) {
-        let id_seq = [
-            QuarterTurn::R,
-            QuarterTurn::L,
-            QuarterTurn::F,
-            QuarterTurn::F,
-            QuarterTurn::B,
-            QuarterTurn::B,
-            QuarterTurn::RPrime,
-            QuarterTurn::LPrime,
-            QuarterTurn::U,
-            QuarterTurn::R,
-            QuarterTurn::L,
-            QuarterTurn::FPrime,
-            QuarterTurn::FPrime,
-            QuarterTurn::BPrime,
-            QuarterTurn::BPrime,
-            QuarterTurn::RPrime,
-            QuarterTurn::LPrime,
-            QuarterTurn::D,
-        ];
-        b.iter(|| {
-            let mut coord_cube = CoordCube::identity();
-            for &t in &id_seq {
-                coord_cube = CoordCube::from(FtlMinusKeyhole::from(coord_cube.permute(t.into())));
-            }
-        });
     }
 }
 

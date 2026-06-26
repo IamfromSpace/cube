@@ -262,7 +262,6 @@ impl From<CubieOrientationAndUDSlice> for CoordCube {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use test::Bencher;
 
     #[test]
     // TODO: This may be elsewhere
@@ -365,72 +364,6 @@ mod tests {
                 CoordCube::from(CubieOrientationAndUDSlice::from(ud_cube.permute(t.into())));
         }
         assert_eq!(ud_cube, CoordCube::identity());
-    }
-
-    #[bench]
-    fn repeat_all_turn_identity_sequence(b: &mut Bencher) {
-        let id_seq = [
-            QuarterTurn::R,
-            QuarterTurn::L,
-            QuarterTurn::F,
-            QuarterTurn::F,
-            QuarterTurn::B,
-            QuarterTurn::B,
-            QuarterTurn::RPrime,
-            QuarterTurn::LPrime,
-            QuarterTurn::U,
-            QuarterTurn::R,
-            QuarterTurn::L,
-            QuarterTurn::FPrime,
-            QuarterTurn::FPrime,
-            QuarterTurn::BPrime,
-            QuarterTurn::BPrime,
-            QuarterTurn::RPrime,
-            QuarterTurn::LPrime,
-            QuarterTurn::D,
-        ];
-        b.iter(|| {
-            let mut coord_cube = CoordCube::identity();
-            for &t in &id_seq {
-                coord_cube = CoordCube::from(CubieOrientationAndUDSlice::from(coord_cube.permute(t.into())));
-            }
-        });
-    }
-
-    #[bench]
-    fn edge_orientation_packing_x20(b: &mut Bencher) {
-        let cases: Vec<u16> = vec!(
-            3263,
-            477,
-            2089,
-            1057,
-            341,
-            3979,
-            3053,
-            3709,
-            2680,
-            2789,
-            1629,
-            1810,
-            2530,
-            1131,
-            3429,
-            1689,
-            37,
-            3301,
-            2315,
-            972,
-        );
-
-        b.iter(|| {
-            let mut eos = Vec::new();
-            for &case in &cases {
-                eos.push(index_to_edge_orientations(case));
-            }
-            for &eo in &eos {
-                edge_orientations_to_index(eo);
-            }
-        });
     }
 }
 
