@@ -4,7 +4,6 @@ use table_traits::{ TableSearchToken, TableSearch };
 
 use std::sync::Arc;
 use std::collections::{BTreeSet, BTreeMap};
-use std::collections::VecDeque;
 use enum_iterator::{all, Sequence};
 
 // TODO: We may not actually want this to be Copy, because it's now of
@@ -90,7 +89,9 @@ impl<Turn, PruningTableA, PruningTableB> CompositePruningTable<PruningTableA, Pr
         shortest_known_path.insert(lbt.table_get_index(), 0);
 
         loop {
-            let (c, remaining, lbt, turns) = queue.pop_first().expect("Invariant violation: It's impossible that the queue is empty, as that would imply that the position is unsolvable!");
+            // TODO: First two entries are only for sorting by priority, but we
+            // could make a new type that implements this as Ord
+            let (_, _, lbt, turns) = queue.pop_first().expect("Invariant violation: It's impossible that the queue is empty, as that would imply that the position is unsolvable!");
             if lbt.table_get_lower_bound() == 0 {
                 break turns.into_iter().collect()
             }
@@ -99,7 +100,7 @@ impl<Turn, PruningTableA, PruningTableB> CompositePruningTable<PruningTableA, Pr
             for t in all::<Turn>() {
                 let lbt2 = self.continue_search(lbt, t);
                 let si = lbt2.clone().table_get_index();
-                if shortest_known_path.get(&si).map((|n| turns.len() as u8 + 1 < *n)).unwrap_or(true) {
+                if shortest_known_path.get(&si).map(|n| turns.len() as u8 + 1 < *n).unwrap_or(true) {
                     shortest_known_path.insert(si, turns.len() as u8 + 1);
                     // TODO: We're using the im crate now, so hypothetically
                     // this clone isn't hardly as punishing as just cloning
