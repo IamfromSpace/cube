@@ -7,6 +7,7 @@ extern crate enum_iterator;
 
 use std::hash::Hash;
 
+mod abstract_solvers;
 mod invertable;
 mod permutation_group;
 mod equivalence_class;

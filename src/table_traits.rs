@@ -83,3 +83,9 @@ impl<T: TableSearch<Turn>, Turn> TableSearch<Turn> for Arc<T> {
         (**self).table_continue_search(st, t)
     }
 }
+
+pub trait SolveOptimal<Turn> {
+    type Index;
+
+    fn solve_optimal(&self, i: Self::Index) -> Vec<Turn>;
+}
