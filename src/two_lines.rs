@@ -442,4 +442,54 @@ mod tests {
             }
         }
     }
+
+    #[test]
+    fn no_symmetry_permutation_is_associative() {
+        for p0 in all::<NoSymmetry>() {
+            for p1 in all::<NoSymmetry>() {
+                for p2 in all::<NoSymmetry>() {
+                    assert_eq!(p0.permute(p1).permute(p2), p0.permute(p1.permute(p2)))
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn no_symmetry_identity_has_no_effect() {
+        for p in all::<NoSymmetry>() {
+            assert_eq!(p.permute(NoSymmetry::identity()) == p, NoSymmetry::identity().permute(p) == p)
+        }
+    }
+
+    #[test]
+    fn no_symmetry_inversion_is_identity() {
+        for p in all::<NoSymmetry>() {
+            assert_eq!(p.permute(p.invert()), NoSymmetry::identity())
+        }
+    }
+
+    #[test]
+    fn full_symmetry_permutation_is_associative() {
+        for p0 in all::<FullSymmetry>() {
+            for p1 in all::<FullSymmetry>() {
+                for p2 in all::<FullSymmetry>() {
+                    assert_eq!(p0.permute(p1).permute(p2), p0.permute(p1.permute(p2)))
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn full_symmetry_identity_has_no_effect() {
+        for p in all::<FullSymmetry>() {
+            assert_eq!(p.permute(FullSymmetry::identity()) == p, FullSymmetry::identity().permute(p) == p)
+        }
+    }
+
+    #[test]
+    fn full_symmetry_inversion_is_identity() {
+        for p in all::<FullSymmetry>() {
+            assert_eq!(p.permute(p.invert()), FullSymmetry::identity())
+        }
+    }
 }

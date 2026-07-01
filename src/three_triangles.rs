@@ -1014,4 +1014,104 @@ mod tests {
             }
         }
     }
+
+    #[test]
+    fn no_symmetry_permutation_is_associative() {
+        for p0 in all::<NoSymmetry>() {
+            for p1 in all::<NoSymmetry>() {
+                for p2 in all::<NoSymmetry>() {
+                    assert_eq!(p0.permute(p1).permute(p2), p0.permute(p1.permute(p2)))
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn no_symmetry_identity_has_no_effect() {
+        for p in all::<NoSymmetry>() {
+            assert_eq!(p.permute(NoSymmetry::identity()) == p, NoSymmetry::identity().permute(p) == p)
+        }
+    }
+
+    #[test]
+    fn no_symmetry_inversion_is_identity() {
+        for p in all::<NoSymmetry>() {
+            assert_eq!(p.permute(p.invert()), NoSymmetry::identity())
+        }
+    }
+
+    #[test]
+    fn mirror_ud_symmetry_permutation_is_associative() {
+        for p0 in all::<MirrorUDSymmetry>() {
+            for p1 in all::<MirrorUDSymmetry>() {
+                for p2 in all::<MirrorUDSymmetry>() {
+                    assert_eq!(p0.permute(p1).permute(p2), p0.permute(p1.permute(p2)))
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn mirror_ud_symmetry_identity_has_no_effect() {
+        for p in all::<MirrorUDSymmetry>() {
+            assert_eq!(p.permute(MirrorUDSymmetry::identity()) == p, MirrorUDSymmetry::identity().permute(p) == p)
+        }
+    }
+
+    #[test]
+    fn mirror_ud_symmetry_inversion_is_identity() {
+        for p in all::<MirrorUDSymmetry>() {
+            assert_eq!(p.permute(p.invert()), MirrorUDSymmetry::identity())
+        }
+    }
+
+    #[test]
+    fn rotational_symmetry_permutation_is_associative() {
+        for p0 in all::<RotationalSymmetry>() {
+            for p1 in all::<RotationalSymmetry>() {
+                for p2 in all::<RotationalSymmetry>() {
+                    assert_eq!(p0.permute(p1).permute(p2), p0.permute(p1.permute(p2)))
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn rotational_symmetry_identity_has_no_effect() {
+        for p in all::<RotationalSymmetry>() {
+            assert_eq!(p.permute(RotationalSymmetry::identity()) == p, RotationalSymmetry::identity().permute(p) == p)
+        }
+    }
+
+    #[test]
+    fn rotational_symmetry_inversion_is_identity() {
+        for p in all::<RotationalSymmetry>() {
+            assert_eq!(p.permute(p.invert()), RotationalSymmetry::identity())
+        }
+    }
+
+    #[test]
+    fn full_symmetry_permutation_is_associative() {
+        for p0 in all::<FullSymmetry>() {
+            for p1 in all::<FullSymmetry>() {
+                for p2 in all::<FullSymmetry>() {
+                    assert_eq!(p0.permute(p1).permute(p2), p0.permute(p1.permute(p2)))
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn full_symmetry_identity_has_no_effect() {
+        for p in all::<FullSymmetry>() {
+            assert_eq!(p.permute(FullSymmetry::identity()) == p, FullSymmetry::identity().permute(p) == p)
+        }
+    }
+
+    #[test]
+    fn full_symmetry_inversion_is_identity() {
+        for p in all::<FullSymmetry>() {
+            assert_eq!(p.permute(p.invert()), FullSymmetry::identity())
+        }
+    }
 }
